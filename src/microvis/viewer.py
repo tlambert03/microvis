@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from vispy import scene
 
 from . import _validators as valid
 from . import backend as _backend
@@ -22,8 +21,6 @@ class CanvasAttrs:
     title: str = ""
     screen_position: tuple[int, int] | None = None
     resizable: bool = True
-    decorate: bool = True  # whether to show the window border
-    always_on_top: bool = False
 
 
 class Viewer:
@@ -65,3 +62,18 @@ class Viewer:
 
     def __delitem__(self, idxs: tuple[int, int]) -> None:
         del self.canvas[idxs]
+
+    def __enter__(self) -> Viewer:
+        self.canvas.__enter__()
+        return self
+
+    def __exit__(self, *args: Any) -> None:
+        self.canvas.__exit__(*args)
+
+
+# Viewer
+#   - Canvas
+#     - 1 or more View ([m, n] with [0, 0] as default)
+#       - add_<layer>()
+
+# Application ... some sort of event loop
