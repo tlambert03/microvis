@@ -1,11 +1,12 @@
-from itertools import product
-from .viewer import Viewer
+from typing import Any
 import numpy as np
+
+from .viewer import Viewer
 
 
 def imshow(
-    data, background_color=None, size=(600, 600), clim="auto", *, backend=None
-) -> Viewer:
+    data: Any, background_color=None, size=(600, 600), clim="auto", *, backend=None
+) -> tuple[Viewer, Any]:
     viewer = Viewer(background_color=background_color, size=size, backend=backend)
     img = viewer.add_image(data, clim=clim)
     viewer.show()
@@ -13,6 +14,8 @@ def imshow(
 
 
 def ortho(data: np.ndarray) -> Viewer:
+    from itertools import product
+
     from vispy import scene
 
     viewer = Viewer()
