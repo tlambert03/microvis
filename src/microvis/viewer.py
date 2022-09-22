@@ -1,9 +1,9 @@
 from __future__ import annotations
+import importlib
 
 from typing import TYPE_CHECKING, Any
 
 from . import _validators as valid
-from . import backend as _backend
 from .util import in_notebook
 
 if TYPE_CHECKING:
@@ -20,7 +20,7 @@ class Viewer:
         backend: str | None = None,
     ) -> None:
         backend = backend or "vispy"
-        backend_module = getattr(_backend, backend)
+        backend_module = importlib.import_module(f"microvis.backend.{backend}")
         Canvas: type[CanvasBase] = backend_module.Canvas
         if background_color is None:
             background_color = "white" if in_notebook() else "black"
