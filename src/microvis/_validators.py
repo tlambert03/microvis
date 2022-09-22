@@ -17,7 +17,9 @@ def clim(obj: object) -> ValidClim:
     raise ValueError(f"clim must be a tuple of length 2 or one of {allowable}")
 
 
-def cmap(obj: object) -> ValidCmap:
+def cmap(obj: object) -> ValidCmap | None:
     if isinstance(obj, str):
         return obj
+    if obj is None:
+        return None
     raise ValueError("cmap must be a string")

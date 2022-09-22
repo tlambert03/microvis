@@ -1,17 +1,20 @@
 from itertools import product
 from .viewer import Viewer
-from vispy import scene
 import numpy as np
 
 
-def imshow(data, background_color=None) -> Viewer:
-    viewer = Viewer(background_color=background_color)
-    viewer.add_image(data)
+def imshow(
+    data, background_color=None, size=(600, 600), clim="auto", *, backend=None
+) -> Viewer:
+    viewer = Viewer(background_color=background_color, size=size, backend=backend)
+    img = viewer.add_image(data, clim=clim)
     viewer.show()
-    return viewer
+    return viewer, img
 
 
 def ortho(data: np.ndarray) -> Viewer:
+    from vispy import scene
+
     viewer = Viewer()
 
     shape = data.shape
