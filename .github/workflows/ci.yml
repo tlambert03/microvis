@@ -42,6 +42,14 @@ jobs:
 
       - uses: tlambert03/setup-qt-libs@v1
 
+      # FIXME: use better strategy
+      - name: Install Windows OpenGL
+        if: runner.os == 'Windows'
+        run: |
+          git clone --depth 1 https://github.com/pyvista/gl-ci-helpers.git
+          powershell gl-ci-helpers/appveyor/install_opengl.ps1
+          if (Test-Path -Path "C:\Windows\system32\opengl32.dll" -PathType Leaf) {Exit 0} else {Exit 1}
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
@@ -61,7 +69,7 @@ jobs:
           python -m pip install -U pip
           python -m pip install -e .[test,${{ matrix.backend }}] --pre
 
-      - name: Test
+      - name: Test 
         uses: GabrielBB/xvfb-action@v1
         with:
           run: python -m pytest -v --color=yes --cov=microvis --cov-report=xml
