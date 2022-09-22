@@ -1,8 +1,8 @@
-from typing import TYPE_CHECKING, Union, Literal
+from typing import Union, Literal, Tuple
 import numpy as np
 
 ClimString = Literal["auto"]
-ValidClim = Union[ClimString, tuple[float, float]]
+ValidClim = Union[ClimString, Tuple[float, float]]
 ValidCmap = str
 ArrayLike = np.ndarray
 
