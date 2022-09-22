@@ -6,7 +6,7 @@ import pytest
 from microvis import imshow
 
 BACKENDS = ["vispy"]
-if os.getenv("CI") is not None:
+if os.getenv("CI") is None:
     BACKENDS += ["pygfx"]
 
 
