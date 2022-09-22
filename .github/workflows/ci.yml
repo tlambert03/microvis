@@ -61,7 +61,7 @@ jobs:
           python -m pip install -U pip
           python -m pip install -e .[test,${{ matrix.backend }}] --pre
 
-      - name: Test with tox
+      - name: Test
         uses: GabrielBB/xvfb-action@v1
         with:
           run: python -m pytest -v --color=yes --cov=microvis --cov-report=xml
