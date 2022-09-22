@@ -1,9 +1,13 @@
+import os
+
 import numpy as np
 import pytest
 
 from microvis import imshow
 
-BACKENDS = ["vispy", "pygfx"]
+BACKENDS = ["vispy"]
+if os.getenv("CI") is not None:
+    BACKENDS += ["pygfx"]
 
 
 @pytest.mark.parametrize("backend", BACKENDS)

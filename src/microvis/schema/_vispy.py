@@ -2,7 +2,6 @@
 # Visuals: drawable objects intended to encapsulate simple graphic objects
 # such as lines, meshes, points, 2D shapes, images, text, etc.
 from __future__ import annotations
-from configparser import Interpolation
 
 from typing import Any, Literal, TypeVar
 
@@ -12,6 +11,7 @@ from pydantic import BaseModel, Field
 from ._util import StrEnum
 
 W = TypeVar("W", bound="Widget")
+
 
 class Visual(BaseModel):
     """Visual that can be drawn using a single shader program."""
@@ -78,9 +78,10 @@ class ImageInterpolation(StrEnum):
 class Image:
     data: np.ndarray
     clim: tuple[float, float] = (0, 1)
-    cmap: Colormap = 'gray'
-    interpolation_method: Literal['nearest', 'linear'] = 'nearest'
- 
+    cmap: Colormap = "gray"
+    interpolation_method: Literal["nearest", "linear"] = "nearest"
+
+
 class _ImageBase(Visual):
     cmap: Colormap = Field("gray", description="Colormap to use for the image.")
     clim: tuple[float, float] | None = Field(

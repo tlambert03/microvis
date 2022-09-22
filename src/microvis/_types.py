@@ -1,4 +1,5 @@
-from typing import Union, Literal, Tuple
+from typing import Literal, Tuple, Union
+
 import numpy as np
 
 ClimString = Literal["auto"]

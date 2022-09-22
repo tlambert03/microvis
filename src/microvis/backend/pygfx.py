@@ -148,4 +148,4 @@ class Canvas(CanvasBase):
         renderer = pygfx.renderers.WgpuRenderer(canvas)
         viewport = pygfx.Viewport(renderer)
         canvas.request_draw(lambda: self._animate(viewport))
-        return cast('np.ndarray', canvas.draw())
+        return cast("np.ndarray", canvas.draw())

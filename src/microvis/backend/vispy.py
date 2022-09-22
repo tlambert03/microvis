@@ -7,8 +7,9 @@ from vispy import scene
 from ._base import CanvasBase, ViewBase
 
 if TYPE_CHECKING:
-    from .._types import ValidClim, ValidCmap, ValidColor
     import numpy as np
+
+    from .._types import ValidClim, ValidCmap, ValidColor
 
 ValidCamera = Literal["base", "panzoom", "perspective", "turntable", "fly", "arcball"]
 

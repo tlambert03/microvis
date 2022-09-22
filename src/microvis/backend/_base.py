@@ -4,12 +4,12 @@ import abc
 from typing import TYPE_CHECKING, Any, Optional, Tuple
 
 from .. import _validators as valid
-from .._types import ValidClim, ValidCmap, ValidColor, ArrayLike
+from .._types import ArrayLike, ValidClim, ValidCmap, ValidColor
 
 if TYPE_CHECKING:
     import numpy as np
 
-from psygnal import EventedModel, EmissionInfo
+from psygnal import EmissionInfo, EventedModel
 from psygnal.containers import EventedObjectProxy
 from pydantic import Field
 

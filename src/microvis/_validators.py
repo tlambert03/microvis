@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from typing import cast
-from ._types import ValidClim, ValidCmap, ClimString
+
+from ._types import ClimString, ValidClim, ValidCmap
 
 
 def clim(obj: object) -> ValidClim:
