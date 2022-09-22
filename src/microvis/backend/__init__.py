@@ -1,3 +1,3 @@
-from . import vispy
+from . import vispy, pygfx
 
-__all__ = ["vispy"]
+__all__ = ["vispy", "pygfx"]

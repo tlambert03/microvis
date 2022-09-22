@@ -70,7 +70,7 @@ class ViewBase(abc.ABC):
     def add_image(
         self,
         data: Any,
-        cmap: ValidCmap = "gray",
+        cmap: ValidCmap | None = None,
         clim: ValidClim = "auto",
         **kwargs: Any,
     ) -> Image:
@@ -91,8 +91,7 @@ class CanvasBase(abc.ABC):
         self,
         background_color: str | None = None,
         size: tuple[int, int] = (600, 600),
-        show: bool = False,
-        **kwargs: Any,
+        **backend_kwargs: Any,
     ) -> None:
         ...
 

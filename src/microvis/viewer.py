@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 
@@ -9,18 +8,8 @@ from . import backend as _backend
 from .util import in_notebook
 
 if TYPE_CHECKING:
-    from vispy.color import Color
     from .backend._base import CanvasBase, Image, ViewBase
     from ._types import ValidClim, ValidCmap
-
-
-@dataclass
-class CanvasAttrs:
-    background_color: str | Color | None = None
-    size: tuple[int, int] = (800, 600)
-    title: str = ""
-    screen_position: tuple[int, int] | None = None
-    resizable: bool = True
 
 
 class Viewer:
@@ -29,22 +18,28 @@ class Viewer:
         background_color: str | None = None,
         size: tuple[int, int] = (600, 600),
         show: bool = False,
-        backend: str = "vispy",
+        backend: str | None = None,
     ) -> None:
+        backend = backend or "vispy"
         backend_module = getattr(_backend, backend)
         Canvas: type[CanvasBase] = backend_module.Canvas
         if background_color is None:
             background_color = "white" if in_notebook() else "black"
-        self.canvas = Canvas(background_color=background_color, size=size, show=show)
+        self.canvas = Canvas(background_color=background_color, size=size)
+        self._current_view = (0, 0)
+        if show:
+            self.show()
 
     def add_image(
         self,
         data: Any,
-        cmap: ValidCmap = "gray",
+        *,
+        cmap: ValidCmap | None = None,
         clim: ValidClim = "auto",
-        idx: tuple[int, int] = (0, 0),
+        idx: tuple[int, int] | None = None,
         **kwargs: Any,
     ) -> Image:
+        idx = idx or self._current_view
         clim = valid.clim(clim)
         cmap = valid.cmap(cmap)
         return self[idx].add_image(data, cmap=cmap, clim=clim, **kwargs)
@@ -53,7 +48,7 @@ class Viewer:
         self.canvas.show()
 
     def _repr_mimebundle_(self, *_: Any, **__: Any) -> Any:
-        if method := getattr(self.canvas.native, "_repr_mimebundle_"):
+        if method := getattr(self.canvas.native, "_repr_mimebundle_", None):
             return method()
         raise NotImplementedError()
 
@@ -74,6 +69,14 @@ class Viewer:
 # Viewer
 #   - Canvas
 #     - 1 or more View ([m, n] with [0, 0] as default)
-#       - add_<layer>()
+#   .default_view
+#   .add_image
+#   .add_points
+#   ...
 
-# Application ... some sort of event loop
+
+# View
+#   - scene
+#   - camera
+#   - add_<layer>()
+#   - remove_<layer>()

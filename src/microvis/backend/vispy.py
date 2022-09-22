@@ -23,7 +23,10 @@ class View(ViewBase, scene.Widget):
     def _view2D(self) -> scene.ViewBox:
         if self._view2D_ is None:
             self._view2D_ = self.add_view()
-            self._view2D_.camera = scene.PanZoomCamera(aspect=1)
+            camera = scene.PanZoomCamera(aspect=1)
+            camera.flip = (0, 1, 0)
+            self._view2D_.camera = camera
+
         return self._view2D_
 
     @property
@@ -54,13 +57,14 @@ class View(ViewBase, scene.Widget):
     def _do_add_image(
         self,
         data: Any,
-        cmap: ValidCmap = "gray",
+        cmap: ValidCmap | None = None,
         clim: ValidClim = "auto",
         **kwargs: Any,
     ) -> scene.visuals.Image:
+        cmap = cmap or "grays"
         image = scene.Image(data, cmap=cmap, clim=clim, **kwargs)
         self._view2D.add(image)
-        self._reset_camera()
+        self._reset_camera()  # FIXME: backends shoulnd't handle this
         return image
 
 
@@ -69,12 +73,11 @@ class Canvas(CanvasBase):
         self,
         background_color: str | None = None,
         size: tuple[int, int] = (600, 600),
-        show: bool = False,
-        **kwargs: Any,
+        **backend_kwargs: Any,
     ) -> None:
-        kwargs.setdefault("keys", "interactive")
+        backend_kwargs.setdefault("keys", "interactive")
         self._native = scene.SceneCanvas(
-            bgcolor=background_color, size=size, show=show, **kwargs
+            bgcolor=background_color, size=size, **backend_kwargs
         )
         self._grid = self._native.central_widget.add_grid()
         self._grid._default_class = View
