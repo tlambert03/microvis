@@ -28,6 +28,7 @@ dependencies = ["numpy", "psygnal[proxy]", "pydantic"]
 test = [
     "pytest>=6.0",
     "pytest-cov",
+    "pytest-qt",
     "vispy",
     "pygfx",
     "wgpu @ git+https://github.com/pygfx/wgpu-py.git",  # for pyqt6

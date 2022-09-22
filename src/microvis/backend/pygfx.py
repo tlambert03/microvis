@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import pygfx
 from wgpu.gui.auto import WgpuCanvas
@@ -118,11 +118,14 @@ class Canvas(CanvasBase):
             self._canvas.show()
         self._canvas.request_draw(self._animate)
 
-    def _animate(self) -> None:
+    def _animate(self, viewport: pygfx.Viewport | None = None) -> None:
+        vp = viewport or self._viewport
         for scene in self._grid.values():
-            scene._visit(self._viewport)
-        self._renderer.flush()
-        self._canvas.request_draw()
+            scene._visit(vp)
+        if hasattr(vp.renderer, "flush"):
+            vp.renderer.flush()
+        if viewport is None:
+            self._canvas.request_draw()
 
     def close(self) -> None:
         """Close canvas."""
@@ -137,4 +140,12 @@ class Canvas(CanvasBase):
         alpha: bool = True,
     ) -> np.ndarray:
         """Render to screenshot."""
-        raise NotImplementedError
+        # Create offscreen canvas, renderer and scene
+        from wgpu.gui.offscreen import WgpuCanvas
+
+        w, h = self._canvas.get_logical_size()
+        canvas = WgpuCanvas(width=w, height=h, pixel_ratio=1)
+        renderer = pygfx.renderers.WgpuRenderer(canvas)
+        viewport = pygfx.Viewport(renderer)
+        canvas.request_draw(lambda: self._animate(viewport))
+        return cast('np.ndarray', canvas.draw())
