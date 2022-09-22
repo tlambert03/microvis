@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import abc
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional, Tuple
 
 from .. import _validators as valid
 from .._types import ValidClim, ValidCmap, ValidColor, ArrayLike
@@ -37,7 +37,7 @@ class VolumeDisplay(LayerDisplay):
 
 class Image2DDisplay(LayerDisplay):
     cmap: str = "gray"  # TODO
-    clim: tuple[float, float] | None = None  # where none means auto
+    clim: Optional[Tuple[float, float]] = None  # where none means auto
     gamma: float = 1
     interpolation: str = "nearest"
     visible: bool = True
