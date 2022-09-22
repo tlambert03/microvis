@@ -9,7 +9,7 @@ on:
   pull_request: {}
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * 0'  # every week
+    - cron: "0 0 * * 0" # every week
 
 jobs:
   check-manifest:
@@ -30,7 +30,26 @@ jobs:
       matrix:
         python-version: ["3.8", "3.9", "3.10"]
         platform: [ubuntu-latest, macos-latest, windows-latest]
-        backend: ["pyqt5", "pyside2", "pyqt6", "pyside6"]
+        backend: ["pyside6"]
+        include:
+          - python-version: "3.10"
+            platform: ubuntu-latest
+            backend: pyqt6
+          - python-version: "3.10"
+            platform: ubuntu-latest
+            backend: pyqt5
+          - python-version: "3.10"
+            platform: ubuntu-latest
+            backend: pyside2
+          - python-version: "3.8"
+            platform: windows-latest
+            backend: pyqt6
+          - python-version: "3.8"
+            platform: windows-latest
+            backend: pyqt5
+          - python-version: "3.8"
+            platform: windows-latest
+            backend: pyside2
 
     steps:
       - name: Cancel Previous Runs
@@ -69,7 +88,7 @@ jobs:
           python -m pip install -U pip
           python -m pip install -e .[test,${{ matrix.backend }}] --pre
 
-      - name: Test 
+      - name: Test
         uses: GabrielBB/xvfb-action@v1
         with:
           run: python -m pytest -v --color=yes --cov=microvis --cov-report=xml
