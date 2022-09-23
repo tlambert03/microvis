@@ -1,6 +1,6 @@
 from __future__ import annotations
-import importlib
 
+import importlib
 from typing import TYPE_CHECKING, Any
 
 from . import _validators as valid
@@ -75,7 +75,34 @@ class Viewer:
 
 
 # View
-#   - scene
-#   - camera
-#   - add_<layer>()
-#   - remove_<layer>()
+# - scene
+#   - nodes
+# - camera
+
+# - add_<layer>()
+# - remove_<layer>()
+
+
+class Canvas:
+    def __init__(self) -> None:
+        self.native = None
+
+    def add_scene(self) -> SceneNode:
+        pass
+
+
+class SceneNode:
+    def __init__(self) -> None:
+        ...
+
+    @property
+    def children(self) -> list[SceneNode]:
+        ...
+
+    @property
+    def parent(self) -> SceneNode | None:
+        ...
+
+    @parent.setter
+    def parent(self, node: SceneNode) -> None:
+        pass

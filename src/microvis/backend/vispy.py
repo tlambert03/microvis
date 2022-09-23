@@ -63,9 +63,16 @@ class View(ViewBase, scene.Widget):
         **kwargs: Any,
     ) -> scene.visuals.Image:
         cmap = cmap or "grays"
-        image = scene.Image(data, cmap=cmap, clim=clim, **kwargs)
-        self._view2D.add(image)
-        self._reset_camera()  # FIXME: backends shoulnd't handle this
+        if data.ndim == 2:
+            image = scene.Image(data, cmap=cmap, clim=clim, **kwargs)
+            self._view2D.add(image)
+            self._reset_camera()  # FIXME: backends shoulnd't handle this
+        elif data.ndim == 3:
+            image = scene.Volume(data, cmap=cmap, clim=clim, **kwargs)
+            self._view3D.add(image)
+            self._reset_camera(dim=3)  # FIXME: backends shoulnd't handle this
+        else:
+            raise NotImplementedError(f"Unsupported data dimension: {data.ndim}")
         return image
 
 

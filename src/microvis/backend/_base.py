@@ -54,15 +54,19 @@ class ImageDisplay(Image2DDisplay, VolumeDisplay):
 
 
 class Image:
-    def __init__(self, data: ArrayLike, node: Any):
+    def __init__(self, data: ArrayLike, native: Any):
         self.data = EventedObjectProxy(data)
-        self.node = node
+        self._native = native
         self.display = ImageDisplay()
         self.display.events.connect(self._on_display_change)
 
     def _on_display_change(self, event: EmissionInfo) -> None:
         v = event.args[0] if len(event.args) == 1 else event.args
-        setattr(self.node, event.signal.name, v)
+        setattr(self._native, event.signal.name, v)
+
+    @property
+    def native(self) -> Any:
+        return self._native
 
 
 class ViewBase(abc.ABC):
