@@ -20,7 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
 ]
 dynamic = ["version"]
-dependencies = ["numpy", "psygnal[proxy]", "pydantic", "jupyter-rfb", "ipywidgets<8.0", "vispy"]
+dependencies = ["numpy", "psygnal[proxy]", "pydantic", "jupyter-rfb", "ipywidgets<8.0", "vispy", "glfw"]
 
 # extras
 # https://peps.python.org/pep-0621/#dependencies-optional-dependencies
