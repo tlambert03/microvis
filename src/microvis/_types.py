@@ -1,7 +1,31 @@
 from typing import Literal, Tuple, Union
 
 import numpy as np
+from pydantic.color import Color as Color
 
+
+class UndefinedType:
+    _instance = None
+
+    def __new__(cls) -> "UndefinedType":
+        """singleton"""
+        if cls._instance is None:
+            cls.instance = super().__new__(cls)
+        return cls.instance
+
+    def __repr__(self) -> str:
+        return "Undefined"
+
+    def __bool__(self) -> bool:
+        return False
+
+
+Undefined = UndefinedType()
+
+
+Color = Color
+RGBTuple = Tuple[float, float, float]
+RGBATuple = Tuple[float, float, float, float]
 ClimString = Literal["auto"]
 ValidClim = Union[ClimString, Tuple[float, float]]
 ValidCmap = str

@@ -39,7 +39,7 @@ dev = [
     "cruft",
     "flake8-bugbear",
     "flake8-docstrings",
-    "flake8-pyprojecttoml",
+    "flake8-pyprojecttoml @ git+https://github.com/tlambert03/flake8-pyprojecttoml.git@main",
     "flake8-typing-imports",
     "flake8",
     "ipython",
@@ -103,8 +103,12 @@ D107,D203,D212,D213,D402,D413,D415,D416  # numpy
 D100  # missing docstring in public module
 D401  # imperative mood
 W503  # line break before binary operator
+E704  # multiple statements on one line
 """
-per-file-ignores = ["tests/*:D"]
+per-file-ignores = [
+    "tests/*:D",
+    "*.pyi:E7,E3,D",
+]
 
 
 # http://www.pydocstyle.org/en/stable/usage.html

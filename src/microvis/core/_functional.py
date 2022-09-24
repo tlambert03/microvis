@@ -4,7 +4,7 @@ from typing import Any
 
 import numpy as np
 
-from .viewer import Viewer
+from ._viewer import Viewer
 
 
 def imshow(

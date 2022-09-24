@@ -3,15 +3,20 @@
 # such as lines, meshes, points, 2D shapes, images, text, etc.
 from __future__ import annotations
 
-from typing import Any, Literal, TypeVar
+from enum import Enum
+from typing import Any, Literal, TypeVar, Union
 
 import numpy as np
 from pydantic import BaseModel, Field
 
-from ._util import StrEnum
+
+class StrEnum(str, Enum):
+    def __str__(self) -> str:
+        return str(self.value)
+
 
 W = TypeVar("W", bound="Widget")
-
+Color = Union[str, tuple[float, float, float, float], np.ndarray]
 
 class Visual(BaseModel):
     """Visual that can be drawn using a single shader program."""
@@ -28,14 +33,11 @@ class Visual(BaseModel):
     # def detach(self, filt, view=None): ...
     #     """Detach a Filter from this visual."""
 
-
 class Colormap(BaseModel):
     """Colormap that relates intensity values to colors."""
 
     name: str = ""
-    colors: list[tuple[float, float, float, float]] = Field(
-        description="The list of control colors."
-    )
+    colors: list[Color] = Field(description="The list of control colors.")
     controls: list[float] = Field(
         description="Sorted, increasing control points for given colors."
         "Must start with 0 and end with 1. If len(controls) == len(colors), linear "
@@ -44,14 +46,12 @@ class Colormap(BaseModel):
         "neighboring controls points."
     )
 
-
 class ImageRenderMethod(StrEnum):
     """Image nonlinear method."""
 
     auto = "auto"
     subdivide = "subdivide"
     impostor = "impostor"
-
 
 class ImageInterpolation(StrEnum):
     """Image interpolation method."""
@@ -74,13 +74,11 @@ class ImageInterpolation(StrEnum):
     spline16 = "spline16"
     spline36 = "spline36"
 
-
 class Image:
     data: np.ndarray
     clim: tuple[float, float] = (0, 1)
     cmap: Colormap = "gray"
     interpolation_method: Literal["nearest", "linear"] = "nearest"
-
 
 class _ImageBase(Visual):
     cmap: Colormap = Field("gray", description="Colormap to use for the image.")
@@ -91,7 +89,6 @@ class _ImageBase(Visual):
     interpolation: ImageInterpolation = Field(
         "nearest", description="Image interpolation method."
     )
-
 
 class ImageVisual(_ImageBase):
     """Visual that draws a 2D image."""
@@ -114,7 +111,6 @@ class ImageVisual(_ImageBase):
     # custom_kernel: np.ndarray = np.ones((1, 1))
     # def set_data(self, image: np.ndarray) -> None: ...
 
-
 class VolumeRenderMethod(StrEnum):
     """Volume rendering method."""
 
@@ -125,7 +121,6 @@ class VolumeRenderMethod(StrEnum):
     additive = "additive"
     iso = "iso"
     average = "average"
-
 
 class VolumeVisual(_ImageBase):
     """Visual that draws a 3D volume."""
@@ -168,9 +163,7 @@ class VolumeVisual(_ImageBase):
         "Only relevant in raycasting_mode = 'plane'.",
     )
 
-
 coords = np.ndarray
-
 
 class BaseTransform(BaseModel):
     """Defines a pair of complementary coordinate mapping functions (map and imap)
@@ -178,7 +171,6 @@ class BaseTransform(BaseModel):
 
     # def map(self, obj: coords) -> coords:
     # def imap(self, obj: coords) -> coords:
-
 
 class Node(BaseModel):
     """Base class representing an object in a scene.
@@ -227,51 +219,55 @@ class Node(BaseModel):
 
     # canvas: Canvas | None  # derived from parent
 
-
 class VisualNode(Node):
     interactive: bool = Field(
         False, description="Whether this widget accepts mouse and touch events"
     )
+    def draw(self): ...
 
-
-class ImageNode(VisualNode, ImageVisual):
-    ...
-
-
-class VolumeNode(VisualNode, VolumeVisual):
-    ...
-
+class ImageNode(VisualNode, ImageVisual): ...
+class VolumeNode(VisualNode, VolumeVisual): ...
 
 class CompoundVisual(Visual):
     subvisuals: list[Visual] = Field()
 
-
-class CompoundNode(VisualNode, CompoundVisual):
-    ...
-
+class CompoundNode(VisualNode, CompoundVisual): ...
 
 # widget is just a compound node with convenience methods
 class Widget(CompoundNode):
+    """A widget takes up a rectangular space, intended for use in
+    a 2D pixel coordinate frame.
+
+    The widget is positioned using the transform attribute (as any
+    node), and its extent (size) is kept as a separate property."""
+
+    pos: tuple[float, float] = Field(
+        description="A 2-element tuple to specify the top left corner of the widget."
+    )
+
+    size: tuple[float, float] = Field(
+        description="A 2-element tuple to spicify the size of the widget."
+    )
+    border_color: Color = Field(description="The color of the border.")
+    border_width: float = Field(description="The width of the border line in pixels.")
+    bgcolor: Color = Field(description="The background color")
+    padding: int = Field(
+        description="The amount of padding in the widget "
+        "(i.e. the space reserved between the contents and the border)."
+    )
+    margin: int = Field(description="The margin to keep outside the widget's border.")
+
     def add_view(self, *args, **kwargs) -> ViewBox:
         return self.add_widget(ViewBox(*args, **kwargs))
-
     def add_grid(self, *args, **kwargs) -> Grid:
         return self.add_widget(Grid(*args, **kwargs))
-
     def add_widget(self, widget: W) -> W:
         """add widget to self._widgets and reparent the widget to self"""
 
-
 # Views and Grids
 
-
-class BaseCamera(Node):
-    ...
-
-
-class SubScene(Node):
-    ...
-
+class BaseCamera(Node): ...
+class SubScene(Node): ...
 
 class ViewBox(Widget):
     """Provides a Camera."""
@@ -282,11 +278,8 @@ class ViewBox(Widget):
     def add(self, node: Node) -> None:
         """same as node.parent = viewbox.scene"""
 
-
 class Grid(Widget):
-    def __getitem__(self, key: tuple[int, int]) -> Widget:
-        ...
-
+    def __getitem__(self, key: tuple[int, int]) -> Widget: ...
     def add_widget(
         self,
         widget: Widget | None = None,
@@ -295,19 +288,20 @@ class Grid(Widget):
         row_span: int = 1,
         col_span: int = 1,
         **widget_kwargs: Any,
-    ) -> Widget:
-        ...
-
+    ) -> Widget: ...
 
 # Canvas
+from vispy.scene import SceneCanvas
 
 
 class SceneCanvas:
+    """A Canvas that automatically draws the contents of a scene"""
+
     title: str
     size: tuple[int, int]
     position: tuple[int, int]
     show: bool
-    bgcolor: str
+    bgcolor: Color
     resizeable: bool
     fullscreen: bool
 
@@ -317,3 +311,11 @@ class SceneCanvas:
     # def update(self): ...
     # def close(self): ...
     # def show(self): ...
+
+    def draw_visual(self, visual: Node, event=None):
+        """Draw a visual and its children to the canvas or currently active
+        framebuffer."""
+    def render(self, region=None, size=None, bgcolor=None, crop=None, alpha=True):
+        """Render the scene to an offscreen buffer and return the image array."""
+    def update(self, event=None):
+        """Inform the backend that the Canvas needs to be redrawn"""

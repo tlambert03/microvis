@@ -4,7 +4,7 @@ import importlib
 from typing import TYPE_CHECKING, Any
 
 from . import _validators as valid
-from .util import in_notebook
+from ._util import in_notebook
 
 if TYPE_CHECKING:
     from ._types import ValidClim, ValidCmap
