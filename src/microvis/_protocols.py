@@ -18,6 +18,7 @@ T = TypeVar("T", bound="_Backend")
 
 
 def _get_backend_instance(obj: object, backend_kwargs: dict, backend: str = "") -> Any:
+    """Retrieves the backend class with the same name as the object class name."""
     backend = backend or "vispy"  # TODO
     backend_module = import_module(f"microvis.backend.{backend}")
     backend_obj = getattr(backend_module, type(obj).__name__)
@@ -33,11 +34,8 @@ class FrontEndFor(Generic[T]):
         backend_kwargs = kwargs.pop("backend_kwargs", None) or {}
         super().__init__(*args, **kwargs)
         self._backend: T = _get_backend_instance(self, backend_kwargs)
-
-        name = f"{type(self).__module__}.{type(self).__qualname__}"
-        bkname = f"{type(self._backend).__module__}.{type(self._backend).__qualname__}"
-        logger.debug(f"attaching {name!r} to backend object {bkname!r}")
-        self.events.connect(self._on_any_event)
+        if hasattr(self, "events"):
+            self.events.connect(self._on_any_event)
 
     def _on_any_event(self, info: EmissionInfo) -> None:
         setter = getattr(self._backend, f"_viz_set_{info.signal.name}")
@@ -58,14 +56,14 @@ class _Backend(Protocol):
         """Return the native widget for the backend."""
 
 
-class _SupportsVisibility(Protocol):
+class _SupportsVisibility(_Backend, Protocol):
     @abstractmethod
     def _viz_set_visible(self, arg: bool) -> None:
         """Set the visibility of the object."""
 
 
 # fmt: off
-class CanvasBackend(_Backend, _SupportsVisibility, Protocol):
+class CanvasBackend(_SupportsVisibility, Protocol):
     @abstractmethod
     def __init__(self, canvas: core.Canvas, **backend_kwargs: Any): ...
     @abstractmethod
@@ -84,7 +82,7 @@ class CanvasBackend(_Backend, _SupportsVisibility, Protocol):
     def _viz_add_view(self, view: core.View) -> None: ...
 
 
-class ViewBackend(_Backend, _SupportsVisibility, Protocol):
+class ViewBackend(_SupportsVisibility, Protocol):
     @abstractmethod
     def __init__(self, view: core.View, **backend_kwargs: Any): ...
     @abstractmethod
@@ -105,4 +103,22 @@ class ViewBackend(_Backend, _SupportsVisibility, Protocol):
     def _viz_set_padding(self, arg: int) -> None: ...
     @abstractmethod
     def _viz_set_margin(self, arg: int) -> None: ...
+    @abstractmethod
+    def _viz_get_scene(self) -> NodeBackend: ...
+    @abstractmethod
+    def _viz_get_camera(self) -> CameraBackend: ...
+
+
+class NodeBackend(_SupportsVisibility, Protocol):
+    def _viz_add_node(self, node: core.Node) -> None: ...
+
+class CameraBackend(NodeBackend, Protocol):
+    def _viz_set_interactive(self, arg: bool) -> None: ...
+    def _viz_set_zoom(self, arg: float) -> None: ...
+    def _viz_set_center(self, arg: tuple[float, ...]) -> None: ...
+
+
+class ImageBackend(_SupportsVisibility, Protocol):
+    ...
+
 # fmt: on

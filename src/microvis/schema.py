@@ -97,6 +97,42 @@ class PerspectiveCamera(Camera):
     angles: Tuple[float, float, float] = (0.0, 0.0, 90.0)
 
 
+# data objects
+class Affine(EventedModel):
+    scale: float = Field(default=1.0, ge=0.0)
+    translate: float = Field(default=0.0)
+    rotate: float = Field(default=0.0)
+    shear: float = Field(default=0.0)
+
+
+class LayerDisplay(EventedModel):
+    metadata: dict = Field(default_factory=dict)
+    opacity: float = Field(default=1.0, ge=0.0, le=1.0)
+    blending: str = "translucent"
+    transform: Affine = Field(default_factory=Affine)
+
+
+class VolumeDisplay(LayerDisplay):
+    interpolation3d: str = "nearest"
+    rendering: str = "mip"
+    iso_threshold: float = Field(default=0.5, gt=0.0)
+    attenuation: float = Field(default=0.05, gt=0.0)
+
+
+class Image2DDisplay(LayerDisplay):
+    cmap: str = "gray"  # TODO
+    clim: Optional[Tuple[float, float]] = None  # where none means auto
+    gamma: float = 1
+    interpolation: str = "nearest"
+    visible: bool = True
+    name: str = ""
+
+
+class ImageDisplay(Image2DDisplay, VolumeDisplay):
+    ...
+
+
+# scene graph
 class Scene(Node):
     """Root node of a scene graph."""
 

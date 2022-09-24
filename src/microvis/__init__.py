@@ -10,6 +10,5 @@ __author__ = "Talley Lambert"
 __email__ = "talley.lambert@gmail.com"
 
 from .core import imshow
-from .viewer import Viewer
 
-__all__ = ["Viewer", "imshow", "ortho"]
+__all__ = ["imshow"]

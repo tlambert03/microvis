@@ -40,13 +40,17 @@ class Canvas(FrontEndFor[CanvasBackend], schema.Canvas):
         """Render canvas to offscren buffer and return as numpy array."""
         return self._backend._viz_render()
 
+    # consider using canavs.views.append?
     def add_view(self, view: View | None = None, **kwargs: Any) -> View:
         """Add a new view to the canvas."""
         # TODO: change kwargs to params
         if view is None:
             view = View(**kwargs)
+        elif not isinstance(view, View):
+            raise TypeError("view must be an instance of View")
         elif kwargs:
             warnings.warn("kwargs ignored when view is provided")
 
         self._backend._viz_add_view(view)
+        self.views.append(view)
         return view

@@ -5,30 +5,31 @@ from typing import TYPE_CHECKING, Any, cast
 import numpy as np
 from vispy import scene
 
-from microvis import _protocols, _util
+from microvis import _protocols
+
+from ._util import pyd_color_to_vispy
 
 if TYPE_CHECKING:
-    from microvis import _types
-    from microvis.core import Canvas, View
+    from microvis import _types, core
 
 
 class Canvas(_protocols.CanvasBackend):
     """Canvas interface for Vispy Backend."""
 
-    def __init__(self, canvas: Canvas, **backend_kwargs: Any) -> None:
+    def __init__(self, canvas: core.Canvas, **backend_kwargs: Any) -> None:
         backend_kwargs.setdefault("keys", "interactive")
         self._native = scene.SceneCanvas(
             size=canvas.size,
             title=canvas.title,
             show=canvas.visible,
-            bgcolor=_util.color_to_np(canvas.background_color),
+            bgcolor=pyd_color_to_vispy(canvas.background_color),
             **backend_kwargs,
         )
 
     def _viz_get_native(self) -> scene.SceneCanvas:
         return self._native
 
-    def _viz_add_view(self, view: View) -> None:
+    def _viz_add_view(self, view: core.View) -> None:
         # view.native = cast(scene.ViewBox, view.native)
         self._native.central_widget.add_widget(view.native)
 
@@ -41,7 +42,7 @@ class Canvas(_protocols.CanvasBackend):
         self._native.size = (_width, arg)
 
     def _viz_set_background_color(self, arg: _types.Color | None) -> None:
-        self._native.bgcolor = _util.color_to_np(arg)
+        self._native.bgcolor = pyd_color_to_vispy(arg)
 
     def _viz_set_visible(self, arg: bool) -> None:
         self._native.show(visible=arg)

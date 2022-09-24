@@ -3,12 +3,12 @@ from __future__ import annotations
 import importlib
 from typing import TYPE_CHECKING, Any
 
-from . import _validators as valid
-from ._util import in_notebook
+from .. import _validators as valid
+from .._util import in_notebook
 
 if TYPE_CHECKING:
-    from ._types import ValidClim, ValidCmap
-    from .backend._base import CanvasBase, Image, ViewBase
+    from .._types import ValidClim, ValidCmap
+    from ..backend._base import CanvasBase, Image, ViewBase
 
 
 class Viewer:
