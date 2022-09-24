@@ -1,9 +1,10 @@
 from __future__ import annotations
-from typing import Optional, Union, Tuple
-from pydantic import Field
+
+from typing import Optional, Tuple, Union
+
 from psygnal import EventedModel
+from pydantic import Field, PrivateAttr
 from pydantic.color import Color
-from pydantic import PrivateAttr
 
 
 class ModelBase(EventedModel):
@@ -107,7 +108,7 @@ class View(Node):  # should it be a node?
     scene: Scene
 
     # TODO:
-    # position and size are problematic... 
+    # position and size are problematic...
     # they are given in pixels, but whenever the canvas is redrawn,
     # their meaning changes. also vispy will overwrite position and size (with .rect)
     # on resize events.

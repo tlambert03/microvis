@@ -9,11 +9,9 @@ from typing import Any, Literal, TypeVar, Union
 import numpy as np
 from pydantic import BaseModel, Field
 
-
 class StrEnum(str, Enum):
     def __str__(self) -> str:
         return str(self.value)
-
 
 W = TypeVar("W", bound="Widget")
 Color = Union[str, tuple[float, float, float, float], np.ndarray]
@@ -292,7 +290,6 @@ class Grid(Widget):
 
 # Canvas
 from vispy.scene import SceneCanvas
-
 
 class SceneCanvas:
     """A Canvas that automatically draws the contents of a scene"""

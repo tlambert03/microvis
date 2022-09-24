@@ -1,7 +1,7 @@
-from loguru._logger import Core, Logger
 import atexit
 import sys
 
+from loguru._logger import Core, Logger
 
 __all__ = ["logger"]
 
@@ -21,6 +21,6 @@ logger = Logger(  # type: ignore
 AUTOINIT = True
 
 if AUTOINIT and sys.stderr:
-    logger.add(sys.stderr, level='INFO')  # type: ignore
+    logger.add(sys.stderr, level="INFO")  # type: ignore
 
 atexit.register(logger.remove)

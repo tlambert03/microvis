@@ -1,8 +1,9 @@
 from __future__ import annotations
-import contextlib
-import numpy as np
 
+import contextlib
 from typing import TYPE_CHECKING
+
+import numpy as np
 
 if TYPE_CHECKING:
     from pydantic.color import Color

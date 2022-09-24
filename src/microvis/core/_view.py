@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-from .._protocols import FrontEndFor, ViewBackend
-from .. import schema
+
 from pydantic import Field
 
+from .. import schema
+from .._protocols import FrontEndFor, ViewBackend
 
 if TYPE_CHECKING:
     from typing import Any

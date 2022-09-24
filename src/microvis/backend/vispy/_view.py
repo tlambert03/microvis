@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from microvis import _protocols, _util
-
 from vispy import scene
 
+from microvis import _protocols, _util
+
 if TYPE_CHECKING:
-    from microvis import core
-    from microvis import _types
+    from microvis import _types, core
 
 
 class View(_protocols.ViewBackend):

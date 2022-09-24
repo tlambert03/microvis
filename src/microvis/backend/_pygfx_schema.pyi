@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 import enum
 from typing import Any, Callable, Literal
-from pygfx.objects import Event
+
 import numpy as np
+from pygfx.objects import Event
 
 # wgpu provides canvases for:
 # - Offscreen
@@ -118,10 +120,10 @@ class Camera(WorldObject):
     The purpose of a camera is to define the viewpoint for rendering a scene.
     This viewpoint consists of its position (in the world) and its projection.
     """
+
     # matrix_world_inverse = Matrix4()
     # projection_matrix = Matrix4()
     # projection_matrix_inverse = Matrix4()
-
 
 class Renderer:
     def render(

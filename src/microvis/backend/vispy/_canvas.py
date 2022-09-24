@@ -1,13 +1,15 @@
 from __future__ import annotations
-from microvis import _protocols, _util
+
 from typing import TYPE_CHECKING, Any, cast
 
-from vispy import scene
 import numpy as np
+from vispy import scene
+
+from microvis import _protocols, _util
 
 if TYPE_CHECKING:
-    from microvis.core import Canvas, View
     from microvis import _types
+    from microvis.core import Canvas, View
 
 
 class Canvas(_protocols.CanvasBackend):

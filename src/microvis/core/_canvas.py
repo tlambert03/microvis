@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import warnings
 from typing import TYPE_CHECKING
-from .._protocols import FrontEndFor, CanvasBackend
+
 from .. import schema
+from .._protocols import CanvasBackend, FrontEndFor
 from ._view import View
 
 if TYPE_CHECKING:
-    import numpy as np
     from typing import Any
+
+    import numpy as np
 
 
 class Canvas(FrontEndFor[CanvasBackend], schema.Canvas):
