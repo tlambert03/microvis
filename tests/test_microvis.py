@@ -1,19 +1,32 @@
-import os
-
-import numpy as np
-import pytest
-
-from microvis import imshow
-
-BACKENDS = ["vispy"]
-if os.getenv("CI") is None:
-    BACKENDS += ["pygfx"]
+from typing import TYPE_CHECKING
 
 
-@pytest.mark.parametrize("backend", BACKENDS)
-def test_something(qtbot, backend):
-    data = np.random.randint(0, 255, (64, 64), dtype=np.uint8)
-    viewer, img = imshow(data, size=data.shape, clim=(0, 255), backend=backend)
-    rendered = viewer.canvas.render()
-    assert rendered.shape == data.shape + (4,)
-    # np.testing.assert_array_equal(rendered[:, :, 1], data)
+from microvis import Canvas, View, Camera
+
+if TYPE_CHECKING:
+    from pytestqt.qtbot import QtBot
+
+
+def test_canvas(qtbot: "QtBot") -> None:
+    canvas = Canvas()
+
+    view = canvas.add_view()
+    assert isinstance(view, View)
+    assert view in canvas.views
+
+    camera = view.camera
+    assert isinstance(camera, Camera)
+
+    assert not canvas.has_backend
+    assert not view.has_backend
+    assert not camera.has_backend
+
+    # canvas.show()
+    qtbot.addWidget(canvas.native.native)
+
+    assert canvas.has_backend
+    assert view.has_backend
+    assert camera.has_backend
+
+    canvas.dict()
+    view.dict()
