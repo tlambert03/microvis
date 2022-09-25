@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Optional, Protocol, TypeVar
+from typing import ClassVar, Optional, Protocol, TypeVar
 
 from .._base import Field, FrontEndFor, ModelBase, SupportsVisibility
 
@@ -10,7 +10,37 @@ class Transform(ModelBase):
     ...
 
 
-class Node(FrontEndFor["NodeBackend"]):
+NodeType = TypeVar("NodeType", bound="Node", covariant=True)
+
+
+# fmt: off
+class NodeBackend(SupportsVisibility[NodeType], Protocol):
+    """Backend interface for a Node."""
+
+    @abstractmethod
+    def _viz_set_name(self, arg: str) -> None: ...
+    @abstractmethod
+    def _viz_set_parent(self, arg: Node | None) -> None: ...
+    @abstractmethod
+    def _viz_set_children(self, arg: list[Node]) -> None: ...
+    @abstractmethod
+    def _viz_set_visible(self, arg: bool) -> None: ...
+    @abstractmethod
+    def _viz_set_opacity(self, arg: float) -> None: ...
+    @abstractmethod
+    def _viz_set_order(self, arg: int) -> None: ...
+    @abstractmethod
+    def _viz_set_interactive(self, arg: bool) -> None: ...
+    @abstractmethod
+    def _viz_set_transform(self, arg: Transform | None) -> None: ...
+    @abstractmethod
+    def _viz_add_node(self, node: Node) -> None: ...
+# fmt: on
+
+
+class Node(FrontEndFor[NodeBackend]):
+    _BackendProtocol: ClassVar[type] = NodeBackend
+
     name: Optional[str] = Field(None, description="Name of the node.")
     parent: Optional[Node] = Field(
         None, description="Parent node. If None, this node is a root node."
@@ -41,31 +71,3 @@ class Node(FrontEndFor["NodeBackend"]):
         self.children.append(node)
         if self.has_backend:
             self.backend_adaptor()._viz_add_node(node)
-
-
-NodeType = TypeVar("NodeType", bound=Node, covariant=True)
-
-
-# fmt: off
-class NodeBackend(SupportsVisibility[NodeType], Protocol):
-    """Backend interface for a Node."""
-
-    @abstractmethod
-    def _viz_set_name(self, arg: str) -> None: ...
-    @abstractmethod
-    def _viz_set_parent(self, arg: Node | None) -> None: ...
-    @abstractmethod
-    def _viz_set_children(self, arg: list[Node]) -> None: ...
-    @abstractmethod
-    def _viz_set_visible(self, arg: bool) -> None: ...
-    @abstractmethod
-    def _viz_set_opacity(self, arg: float) -> None: ...
-    @abstractmethod
-    def _viz_set_order(self, arg: int) -> None: ...
-    @abstractmethod
-    def _viz_set_interactive(self, arg: bool) -> None: ...
-    @abstractmethod
-    def _viz_set_transform(self, arg: Transform | None) -> None: ...
-    @abstractmethod
-    def _viz_add_node(self, node: Node) -> None: ...
-# fmt: on

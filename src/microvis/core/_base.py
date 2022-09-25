@@ -91,11 +91,14 @@ class FrontEndFor(ModelBase, Generic[T]):
         try:
             name = f"_viz_set_{info.signal.name}"
             setter = getattr(self._backend, name)
-        except AttributeError:
-            logger.critical(f"{type(self._backend)} has no attribute {name!r}")
+        except AttributeError as e:
+            logger.exception(e)
             return
 
         event_name = f"{type(self).__name__}.{info.signal.name}"
         logger.debug(f"{event_name}={info.args} emitting to backend")
 
-        setter(*info.args)
+        try:
+            setter(*info.args)
+        except Exception as e:
+            logger.exception(e)

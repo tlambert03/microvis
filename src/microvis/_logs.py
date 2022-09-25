@@ -23,6 +23,6 @@ DEFAULT_LOG_LEVEL = "DEBUG" if "DEBUG" in sys.argv else "INFO"
 
 
 if AUTOINIT and sys.stderr:
-    logger.add(sys.stderr, level=DEFAULT_LOG_LEVEL)
+    logger.add(sys.stderr, level=DEFAULT_LOG_LEVEL, backtrace=False)
 
 atexit.register(logger.remove)

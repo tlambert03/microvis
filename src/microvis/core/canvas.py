@@ -82,8 +82,9 @@ class Canvas(FrontEndFor["CanvasBackend"]):
     def _repr_mimebundle_(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
         """Return a mimebundle for the canvas."""
         if hasattr(self.native, "_repr_mimebundle_"):
-            return self.native._repr_mimebundle_(*args, **kwargs)
+            return self.native._repr_mimebundle_(*args, **kwargs)  # type: ignore
         return NotImplemented
+
 
 class GridCanvas(Canvas):
     """Subclass with numpy-style indexing."""
