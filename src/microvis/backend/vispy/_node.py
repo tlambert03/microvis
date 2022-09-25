@@ -1,17 +1,19 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Any
+
+from vispy import scene
 
 from ...core.nodes import node as core_node
-
-if TYPE_CHECKING:
-    from vispy import scene
 
 
 class Node(core_node.NodeBackend):
     """Node adapter for Vispy Backend."""
 
     _native: scene.VisualNode
+
+    def _viz_get_native(self) -> Any:
+        return self._native
 
     def _viz_set_name(self, arg: str) -> None:
         self._native.name = arg
@@ -36,3 +38,8 @@ class Node(core_node.NodeBackend):
 
     def _viz_set_transform(self, arg: core_node.Transform | None) -> None:
         raise NotImplementedError
+
+    def _viz_add_node(self, node: core_node.Node) -> None:
+        assert isinstance(node.native, scene.Node)
+        print("adding node", node.native)
+        node.native.parent = self._native

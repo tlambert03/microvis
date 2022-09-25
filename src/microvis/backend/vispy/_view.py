@@ -3,10 +3,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from vispy import scene
+from vispy.scene import subscene
 
 from ... import core
 from ._camera import Camera
 from ._node import Node
+from ._scene import Scene
 from ._util import pyd_color_to_vispy
 
 if TYPE_CHECKING:
@@ -36,18 +38,26 @@ class View(Node, core.view.ViewBackend):
 
         # TODO: it would be nice if the responsibility of recursing through
         # the view tree was handled by the FrontEndFor logic...
-        if not view.camera.has_backend:
-            view.camera._backend = Camera(view.camera)
+        self._viz_set_scene(view.scene)
         self._viz_set_camera(view.camera)
 
     def _viz_get_native(self) -> Any:
         return self._native
 
-    def _viz_set_camera(self, arg: core.Camera) -> None:
-        self._native.camera = arg.native
+    def _viz_set_camera(self, cam: core.Camera) -> None:
+        if not cam.has_backend:
+            cam._backend = Camera(cam)
+        assert isinstance(cam.native, scene.cameras.BaseCamera)
+        self._native.camera = cam.native
+        cam.native.set_range(margin=0)  # TODO: put this elsewhere
 
-    def _viz_set_scene(self, arg: core.Scene) -> None:
-        raise NotImplementedError()
+    def _viz_set_scene(self, scene: core.Scene) -> None:
+        if not scene.has_backend:
+            scene._backend = Scene(scene)
+
+        assert isinstance(scene.native, subscene.SubScene)
+        self._native._scene = scene.native
+        scene.native.parent = self._native
 
     def _viz_set_visible(self, arg: bool) -> None:
         self._native.visible = arg

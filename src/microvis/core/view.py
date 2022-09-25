@@ -1,19 +1,19 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Optional, Protocol
+from typing import Any, Optional, Protocol
 
-from .._types import Color
+from .._types import ArrayLike, Color
 from ._base import Field, FrontEndFor
-from .nodes import Camera, Scene
+from .nodes import Camera, Image, Scene
 from .nodes.node import Node, NodeBackend
 
 
 class View(Node, FrontEndFor["ViewBackend"]):
-    """A rectangular area on the screen that displays a scene, with a camera."""
+    """A rectangular area on a canvas that displays a scene, with a camera."""
 
     camera: Camera = Field(default_factory=Camera)
-    scene: Scene = Field(default_factory=Scene)
+    scene: Scene = Field(default_factory=Scene)  # necessary additional layer?
 
     # TODO:
     # position and size are problematic...
@@ -49,16 +49,13 @@ class View(Node, FrontEndFor["ViewBackend"]):
         description="The margin to keep outside the widget's border.",
     )
 
-    # def __init__(self, *args: Any, **kwargs: Any):
-    #     super().__init__(*args, **kwargs)
-    #     self.scene._backend = self._backend._viz_get_scene()
-    #     self.camera._backend = self._backend._viz_get_camera()
-
-    # def add_image(self, data: np.ndarray, **kwargs: Any) -> None:
-    #     img = Image(data, **kwargs)
-    #     self.scene.add(img)
-    #     self.camera.reset()
-    #     return img
+    def add_image(self, data: ArrayLike, **kwargs: Any) -> Image:
+        """Add an image to the scene."""
+        img = Image(data, **kwargs)
+        self.scene.add(img)
+        if self.camera.has_backend:
+            self.camera.native.set_range(margin=0)  # TODO
+        return img
 
 
 # fmt: off

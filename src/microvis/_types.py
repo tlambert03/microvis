@@ -15,6 +15,17 @@ class CameraType(str, Enum):
         return self.value
 
 
+class ImageInterpolation(str, Enum):
+    """Image interpolation options."""
+
+    LINEAR = "linear"
+    NEAREST = "nearest"
+    BICUBIC = "bicubic"
+
+    def __str__(self) -> str:
+        return self.value
+
+
 class UndefinedType:
     _instance = None
 

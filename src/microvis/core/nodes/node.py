@@ -32,6 +32,15 @@ class Node(FrontEndFor["NodeBackend"]):
         "frame of the parent.",
     )
 
+    def __contains__(self, item: Node) -> bool:
+        return item in self.children
+
+    def add(self, node: Node) -> None:
+        """Add a child node."""
+        self.children.append(node)
+        if self.has_backend:
+            self.backend_adaptor()._viz_add_node(node)
+
 
 NodeType = TypeVar("NodeType", bound=Node, covariant=True)
 
@@ -56,4 +65,6 @@ class NodeBackend(SupportsVisibility[NodeType], Protocol):
     def _viz_set_interactive(self, arg: bool) -> None: ...
     @abstractmethod
     def _viz_set_transform(self, arg: Transform | None) -> None: ...
+    @abstractmethod
+    def _viz_add_node(self, node: Node) -> None: ...
 # fmt: on

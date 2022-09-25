@@ -1,10 +1,13 @@
 from typing import TYPE_CHECKING
 
+import numpy as np
 
-from microvis import Canvas, View, Camera
+from microvis import Camera, Canvas, Image, View
 
 if TYPE_CHECKING:
     from pytestqt.qtbot import QtBot
+
+np.random.seed(10)
 
 
 def test_canvas(qtbot: "QtBot") -> None:
@@ -17,6 +20,12 @@ def test_canvas(qtbot: "QtBot") -> None:
     camera = view.camera
     assert isinstance(camera, Camera)
 
+    data = np.random.random((10, 10)).astype(np.float32)
+    image = view.add_image(data)
+    assert image in view.scene
+    assert isinstance(image, Image)
+    np.testing.assert_array_equal(image.data, data)
+
     assert not canvas.has_backend
     assert not view.has_backend
     assert not camera.has_backend
@@ -27,6 +36,7 @@ def test_canvas(qtbot: "QtBot") -> None:
     assert canvas.has_backend
     assert view.has_backend
     assert camera.has_backend
+    assert image.has_backend
 
     canvas.dict()
     view.dict()

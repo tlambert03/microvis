@@ -11,7 +11,8 @@ class Camera(Node, camera.CameraBackend):
     _native: scene.cameras.BaseCamera
 
     def __init__(self, camera: camera.Camera, **backend_kwargs: Any) -> None:
-        cam = scene.cameras.make_camera(str(camera.type))
+        backend_kwargs.setdefault("flip", (0, 1, 0))  # Add to core schema?
+        cam = scene.cameras.make_camera(str(camera.type), **backend_kwargs)
         self._native = cam
 
     def _viz_get_native(self) -> Any:

@@ -1,5 +1,6 @@
 from skimage import data
 
-from microvis import imshow
+from microvis.convenience import imshow
 
-v, img = imshow(data.camera())
+c = imshow(data.camera())
+v = c.views[0]
