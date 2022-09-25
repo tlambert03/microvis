@@ -33,6 +33,7 @@ class Node(FrontEndFor["NodeBackend"]):
     )
 
     def __contains__(self, item: Node) -> bool:
+        """Return True if this node is an ancestor of item."""
         return item in self.children
 
     def add(self, node: Node) -> None:

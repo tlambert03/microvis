@@ -1,20 +1,17 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Optional, Protocol, Tuple
+from typing import Optional, Protocol, Tuple
 
-from psygnal.containers import EventedObjectProxy
-from pydantic import PrivateAttr
 
 from ..._types import ArrayLike, ImageInterpolation
 from .._base import Field, FrontEndFor
-from .node import Node, NodeBackend
+from .node import NodeBackend
+from ._data import DataNode
 
 
-class Image(Node, FrontEndFor["ImageBackend"]):
+class Image(DataNode, FrontEndFor["ImageBackend"]):
     """A Image that can be placed in scene."""
-
-    _data: ArrayLike = PrivateAttr()
 
     cmap: str = Field(default="grays", description="The colormap to use for the image.")
     clim: Optional[Tuple[float, float]] = Field(
@@ -25,18 +22,6 @@ class Image(Node, FrontEndFor["ImageBackend"]):
     interpolation: ImageInterpolation = Field(
         default=ImageInterpolation.NEAREST, description="The interpolation to use."
     )
-
-    def __init__(self, data: ArrayLike, **kwargs: Any) -> None:
-        self.data = data
-        super().__init__(**kwargs)
-
-    @property
-    def data(self) -> ArrayLike:
-        return self._data
-
-    @data.setter
-    def data(self, data: ArrayLike) -> None:
-        self._data = EventedObjectProxy(data)
 
 
 # fmt: off
