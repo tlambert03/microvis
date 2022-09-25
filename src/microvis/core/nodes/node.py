@@ -38,7 +38,10 @@ class NodeBackend(SupportsVisibility[NodeType], Protocol):
 # fmt: on
 
 
-class Node(FrontEndFor[NodeBackend]):
+NodeBackendType = TypeVar("NodeBackendType", bound="NodeBackend", covariant=True)
+
+
+class Node(FrontEndFor[NodeBackendType]):
     _BackendProtocol: ClassVar[type] = NodeBackend
 
     name: Optional[str] = Field(None, description="Name of the node.")

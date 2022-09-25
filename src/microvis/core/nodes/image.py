@@ -4,7 +4,7 @@ from abc import abstractmethod
 from typing import ClassVar, Optional, Protocol, Tuple
 
 from ..._types import ImageInterpolation
-from .._base import Field, FrontEndFor
+from .._base import Field
 from ._data import DataNode, DataNodeBackend
 
 
@@ -23,7 +23,7 @@ class ImageBackend(DataNodeBackend['Image'], Protocol):
 # fmt: on
 
 
-class Image(DataNode, FrontEndFor[ImageBackend]):
+class Image(DataNode[ImageBackend]):
     """A Image that can be placed in scene."""
 
     _BackendProtocol: ClassVar[type] = ImageBackend
