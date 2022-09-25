@@ -51,7 +51,6 @@ class View(ViewBase):
             self._scene3D_ = pygfx.Scene()
             self._camera3 = pygfx.PerspectiveCamera()
             self._controller3 = pygfx.OrbitOrthoController()
-            # self._controller3.add_default_event_handlers(self._viewport, self._camera3)
 
         return self._scene3D_
 

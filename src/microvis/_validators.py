@@ -6,7 +6,7 @@ from ._types import ClimString, ValidClim, ValidCmap
 
 
 def clim(obj: object) -> ValidClim:
-    allowable: tuple[str] = getattr(ClimString, "__args__", ())
+    allowable: tuple[str, ...] = getattr(ClimString, "__args__", ())
     if isinstance(obj, str):
         if obj not in allowable:
             raise ValueError(f"Invalid clim string {obj!r}. Must be one of {allowable}")

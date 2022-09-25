@@ -3,9 +3,11 @@ from importlib import import_module
 from typing import Any, Generic, Protocol, TypeVar
 
 from psygnal import EmissionInfo, EventedModel
-from pydantic.fields import PrivateAttr
+from pydantic.fields import Field, PrivateAttr
 
 from .._logs import logger
+
+__all__ = ["Field", "FrontEndFor", "ModelBase", "SupportsVisibility"]
 
 
 class ModelBase(EventedModel):

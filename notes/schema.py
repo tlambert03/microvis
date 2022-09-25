@@ -6,6 +6,8 @@ from psygnal import EventedModel
 from pydantic import Field, PrivateAttr
 from pydantic.color import Color
 
+from microvis._types import CameraType
+
 
 class ModelBase(EventedModel):
     _backend = PrivateAttr()
@@ -50,9 +52,6 @@ class Node(ModelBase):
     # clip_children: bool = Field(
     #     description="Whether children of this node will inherit its clipper"
     # )
-
-
-from ._types import CameraType
 
 
 class Camera(Node):

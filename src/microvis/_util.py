@@ -4,11 +4,12 @@ import contextlib
 
 
 def in_notebook() -> bool:
-    """Determine if the user is executing in a Jupyter Notebook"""
+    """Determine if the user is executing in a Jupyter Notebook."""
     with contextlib.suppress(Exception):
         from IPython import get_ipython
 
-        return get_ipython().__class__.__name__ == "ZMQInteractiveShell"
+        # sourcery skip: remove-unnecessary-cast
+        return bool(get_ipython().__class__.__name__ == "ZMQInteractiveShell")
     return False
 
 
@@ -17,5 +18,6 @@ def in_ipython() -> bool:
     with contextlib.suppress(Exception):
         from IPython import get_ipython
 
-        return get_ipython().__class__.__name__ == "TerminalInteractiveShell"
+        # sourcery skip: remove-unnecessary-cast
+        return bool(get_ipython().__class__.__name__ == "TerminalInteractiveShell")
     return False

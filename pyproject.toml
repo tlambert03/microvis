@@ -106,7 +106,7 @@ W503  # line break before binary operator
 E704  # multiple statements on one line
 """
 per-file-ignores = [
-    "tests/*:D",
+    "notes/*,tests/*:D",
     "*.pyi:E7,E3,D",
 ]
 
