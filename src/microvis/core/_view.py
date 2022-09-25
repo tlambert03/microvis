@@ -5,8 +5,9 @@ from typing import TYPE_CHECKING
 from pydantic import Field
 
 from .. import schema
-from .._protocols import CameraBackend, FrontEndFor, NodeBackend, ViewBackend
+from .._protocols import CameraBackend, FrontEndFor, ViewBackend
 from ._image import Image
+from ._node import Node
 
 if TYPE_CHECKING:
     from typing import Any
@@ -14,13 +15,13 @@ if TYPE_CHECKING:
     import numpy as np
 
 
-class Scene(FrontEndFor[NodeBackend], schema.Scene):
-    def add(self, obj: schema.Node) -> None:
-        pass
+class Scene(Node):
+    ...
 
 
 class Camera(FrontEndFor[CameraBackend], schema.Camera):
-    ...
+    def reset(self) -> None:
+        self._backend._viz_reset()
 
 
 class View(FrontEndFor[ViewBackend], schema.View):
@@ -33,5 +34,7 @@ class View(FrontEndFor[ViewBackend], schema.View):
         self.camera._backend = self._backend._viz_get_camera()
 
     def add_image(self, data: np.ndarray, **kwargs: Any) -> None:
-        img = Image(data)
+        img = Image(data, **kwargs)
         self.scene.add(img)
+        self.camera.reset()
+        return img

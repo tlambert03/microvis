@@ -1,4 +1,5 @@
 from __future__ import annotations
+from enum import Enum
 
 from typing import Optional, Tuple, Union
 
@@ -52,9 +53,12 @@ class Node(ModelBase):
     # )
 
 
+from ._types import CameraType
+
 class Camera(Node):
     """Camera that views a scene."""
 
+    type: CameraType = Field(CameraType.PANZOOM, description="Camera type.")
     interactive: bool = Field(
         default=True,
         description="Whether the camera responds to user interaction, "
@@ -98,18 +102,17 @@ class PerspectiveCamera(Camera):
 
 
 # data objects
-class Affine(EventedModel):
+class Affine(ModelBase):
     scale: float = Field(default=1.0, ge=0.0)
     translate: float = Field(default=0.0)
     rotate: float = Field(default=0.0)
     shear: float = Field(default=0.0)
 
 
-class LayerDisplay(EventedModel):
+class LayerDisplay(ModelBase):
     metadata: dict = Field(default_factory=dict)
     opacity: float = Field(default=1.0, ge=0.0, le=1.0)
-    blending: str = "translucent"
-    transform: Affine = Field(default_factory=Affine)
+    blending: str = Field(default="translucent")
 
 
 class VolumeDisplay(LayerDisplay):
@@ -125,10 +128,9 @@ class Image2DDisplay(LayerDisplay):
     gamma: float = 1
     interpolation: str = "nearest"
     visible: bool = True
-    name: str = ""
 
 
-class ImageDisplay(Image2DDisplay, VolumeDisplay):
+class ImageNode(Image2DDisplay, VolumeDisplay, Node):
     ...
 
 

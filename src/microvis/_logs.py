@@ -5,8 +5,8 @@ from loguru._logger import Core, Logger
 
 __all__ = ["logger"]
 
-logger = Logger(  # type: ignore
-    core=Core(),  # type: ignore
+logger = Logger(
+    core=Core(),
     exception=None,
     depth=0,
     record=False,
@@ -19,8 +19,9 @@ logger = Logger(  # type: ignore
 )
 
 AUTOINIT = True
+DEFAULT_LOG_LEVEL = "DEBUG"
 
 if AUTOINIT and sys.stderr:
-    logger.add(sys.stderr, level="INFO")  # type: ignore
+    logger.add(sys.stderr, level=DEFAULT_LOG_LEVEL)
 
 atexit.register(logger.remove)

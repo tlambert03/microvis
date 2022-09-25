@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from psygnal import EmissionInfo, SignalGroup
 
     from . import core
-    from ._types import Color
+    from ._types import Color, CameraType
 
 
 T = TypeVar("T", bound="_Backend")
@@ -34,6 +34,9 @@ class FrontEndFor(Generic[T]):
         backend_kwargs = kwargs.pop("backend_kwargs", None) or {}
         super().__init__(*args, **kwargs)
         self._backend: T = _get_backend_instance(self, backend_kwargs)
+        self._connect_event()
+
+    def _connect_event(self) -> None:
         if hasattr(self, "events"):
             self.events.connect(self._on_any_event)
 
@@ -110,15 +113,23 @@ class ViewBackend(_SupportsVisibility, Protocol):
 
 
 class NodeBackend(_SupportsVisibility, Protocol):
+    @abstractmethod
     def _viz_add_node(self, node: core.Node) -> None: ...
 
 class CameraBackend(NodeBackend, Protocol):
+    @abstractmethod
+    def _viz_set_type(self, arg: CameraType) -> None: ...
+    @abstractmethod
     def _viz_set_interactive(self, arg: bool) -> None: ...
+    @abstractmethod
     def _viz_set_zoom(self, arg: float) -> None: ...
+    @abstractmethod
     def _viz_set_center(self, arg: tuple[float, ...]) -> None: ...
-
+    @abstractmethod
+    def _viz_reset(self) -> None: ...
 
 class ImageBackend(_SupportsVisibility, Protocol):
-    ...
+    @abstractmethod
+    def _viz_set_data(self, arg: np.ndarray) -> None: ...
 
 # fmt: on
