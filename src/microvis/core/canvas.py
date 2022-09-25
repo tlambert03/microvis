@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Optional, Protocol
 from abc import abstractmethod
 from .view import View
 from ._base import SupportsVisibility, FrontEndFor, Field
-from ..._types import Color
+from .._types import Color
 
 if TYPE_CHECKING:
     from typing import Any

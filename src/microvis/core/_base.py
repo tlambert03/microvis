@@ -6,7 +6,7 @@ from psygnal import EmissionInfo, EventedModel
 from pydantic import Field as Field
 from pydantic.fields import PrivateAttr
 
-from ..._logs import logger
+from .._logs import logger
 
 
 class ModelBase(EventedModel):

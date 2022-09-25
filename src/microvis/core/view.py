@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Protocol, Optional
 from ._base import Field, FrontEndFor
 from abc import abstractmethod
 from .nodes import Camera, Scene
-from ..._types import Color
+from .._types import Color
 from .nodes.node import Node, NodeBackend
 
 

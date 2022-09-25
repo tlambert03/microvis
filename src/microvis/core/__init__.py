@@ -1,15 +1,5 @@
-from ._canvas import Canvas
-from ._functional import imshow
-from ._node import Node
-from ._image import Image
-from ._view import Camera, Scene, View
+from .canvas import Canvas
+from .view import View
+from .nodes import Scene, Camera, Image
 
-__all__ = [
-    "Canvas",
-    "View",
-    "Camera",
-    "Scene",
-    "imshow",
-    "Node",
-    "Image",
-]
+__all__ = ["Canvas", "View", "Scene", "Camera", "Image"]

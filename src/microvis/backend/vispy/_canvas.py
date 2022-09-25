@@ -5,15 +5,16 @@ from typing import TYPE_CHECKING, Any, cast
 import numpy as np
 from vispy import scene
 
-from microvis import _protocols
-
+from ... import core
 from ._util import pyd_color_to_vispy
+from ._view import View
+
 
 if TYPE_CHECKING:
-    from microvis import _types, core
+    from microvis import _types
 
 
-class Canvas(_protocols.CanvasBackend):
+class Canvas(core.canvas.CanvasBackend):
     """Canvas interface for Vispy Backend."""
 
     def __init__(self, canvas: core.Canvas, **backend_kwargs: Any) -> None:
@@ -25,6 +26,13 @@ class Canvas(_protocols.CanvasBackend):
             bgcolor=pyd_color_to_vispy(canvas.background_color),
             **backend_kwargs,
         )
+
+        # TODO: it would be nice if the responsibility of recursing through
+        # the view tree was handled by the FrontEndFor logic...
+        for view in canvas.views:
+            if not view.has_backend:
+                view._backend = View(view)
+            self._viz_add_view(view)
 
     def _viz_get_native(self) -> scene.SceneCanvas:
         return self._native
@@ -40,6 +48,9 @@ class Canvas(_protocols.CanvasBackend):
     def _viz_set_height(self, arg: int) -> None:
         _width = self._native.size[0]
         self._native.size = (_width, arg)
+
+    def _viz_set_size(self, arg: tuple[int, int]) -> None:
+        self._native.size = arg
 
     def _viz_set_background_color(self, arg: _types.Color | None) -> None:
         self._native.bgcolor = pyd_color_to_vispy(arg)
@@ -67,27 +78,3 @@ class Canvas(_protocols.CanvasBackend):
             region=region, size=size, bgcolor=bgcolor, crop=crop, alpha=alpha
         )
         return cast("np.ndarray", data)
-
-    # def __getitem__(self, idxs: tuple[int, int]) -> View:
-    #     return cast(View, self._grid.__getitem__(idxs))
-
-    # def __delitem__(self, idxs: tuple[int, int]) -> None:
-    #     item = self._grid[idxs]
-
-    #     row, col = next(
-    #         (val[:2] for val in self._grid._grid_widgets.values() if val[-1] is item),
-    #         (None, None),
-    #     )
-
-    #     self._grid.remove_widget(item)
-    #     del self._grid._cells[row][col]
-    #     item.parent = None
-
-    #     # fixup next_cell if this was the last item
-    #     # FIXME: take column_span into account
-    #     if col and col == self._grid._next_cell[1] - 1:
-    #         self._grid._next_cell[1] -= 1
-    #     if row and row == self._grid._next_cell[0] - 1:
-    #         self._grid._next_cell[0] -= 1
-
-    #     self._grid.update()
