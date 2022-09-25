@@ -3,7 +3,6 @@ from importlib import import_module
 from typing import Any, Generic, Protocol, TypeVar
 
 from psygnal import EmissionInfo, EventedModel
-from pydantic import Field as Field
 from pydantic.fields import PrivateAttr
 
 from .._logs import logger

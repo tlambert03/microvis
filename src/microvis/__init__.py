@@ -9,7 +9,6 @@ except PackageNotFoundError:
 __author__ = "Talley Lambert"
 __email__ = "talley.lambert@gmail.com"
 
-from .core import Canvas, View, Scene, Camera, Image
-
+from .core import Camera, Canvas, Image, Scene, View
 
 __all__ = ["Canvas", "View", "Scene", "Camera", "Image"]

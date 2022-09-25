@@ -1,5 +1,5 @@
-from typing import Literal, Tuple, Union
 from enum import Enum
+from typing import Literal, Tuple, Union
 
 import numpy as np
 from pydantic.color import Color as Color

@@ -9,7 +9,6 @@ from ... import core
 from ._util import pyd_color_to_vispy
 from ._view import View
 
-
 if TYPE_CHECKING:
     from microvis import _types
 

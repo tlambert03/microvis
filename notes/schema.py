@@ -1,5 +1,4 @@
 from __future__ import annotations
-from enum import Enum
 
 from typing import Optional, Tuple, Union
 
@@ -54,6 +53,7 @@ class Node(ModelBase):
 
 
 from ._types import CameraType
+
 
 class Camera(Node):
     """Camera that views a scene."""

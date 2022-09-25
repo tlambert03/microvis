@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, Optional
-from ._base import Field, FrontEndFor
 from abc import abstractmethod
-from .nodes import Camera, Scene
+from typing import Optional, Protocol
+
 from .._types import Color
+from ._base import Field, FrontEndFor
+from .nodes import Camera, Scene
 from .nodes.node import Node, NodeBackend
 
 

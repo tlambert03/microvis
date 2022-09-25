@@ -1,9 +1,10 @@
 from typing import Any
-from ._node import Node
-from ...core.nodes import camera, node
+
+from vispy import scene
 
 from ..._types import CameraType
-from vispy import scene
+from ...core.nodes import camera, node
+from ._node import Node
 
 
 class Camera(Node, camera.CameraBackend):

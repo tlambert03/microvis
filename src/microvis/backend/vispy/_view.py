@@ -5,10 +5,9 @@ from typing import TYPE_CHECKING, Any
 from vispy import scene
 
 from ... import core
-
-from ._util import pyd_color_to_vispy
-from ._node import Node
 from ._camera import Camera
+from ._node import Node
+from ._util import pyd_color_to_vispy
 
 if TYPE_CHECKING:
     from microvis import _types

@@ -1,5 +1,5 @@
 from .canvas import Canvas
+from .nodes import Camera, Image, Scene
 from .view import View
-from .nodes import Scene, Camera, Image
 
 __all__ = ["Canvas", "View", "Scene", "Camera", "Image"]

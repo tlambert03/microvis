@@ -1,10 +1,11 @@
 from __future__ import annotations
-from abc import abstractmethod
 
-from typing import Union, Tuple, Protocol
-from .node import Node, NodeBackend
-from .._base import FrontEndFor, Field
+from abc import abstractmethod
+from typing import Protocol, Tuple, Union
+
 from ..._types import CameraType
+from .._base import Field, FrontEndFor
+from .node import Node, NodeBackend
 
 
 class Camera(Node, FrontEndFor["CameraBackend"]):

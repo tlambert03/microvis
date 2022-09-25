@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Optional, Protocol
 from abc import abstractmethod
-from .view import View
-from ._base import SupportsVisibility, FrontEndFor, Field
+from typing import TYPE_CHECKING, Optional, Protocol
+
 from .._types import Color
+from ._base import Field, FrontEndFor, SupportsVisibility
+from .view import View
 
 if TYPE_CHECKING:
     from typing import Any
