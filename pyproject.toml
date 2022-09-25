@@ -28,6 +28,8 @@ dependencies = [
     "ipywidgets<8.0",
     "vispy",
     "pyopengl",
+    "loguru",
+    "imageio"
 ]
 
 # extras
