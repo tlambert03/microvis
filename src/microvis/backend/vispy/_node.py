@@ -41,5 +41,4 @@ class Node(core_node.NodeBackend):
 
     def _viz_add_node(self, node: core_node.Node) -> None:
         assert isinstance(node.native, scene.Node)
-        print("adding node", node.native)
         node.native.parent = self._native

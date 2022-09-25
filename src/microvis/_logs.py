@@ -19,7 +19,8 @@ logger = Logger(
 )
 
 AUTOINIT = True
-DEFAULT_LOG_LEVEL = "DEBUG"
+DEFAULT_LOG_LEVEL = "DEBUG" if "DEBUG" in sys.argv else "INFO"
+
 
 if AUTOINIT and sys.stderr:
     logger.add(sys.stderr, level=DEFAULT_LOG_LEVEL)
