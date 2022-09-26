@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import warnings
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Optional, Protocol
+from typing import TYPE_CHECKING, ClassVar, Optional, Protocol
 
 from .._types import Color
 from ._base import Field, FrontEndFor, SupportsVisibility
@@ -14,8 +14,33 @@ if TYPE_CHECKING:
     import numpy as np
 
 
-class Canvas(FrontEndFor["CanvasBackend"]):
+# fmt: off
+class CanvasBackend(SupportsVisibility['Canvas'], Protocol):
+    """Backend interface for Canvas."""
+
+    @abstractmethod
+    def _viz_set_width(self, arg: int) -> None: ...
+    @abstractmethod
+    def _viz_set_height(self, arg: int) -> None: ...
+    @abstractmethod
+    def _viz_set_size(self, arg: tuple[int, int]) -> None: ...
+    @abstractmethod
+    def _viz_set_background_color(self, arg: Optional[Color]) -> None: ...
+    @abstractmethod
+    def _viz_set_title(self, arg: str) -> None: ...
+    @abstractmethod
+    def _viz_close(self) -> None: ...
+    @abstractmethod
+    def _viz_render(self) -> np.ndarray: ...
+    @abstractmethod
+    def _viz_add_view(self, view: View) -> None: ...
+# fmt: on
+
+
+class Canvas(FrontEndFor[CanvasBackend]):
     """Canvas onto which views are rendered."""
+
+    _BackendProtocol: ClassVar[type] = CanvasBackend
 
     width: float = Field(500, description="The width of the canvas in pixels.")
     height: float = Field(500, description="The height of the canvas in pixels.")
@@ -91,26 +116,3 @@ class GridCanvas(Canvas):
 
     def __getitem__(self, key: tuple[int, int]) -> View:
         """Get the View at the given row and column."""
-
-
-# fmt: off
-class CanvasBackend(SupportsVisibility[Canvas], Protocol):
-    """Backend interface for Canvas."""
-
-    @abstractmethod
-    def _viz_set_width(self, arg: int) -> None: ...
-    @abstractmethod
-    def _viz_set_height(self, arg: int) -> None: ...
-    @abstractmethod
-    def _viz_set_size(self, arg: tuple[int, int]) -> None: ...
-    @abstractmethod
-    def _viz_set_background_color(self, arg: Optional[Color]) -> None: ...
-    @abstractmethod
-    def _viz_set_title(self, arg: str) -> None: ...
-    @abstractmethod
-    def _viz_close(self) -> None: ...
-    @abstractmethod
-    def _viz_render(self) -> np.ndarray: ...
-    @abstractmethod
-    def _viz_add_view(self, view: View) -> None: ...
-# fmt: on

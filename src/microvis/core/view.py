@@ -9,7 +9,32 @@ from .nodes import Camera, Image, Scene
 from .nodes.node import Node, NodeBackend
 
 
-class View(Node, FrontEndFor["ViewBackend"]):
+# fmt: off
+class ViewBackend(NodeBackend['View'], Protocol):
+    """Protocol for the backend of a View."""
+
+    @abstractmethod
+    def _viz_set_camera(self, arg: Camera) -> None: ...
+    @abstractmethod
+    def _viz_set_scene(self, arg: Scene) -> None: ...
+    @abstractmethod
+    def _viz_set_position(self, arg: tuple[float, float]) -> None: ...
+    @abstractmethod
+    def _viz_set_size(self, arg: tuple[float, float] | None) -> None: ...
+    @abstractmethod
+    def _viz_set_background_color(self, arg: Color | None) -> None: ...
+    @abstractmethod
+    def _viz_set_border_width(self, arg: float) -> None: ...
+    @abstractmethod
+    def _viz_set_border_color(self, arg: Color | None) -> None: ...
+    @abstractmethod
+    def _viz_set_padding(self, arg: int) -> None: ...
+    @abstractmethod
+    def _viz_set_margin(self, arg: int) -> None: ...
+# fmt: on
+
+
+class View(Node, FrontEndFor[ViewBackend]):
     """A rectangular area on a canvas that displays a scene, with a camera."""
 
     camera: Camera = Field(default_factory=Camera)
@@ -56,33 +81,3 @@ class View(Node, FrontEndFor["ViewBackend"]):
         if self.camera.has_backend:
             self.camera.native.set_range(margin=0)  # TODO
         return img
-
-
-# fmt: off
-class ViewBackend(NodeBackend[View], Protocol):
-    """Protocol for the backend of a View."""
-
-    @abstractmethod
-    def _viz_set_camera(self, arg: Camera) -> None: ...
-    @abstractmethod
-    def _viz_set_scene(self, arg: Scene) -> None: ...
-    @abstractmethod
-    def _viz_set_position(self, arg: tuple[float, float]) -> None: ...
-    @abstractmethod
-    def _viz_set_size(self, arg: tuple[float, float] | None) -> None: ...
-    @abstractmethod
-    def _viz_set_background_color(self, arg: Color | None) -> None: ...
-    @abstractmethod
-    def _viz_set_border_width(self, arg: float) -> None: ...
-    @abstractmethod
-    def _viz_set_border_color(self, arg: Color | None) -> None: ...
-    @abstractmethod
-    def _viz_set_padding(self, arg: int) -> None: ...
-    @abstractmethod
-    def _viz_set_margin(self, arg: int) -> None: ...
-    # @abstractmethod
-    # def _viz_get_scene(self) -> NodeBackend: ...
-    # @abstractmethod
-    # def _viz_get_camera(self) -> CameraBackend: ...
-
-# fmt: on

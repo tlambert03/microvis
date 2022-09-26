@@ -60,7 +60,7 @@ class FrontEndFor(ModelBase, Generic[T]):
         # if we make this a property, it will be cause the side effect of
         # spinning up a backend on tab auto-complete in ipython/jupyter
         if self._backend is None:
-            self._backend = self._attach_backend()
+            self._backend = self._get_backend_obj()
         return self._backend
 
     @property
@@ -68,7 +68,7 @@ class FrontEndFor(ModelBase, Generic[T]):
         """Return the native object of the backend."""
         return self.backend_adaptor()._viz_get_native()
 
-    def _attach_backend(
+    def _get_backend_obj(
         self, backend_kwargs: dict | None = None, backend: str = ""
     ) -> T:
         """Retrieves the backend class with the same name as the object class name."""

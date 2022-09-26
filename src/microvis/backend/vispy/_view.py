@@ -41,9 +41,6 @@ class View(Node, core.view.ViewBackend):
         self._viz_set_scene(view.scene)
         self._viz_set_camera(view.camera)
 
-    def _viz_get_native(self) -> Any:
-        return self._native
-
     def _viz_set_camera(self, cam: core.Camera) -> None:
         if not cam.has_backend:
             cam._backend = Camera(cam)
@@ -58,9 +55,6 @@ class View(Node, core.view.ViewBackend):
         assert isinstance(scene.native, subscene.SubScene)
         self._native._scene = scene.native
         scene.native.parent = self._native
-
-    def _viz_set_visible(self, arg: bool) -> None:
-        self._native.visible = arg
 
     def _viz_set_position(self, arg: tuple[float, float]) -> None:
         self._native.pos = arg

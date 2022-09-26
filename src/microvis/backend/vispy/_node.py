@@ -19,7 +19,11 @@ class Node(core_node.NodeBackend):
         self._native.name = arg
 
     def _viz_set_parent(self, arg: core_node.Node | None) -> None:
-        self._native.parent = arg.native if arg else None
+        if arg is None:
+            self._native.parent = None
+        else:
+            assert isinstance(arg.native, scene.Node)
+            self._native.parent = arg.native
 
     def _viz_set_children(self, arg: list[core_node.Node]) -> None:
         raise NotImplementedError

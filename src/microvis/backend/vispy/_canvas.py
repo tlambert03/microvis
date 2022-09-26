@@ -36,8 +36,11 @@ class Canvas(core.canvas.CanvasBackend):
     def _viz_get_native(self) -> scene.SceneCanvas:
         return self._native
 
+    def _viz_set_visible(self, arg: bool) -> None:
+        self._native.show(visible=arg)
+
     def _viz_add_view(self, view: core.View) -> None:
-        # view.native = cast(scene.ViewBox, view.native)
+        assert isinstance(view.native, scene.ViewBox)
         self._native.central_widget.add_widget(view.native)
 
     def _viz_set_width(self, arg: int) -> None:
@@ -53,9 +56,6 @@ class Canvas(core.canvas.CanvasBackend):
 
     def _viz_set_background_color(self, arg: _types.Color | None) -> None:
         self._native.bgcolor = pyd_color_to_vispy(arg)
-
-    def _viz_set_visible(self, arg: bool) -> None:
-        self._native.show(visible=arg)
 
     def _viz_set_title(self, arg: str) -> None:
         self._native.title = arg
