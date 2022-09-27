@@ -16,7 +16,9 @@ class DataNodeBackend(NodeBackend[NodeType], Protocol):
         ...
 
 
-DataNodeBackendT = TypeVar("DataNodeBackendT", bound=DataNodeBackend, covariant=True)
+DataNodeBackendT = TypeVar(
+    "DataNodeBackendT", bound=DataNodeBackend, contravariant=True
+)
 
 
 class DataNode(Node[DataNodeBackendT]):

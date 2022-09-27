@@ -7,11 +7,15 @@ from ... import core
 from ._node import Node
 
 
+# TODO: combine this logic with FrontEndFor
 def _create_vispy_node(obj: core.nodes.Node) -> Node:
     """Create a vispy Node from a core.Node."""
-    from .. import vispy
+    if "vispy" in obj._backend_lookup:
+        cls = obj._backend_lookup["vispy"]
+    else:
+        from .. import vispy
 
-    cls = getattr(vispy, obj.__class__.__name__)
+        cls = getattr(vispy, obj.__class__.__name__)
     return cast("Node", cls(obj))
 
 

@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Optional, Protocol
+from typing import Any, ClassVar, Optional, Protocol, TypeVar
 
 from .._types import ArrayLike, Color
 from ._base import Field, FrontEndFor
 from .nodes import Camera, Image, Scene
 from .nodes.node import Node, NodeBackend
+
+NodeType = TypeVar("NodeType", bound=Node)
 
 
 # fmt: off
@@ -36,6 +38,8 @@ class ViewBackend(NodeBackend['View'], Protocol):
 
 class View(Node, FrontEndFor[ViewBackend]):
     """A rectangular area on a canvas that displays a scene, with a camera."""
+
+    _BackendProtocol: ClassVar[type] = ViewBackend
 
     camera: Camera = Field(default_factory=Camera)
     scene: Scene = Field(default_factory=Scene)  # necessary additional layer?
@@ -74,10 +78,12 @@ class View(Node, FrontEndFor[ViewBackend]):
         description="The margin to keep outside the widget's border.",
     )
 
-    def add_image(self, data: ArrayLike, **kwargs: Any) -> Image:
-        """Add an image to the scene."""
-        img = Image(data, **kwargs)
-        self.scene.add(img)
+    def add_node(self, node: NodeType) -> NodeType:
+        self.scene.add(node)
         if self.camera.has_backend:
             self.camera.native.set_range(margin=0)  # TODO
-        return img
+        return node
+
+    def add_image(self, data: ArrayLike, **kwargs: Any) -> Image:
+        """Add an image to the scene."""
+        return self.add_node(Image(data, **kwargs))

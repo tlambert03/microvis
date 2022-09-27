@@ -114,5 +114,5 @@ class Canvas(FrontEndFor[CanvasBackend]):
 class GridCanvas(Canvas):
     """Subclass with numpy-style indexing."""
 
-    def __getitem__(self, key: tuple[int, int]) -> View:
-        """Get the View at the given row and column."""
+    # def __getitem__(self, key: tuple[int, int]) -> View:
+    #     """Get the View at the given row and column."""

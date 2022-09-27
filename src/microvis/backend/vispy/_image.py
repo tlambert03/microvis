@@ -18,7 +18,6 @@ class Image(Node):
 
     def __init__(self, image: core.Image, **backend_kwargs: Any) -> None:
 
-        data = image.data
         backend_kwargs.setdefault("texture_format", "auto")
         backend_kwargs.update(
             {
@@ -28,7 +27,7 @@ class Image(Node):
                 "interpolation": image.interpolation.value,
             }
         )
-        self._native = scene.Image(data, **backend_kwargs)
+        self._native = scene.Image(image.data, **backend_kwargs)
 
     def _viz_set_cmap(self, arg: str) -> None:
         self._native.cmap = arg

@@ -10,7 +10,7 @@ class Transform(ModelBase):
     ...
 
 
-NodeType = TypeVar("NodeType", bound="Node", covariant=True)
+NodeType = TypeVar("NodeType", bound="Node", contravariant=True)
 
 
 # fmt: off
@@ -42,6 +42,8 @@ NodeBackendType = TypeVar("NodeBackendType", bound="NodeBackend", covariant=True
 
 
 class Node(FrontEndFor[NodeBackendType]):
+    """Base class for all nodes."""
+
     _BackendProtocol: ClassVar[type] = NodeBackend
 
     name: Optional[str] = Field(None, description="Name of the node.")

@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from importlib import import_module
-from typing import Any, Generic, Protocol, TypeVar
+from typing import Any, ClassVar, Dict, Generic, Protocol, Type, TypeVar
 
 from psygnal import EmissionInfo, EventedModel
 from pydantic.fields import Field, PrivateAttr
@@ -19,7 +19,7 @@ class ModelBase(EventedModel):
         allow_property_setters = True
 
 
-F = TypeVar("F", covariant=True, bound="FrontEndFor")
+F = TypeVar("F", contravariant=True, bound="FrontEndFor")
 
 
 class BackendAdaptor(Protocol[F]):
@@ -51,12 +51,15 @@ class FrontEndFor(ModelBase, Generic[T]):
     """Front end object driving a backend interface."""
 
     _backend: T | None = PrivateAttr(None)
+    _backend_lookup: ClassVar[Dict[str, Type[BackendAdaptor]]] = {}
 
     @property
     def has_backend(self) -> bool:
+        """Return True if the object has a backend adaptor."""
         return self._backend is not None
 
     def backend_adaptor(self) -> T:
+        """Get the backend adaptor for this object. Creates one if it doesn't exist."""
         # if we make this a property, it will be cause the side effect of
         # spinning up a backend on tab auto-complete in ipython/jupyter
         if self._backend is None:
@@ -69,12 +72,21 @@ class FrontEndFor(ModelBase, Generic[T]):
         return self.backend_adaptor()._viz_get_native()
 
     def _get_backend_obj(
-        self, backend_kwargs: dict | None = None, backend: str = ""
+        self,
+        backend_kwargs: dict | None = None,
+        backend: str = "",
+        class_name: str = "",
     ) -> T:
         """Retrieves the backend class with the same name as the object class name."""
         backend = backend or "vispy"  # TODO
-        backend_module = import_module(f"...backend.{backend}", __name__)
-        backend_class: type[T] = getattr(backend_module, type(self).__name__)
+
+        if backend in self._backend_lookup:
+            backend_class = self._backend_lookup[backend]
+            logger.debug(f"Using class-provided backend class: {backend_class}")
+        else:
+            class_name = class_name or type(self).__name__
+            backend_module = import_module(f"...backend.{backend}", __name__)
+            backend_class: type[T] = getattr(backend_module, class_name)
 
         logger.debug(f"Attaching {type(self)} to backend {backend_class}")
         return backend_class(self, **(backend_kwargs or {}))
