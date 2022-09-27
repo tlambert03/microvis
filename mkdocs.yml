@@ -1,0 +1,53 @@
+site_name: microvis
+site_url: https://github.com/tlambert03/microvis
+site_author: Talley Lambert
+
+repo_name: tlambert03/microvis
+repo_url: https://github.com/tlambert03/microvis
+
+copyright: Copyright &copy; 2021 - 2022 Talley Lambert
+
+watch:
+  - src
+
+plugins:
+  - search
+  - autorefs
+  - minify:
+      minify_html: true
+  - macros:
+      module_name: docs/_macros
+  - mkdocstrings:
+      handlers:
+        python:
+          import:
+            - https://docs.python.org/3/objects.inv
+          options:
+            docstring_style: numpy
+            show_bases: false
+            merge_init_into_class: yes
+            show_source: no
+            show_root_full_path: no
+            # show_root_heading: yes
+            docstring_section_style: list
+            show_root_toc_entry: yes
+            heading_level: 3
+
+
+markdown_extensions:
+  - tables
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.details
+  - admonition
+
+theme:
+  name: material
+  icon:
+    repo: material/github
+    logo: material/image-outline
+  features:
+    - navigation.instant
+    - search.highlight
+    - search.suggest

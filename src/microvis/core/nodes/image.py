@@ -47,7 +47,7 @@ class AbsContrast(DataField, Sequence[float]):
         yield self.min
         yield self.max
 
-    def __getitem__(self, index: int | slice) -> float:  # type: ignore
+    def __getitem__(self, index: int | slice) -> float:
         return (self.min, self.max)[index]
 
     def __len__(self) -> int:
@@ -68,7 +68,7 @@ class PercentileContrast(DataField, Sequence[float]):
         yield self.pmin
         yield self.pmax
 
-    def __getitem__(self, index: int | slice) -> float:  # type: ignore
+    def __getitem__(self, index: int | slice) -> float:
         return (self.pmin, self.pmax)[index]
 
     def __len__(self) -> int:
