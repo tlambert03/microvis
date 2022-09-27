@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, ClassVar, Optional, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, Optional, Protocol, TypeVar
 
 from .._types import ArrayLike, Color
 from ._base import Field, FrontEndFor
 from .nodes import Camera, Image, Scene
 from .nodes.node import Node, NodeBackend
+
+if TYPE_CHECKING:
+    from .canvas import Canvas
 
 NodeType = TypeVar("NodeType", bound=Node)
 
@@ -78,7 +81,22 @@ class View(Node, FrontEndFor[ViewBackend]):
         description="The margin to keep outside the widget's border.",
     )
 
+    def show(self) -> Canvas:
+        """Show the view.
+
+        Convenience method for showing the canvas that the view is on.
+        If no canvas exists, a new one is created.
+        """
+        from .canvas import Canvas
+
+        # TODO: we need to know/check somehow if the view is already on a canvas
+        canvas = Canvas()
+        canvas.add_view(self)
+        canvas.show()
+        return canvas
+
     def add_node(self, node: NodeType) -> NodeType:
+        """Add any node to the scene."""
         self.scene.add(node)
         if self.camera.has_backend:
             self.camera.native.set_range(margin=0)  # TODO

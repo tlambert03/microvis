@@ -1,5 +1,6 @@
 import atexit
 import sys
+import os
 
 from loguru._logger import Core, Logger
 
@@ -19,7 +20,7 @@ logger = Logger(
 )
 
 AUTOINIT = True
-DEFAULT_LOG_LEVEL = "DEBUG" if "DEBUG" in sys.argv else "INFO"
+DEFAULT_LOG_LEVEL = "DEBUG" if os.getenv("DEBUG") else "INFO"
 
 
 if AUTOINIT and sys.stderr:

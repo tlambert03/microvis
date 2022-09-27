@@ -3,6 +3,7 @@ from __future__ import annotations
 import warnings
 from abc import abstractmethod
 from typing import TYPE_CHECKING, ClassVar, Optional, Protocol
+from psygnal.containers import EventedList
 
 from .._types import Color
 from ._base import Field, FrontEndFor, SupportsVisibility
@@ -37,6 +38,12 @@ class CanvasBackend(SupportsVisibility['Canvas'], Protocol):
 # fmt: on
 
 
+class ViewList(EventedList[View]):
+    def _pre_insert(self, value: View) -> View:
+        assert isinstance(value, View), "Canvas views must be View objects"
+        return super()._pre_insert(value)
+
+
 class Canvas(FrontEndFor[CanvasBackend]):
     """Canvas onto which views are rendered."""
 
@@ -51,7 +58,7 @@ class Canvas(FrontEndFor[CanvasBackend]):
     )
     visible: bool = Field(False, description="Whether the canvas is visible.")
     title: str = Field("", description="The title of the canvas.")
-    views: list[View] = Field(default_factory=list)
+    views: EventedList[View] = Field(default_factory=EventedList, allow_mutation=False)
 
     @property
     def size(self) -> tuple[float, float]:

@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from functools import lru_cache
 from importlib import import_module
 from typing import Any, ClassVar, Dict, Generic, Protocol, Type, TypeVar
 
@@ -8,6 +9,8 @@ from pydantic.fields import Field, PrivateAttr
 from .._logs import logger
 
 __all__ = ["Field", "FrontEndFor", "ModelBase", "SupportsVisibility"]
+
+SETTER_METHOD = "_viz_set_{name}"
 
 
 class ModelBase(EventedModel):
@@ -27,6 +30,7 @@ class BackendAdaptor(Protocol[F]):
 
     @abstractmethod
     def __init__(self, obj: F, **backend_kwargs: Any) -> None:
+        """All backend adaptor objects recieve the object they are adapting"""
         ...
 
     @abstractmethod
@@ -86,8 +90,10 @@ class FrontEndFor(ModelBase, Generic[T]):
         else:
             class_name = class_name or type(self).__name__
             backend_module = import_module(f"...backend.{backend}", __name__)
-            backend_class: type[T] = getattr(backend_module, class_name)
+            backend_class = getattr(backend_module, class_name)
 
+        # todo: type guard
+        backend_class = validate_backend_class(type(self), backend_class)
         logger.debug(f"Attaching {type(self)} to backend {backend_class}")
         return backend_class(self, **(backend_kwargs or {}))
 
@@ -101,7 +107,7 @@ class FrontEndFor(ModelBase, Generic[T]):
         if not self.has_backend:
             return
         try:
-            name = f"_viz_set_{info.signal.name}"
+            name = SETTER_METHOD.format(name=info.signal.name)
             setter = getattr(self._backend, name)
         except AttributeError as e:
             logger.exception(e)
@@ -114,3 +120,19 @@ class FrontEndFor(ModelBase, Generic[T]):
             setter(*info.args)
         except Exception as e:
             logger.exception(e)
+
+
+@lru_cache()
+def validate_backend_class(cls: Type[FrontEndFor], backend_class: Type[T]) -> Type[T]:
+    """Validate that the backend class is appropriate for the object."""
+    logger.debug(f"Validating backend class {backend_class} for {cls}")
+    if missing := {
+        SETTER_METHOD.format(name=signal._name)
+        for signal in cls.__signal_group__._signals_.values()
+        if not hasattr(backend_class, SETTER_METHOD.format(name=signal._name))
+    }:
+        raise ValueError(
+            f"{backend_class} cannot be used as a backend object for {cls}: "
+            f"it is missing the following setters: {missing}"
+        )
+    return backend_class

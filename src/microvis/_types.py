@@ -84,5 +84,5 @@ ColorName = Literal[
 ]
 # fmt: on
 # None means black and transparent
-# str to allow "#FFF" hex strings
+# str to allow "#FFF" hex strings ... but kinda makes the list above useless.
 ValidColor = Union[None, ColorName, str, list, tuple, np.ndarray]
