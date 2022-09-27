@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 from psygnal import EventedModel
 from pydantic import Field, PrivateAttr
@@ -28,7 +28,7 @@ class Node(ModelBase):
     parent: Optional[Node] = Field(
         None, description="Parent node. If None, this node is a root node."
     )
-    children: list[Node] = Field(default_factory=list)
+    children: List[Node] = Field(default_factory=list)
     visible: bool = Field(True, description="Whether this node is visible.")
     opacity: float = Field(default=1.0, ge=0, le=1, description="Opacity of this node.")
     order: int = Field(

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, ClassVar, Optional, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, Optional, Protocol, Tuple, TypeVar
 
 from .._types import ArrayLike, Color
 from ._base import Field, FrontEndFor
@@ -53,11 +53,11 @@ class View(Node, FrontEndFor[ViewBackend]):
     # their meaning changes. also vispy will overwrite position and size (with .rect)
     # on resize events.
     # consider making these fractional values (0-1) and then scaling them to the canvas
-    position: tuple[float, float] = Field(
+    position: Tuple[float, float] = Field(
         default=(0, 0),
         description="The position of the view with respect to its canvas",
     )
-    size: Optional[tuple[float, float]] = Field(
+    size: Optional[Tuple[float, float]] = Field(
         default=None,
         description="The size of the scene. None implies size of parent canvas",
     )

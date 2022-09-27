@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from functools import lru_cache
 from importlib import import_module
-from typing import Any, ClassVar, Dict, Generic, Protocol, Type, TypeVar
+from typing import Any, ClassVar, Dict, Generic, Optional, Protocol, Type, TypeVar
 
 from psygnal import EmissionInfo, EventedModel
 from pydantic.fields import Field, PrivateAttr
@@ -56,7 +56,7 @@ T = TypeVar("T", bound=BackendAdaptor)
 class FrontEndFor(ModelBase, Generic[T]):
     """Front end object driving a backend interface."""
 
-    _backend: T | None = PrivateAttr(None)
+    _backend: Optional[T] = PrivateAttr(None)
     _backend_lookup: ClassVar[Dict[str, Type[BackendAdaptor]]] = {}
 
     @property

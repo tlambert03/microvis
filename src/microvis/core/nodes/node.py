@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import ClassVar, Optional, Protocol, TypeVar
+from typing import ClassVar, List, Optional, Protocol, TypeVar
 
 from .._base import Field, FrontEndFor, ModelBase, SupportsVisibility
 
@@ -50,7 +50,7 @@ class Node(FrontEndFor[NodeBackendType]):
     parent: Optional[Node] = Field(
         None, description="Parent node. If None, this node is a root node."
     )
-    children: list[Node] = Field(default_factory=list, hide_control=True)  # immutable?
+    children: List[Node] = Field(default_factory=list, hide_control=True)  # immutable?
     visible: bool = Field(True, description="Whether this node is visible.")
     interactive: bool = Field(
         False, description="Whether this node accepts mouse and touch events"
