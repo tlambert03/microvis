@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+
 from magicgui.widgets import Container, create_widget
+
 from .._logs import logger
 
 if TYPE_CHECKING:

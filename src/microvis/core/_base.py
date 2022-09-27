@@ -122,7 +122,7 @@ class FrontEndFor(ModelBase, Generic[T]):
             logger.exception(e)
 
 
-@lru_cache()
+@lru_cache
 def validate_backend_class(cls: Type[FrontEndFor], backend_class: Type[T]) -> Type[T]:
     """Validate that the backend class is appropriate for the object."""
     logger.debug(f"Validating backend class {backend_class} for {cls}")

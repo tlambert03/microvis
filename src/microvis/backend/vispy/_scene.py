@@ -1,4 +1,4 @@
-from typing import Any, cast
+from typing import Any
 
 from vispy.scene.subscene import SubScene
 from vispy.visuals.filters import Clipper

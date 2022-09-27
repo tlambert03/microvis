@@ -1,7 +1,7 @@
 from imageio.v3 import imread
 
-from microvis.convenience import imshow
 from microvis.controller import make_controller
+from microvis.convenience import imshow
 
 camera = imread("imageio:camera.png").copy()
 c = imshow(camera)

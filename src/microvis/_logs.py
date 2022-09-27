@@ -1,6 +1,6 @@
 import atexit
-import sys
 import os
+import sys
 
 from loguru._logger import Core, Logger
 

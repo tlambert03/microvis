@@ -3,6 +3,7 @@ from __future__ import annotations
 import warnings
 from abc import abstractmethod
 from typing import TYPE_CHECKING, ClassVar, Optional, Protocol
+
 from psygnal.containers import EventedList
 
 from .._types import Color
