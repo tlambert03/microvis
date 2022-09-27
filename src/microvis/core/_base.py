@@ -22,7 +22,7 @@ class ModelBase(EventedModel):
         allow_property_setters = True
 
 
-F = TypeVar("F", contravariant=True, bound="FrontEndFor")
+F = TypeVar("F", covariant=True, bound="FrontEndFor")
 
 
 class BackendAdaptor(Protocol[F]):
@@ -92,7 +92,7 @@ class FrontEndFor(ModelBase, Generic[T]):
             backend_module = import_module(f"...backend.{backend}", __name__)
             backend_class = getattr(backend_module, class_name)
 
-        # todo: type guard
+        # todo: TypeGuard
         backend_class = validate_backend_class(type(self), backend_class)
         logger.debug(f"Attaching {type(self)} to backend {backend_class}")
         return backend_class(self, **(backend_kwargs or {}))
@@ -106,18 +106,22 @@ class FrontEndFor(ModelBase, Generic[T]):
     def _on_any_event(self, info: EmissionInfo) -> None:
         if not self.has_backend:
             return
+
+        args = info.args
+        signal_name = info.signal.name
+
         try:
-            name = SETTER_METHOD.format(name=info.signal.name)
+            name = SETTER_METHOD.format(name=signal_name)
             setter = getattr(self._backend, name)
         except AttributeError as e:
             logger.exception(e)
             return
 
-        event_name = f"{type(self).__name__}.{info.signal.name}"
-        logger.debug(f"{event_name}={info.args} emitting to backend")
+        event_name = f"{type(self).__name__}.{signal_name}"
+        logger.debug(f"{event_name}={args} emitting to backend")
 
         try:
-            setter(*info.args)
+            setter(*args)
         except Exception as e:
             logger.exception(e)
 

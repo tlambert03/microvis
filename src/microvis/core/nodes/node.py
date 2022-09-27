@@ -10,7 +10,7 @@ class Transform(ModelBase):
     ...
 
 
-NodeType = TypeVar("NodeType", bound="Node", contravariant=True)
+NodeType = TypeVar("NodeType", bound="Node", covariant=True)
 
 
 # fmt: off
@@ -50,16 +50,18 @@ class Node(FrontEndFor[NodeBackendType]):
     parent: Optional[Node] = Field(
         None, description="Parent node. If None, this node is a root node."
     )
-    children: list[Node] = Field(default_factory=list)  # immutable?
+    children: list[Node] = Field(default_factory=list, hide_control=True)  # immutable?
     visible: bool = Field(True, description="Whether this node is visible.")
-    opacity: float = Field(1.0, description="Opacity of this node.", ge=0, le=1)
-    order: int = Field(
-        0,
-        description="A value used to determine the order in which nodes are drawn. "
-        "Greater values are drawn later. Children are always drawn after their parent",
-    )
     interactive: bool = Field(
         False, description="Whether this node accepts mouse and touch events"
+    )
+    opacity: float = Field(default=1.0, ge=0, le=1, description="Opacity of this node.")
+    order: int = Field(
+        0,
+        ge=0,
+        description="A value used to determine the order in which nodes are drawn. "
+        "Greater values are drawn later. Children are always drawn after their parent",
+        hide_control=True,
     )
     transform: Optional[Transform] = Field(
         None,

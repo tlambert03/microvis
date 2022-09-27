@@ -21,8 +21,8 @@ class Image(Node):
         backend_kwargs.setdefault("texture_format", "auto")
         backend_kwargs.update(
             {
-                "cmap": image.cmap,
-                "clim": image.clim,
+                "cmap": str(image.cmap),
+                "clim": image.clim_applied(),
                 "gamma": image.gamma,
                 "interpolation": image.interpolation.value,
             }
@@ -30,7 +30,7 @@ class Image(Node):
         self._native = scene.Image(image.data, **backend_kwargs)
 
     def _viz_set_cmap(self, arg: str) -> None:
-        self._native.cmap = arg
+        self._native.cmap = str(arg)
 
     def _viz_set_clim(self, arg: tuple[float, float] | None) -> None:
         self._native.clim = arg

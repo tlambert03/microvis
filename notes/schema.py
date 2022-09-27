@@ -30,7 +30,7 @@ class Node(ModelBase):
     )
     children: list[Node] = Field(default_factory=list)
     visible: bool = Field(True, description="Whether this node is visible.")
-    opacity: float = Field(1.0, description="Opacity of this node.", ge=0, le=1)
+    opacity: float = Field(default=1.0, ge=0, le=1, description="Opacity of this node.")
     order: int = Field(
         0,
         description="A value used to determine the order in which nodes are drawn. "

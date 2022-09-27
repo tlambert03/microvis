@@ -5,8 +5,6 @@ from typing import TYPE_CHECKING
 
 from magicgui.widgets import Container, create_widget
 
-from .._logs import logger
-
 if TYPE_CHECKING:
     from magicgui.widgets._bases import ValueWidget
     from psygnal import EventedModel
@@ -17,15 +15,12 @@ def make_controller(model: EventedModel) -> Container:
     """Create a controller widget for an EventedModel."""
     widgets = []
     for field in model.__fields__.values():
-
-        try:
-            current_value = getattr(model, field.name)
-            wdg: ValueWidget = create_widget(
-                value=current_value, annotation=field.outer_type_, name=f"{field.name}_"
-            )
-        except Exception as e:
-            logger.exception(e)
+        if field.field_info.extra.get("hide_control", False):
             continue
+        current_value = getattr(model, field.name)
+        wdg: ValueWidget = create_widget(
+            value=current_value, annotation=field.outer_type_, name=f"{field.name}_"
+        )
 
         wdg.changed.connect_setattr(model, field.name)
         model.events.signals[field.name].connect_setattr(wdg, "value")
