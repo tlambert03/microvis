@@ -1,7 +1,21 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, ClassVar, Optional, Protocol, Tuple, TypeVar
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    ClassVar,
+    Iterator,
+    List,
+    Optional,
+    Protocol,
+    Sequence,
+    SupportsIndex,
+    Tuple,
+    TypeVar,
+)
+
+from psygnal import EventedModel
 
 from .._types import ArrayLike, Color
 from ._base import Field, FrontEndFor
@@ -37,6 +51,29 @@ class ViewBackend(NodeBackend['View'], Protocol):
     @abstractmethod
     def _viz_set_margin(self, arg: int) -> None: ...
 # fmt: on
+
+
+class Slice(EventedModel):
+    start: float = Field(default=None)
+    stop: float = Field(default=None)
+    step: float = Field(default=None)
+
+    def indices(self, length: SupportsIndex) -> Tuple[int, int, int]:
+        """
+        This method takes a single integer argument length and computes
+        information about the slice that the slice object would describe if
+        applied to a sequence of length items. It returns a tuple of three
+        integers; respectively these are the start and stop indices and the
+        step or stride length of the slice. Missing or out-of-bounds indices
+        are handled in a manner consistent with regular slices.
+        """
+        return slice(self.start, self.stop, self.step).indices(length)
+
+
+
+class WorldSlice(EventedModel):
+    slices: List[Slice] = []
+
 
 
 class View(Node, FrontEndFor[ViewBackend]):
