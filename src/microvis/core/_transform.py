@@ -1,12 +1,47 @@
 from __future__ import annotations
 
+import functools
 import math
+from functools import reduce
 from typing import Any, Callable, Generator, Sequence
 
 import numpy as np
 from numpy.typing import ArrayLike, DTypeLike
 
 from ._base import Field, ModelBase
+
+
+def _arg_to_vec4(func: Callable[..., np.ndarray]) -> Callable[..., np.ndarray]:
+    """
+    Decorator for converting argument to vec4 format suitable for 4x4 matrix
+    multiplication.
+
+    [x, y]      =>  [[x, y, 0, 1]]
+
+    [x, y, z]   =>  [[x, y, z, 1]]
+
+    [[x1, y1],      [[x1, y1, 0, 1],
+     [x2, y2],  =>   [x2, y2, 0, 1],
+     [x3, y3]]       [x3, y3, 0, 1]]
+
+    If 1D input is provided, then the return value will be flattened.
+    Accepts input of any dimension, as long as shape[-1] <= 4
+
+    """
+
+    @functools.wraps(func)
+    def wrapper(self_: Transform, arg: Any, *args: Any, **kwargs: Any) -> np.ndarray:
+        if isinstance(arg, (tuple, list, np.ndarray)):
+            arg = np.array(arg)
+            flatten = arg.ndim == 1
+            arg = as_vec4(arg)
+
+            ret = func(self_, arg, *args, **kwargs)
+            return ret.flatten() if flatten and ret is not None else ret
+        else:
+            raise TypeError(f"Cannot convert argument to 4D vector: {arg}")
+
+    return wrapper
 
 
 class Transform(ModelBase):
@@ -125,6 +160,58 @@ class Transform(ModelBase):
             center = as_vec4(center)[0, :3]
             _scale = np.dot(np.dot(translate(-center), _scale), translate(center))
         return self.dot(_scale)
+
+    @_arg_to_vec4
+    def map(self, coords: ArrayLike) -> np.ndarray:
+        """Map coordinates
+
+        Parameters
+        ----------
+        coords : array-like
+            Coordinates to map.
+
+        Returns
+        -------
+        coords : ndarray
+            Coordinates.
+        """
+        # looks backwards, but both matrices are transposed.
+        return np.dot(coords, self.matrix)
+
+    @_arg_to_vec4
+    def imap(self, coords: ArrayLike) -> np.ndarray:
+        """Inverse map coordinates
+
+        Parameters
+        ----------
+        coords : array-like
+            Coordinates to inverse map.
+
+        Returns
+        -------
+        coords : ndarray
+            Coordinates.
+        """
+        return np.dot(coords, np.linalg.inv(self.matrix))
+
+    @classmethod
+    def chain(cls, *transforms: Transform) -> Transform:
+        """Chain multiple transforms together.
+
+        Parameters
+        ----------
+        transforms : Transform
+            Transforms to chain.
+
+        Returns
+        -------
+        transform : Transform
+            Chained transform.
+        """
+        return reduce(lambda a, b: a @ b, transforms, cls())
+
+
+# from vispy ...
 
 
 def rotate(angle: float, axis: ArrayLike) -> np.ndarray:

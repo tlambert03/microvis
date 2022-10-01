@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Optional, Protocol, Sequence, TypeVar
+from typing import Any, Iterator, Optional, Protocol, Sequence, TypeVar
 
 from psygnal.containers import EventedList
 from pydantic import validator
@@ -119,3 +119,87 @@ class Node(FrontEndFor[NodeBackendTypeCoV]):
     @validator("transform", pre=True)
     def _validate_transform(cls, v: Any) -> Any:
         return Transform() if v is None else v
+
+    # below borrowed from vispy.scene.Node
+
+    def transform_to_node(self, other: Node) -> Transform:
+        """Return Transform that maps from coordinate frame of `self` to `other`.
+
+        Note that there must be a _single_ path in the scenegraph that connects
+        the two entities; otherwise an exception will be raised.
+
+        Parameters
+        ----------
+        node : instance of Node
+            The other node.
+
+        Returns
+        -------
+        transform : instance of ChainTransform
+            The transform.
+        """
+        a, b = self.path_to_node(other)
+        tforms = [n.transform for n in a[:-1]] + [n.transform.inv() for n in b]
+        return Transform.chain(*tforms[::-1])
+
+    def path_to_node(self, other: Node) -> tuple[list[Node], list[Node]]:
+        """Return two lists describing the path from this node to another
+
+        Parameters
+        ----------
+        node : instance of Node
+            The other node.
+
+        Returns
+        -------
+        p1 : list
+            First path (see below).
+        p2 : list
+            Second path (see below).
+
+        Notes
+        -----
+        The first list starts with this node and ends with the common parent
+        between the endpoint nodes. The second list contains the remainder of
+        the path from the common parent to the specified ending node.
+
+        For example, consider the following scenegraph::
+
+            A --- B --- C --- D
+                   \
+                    --- E --- F
+
+        Calling `D.node_path(F)` will return::
+
+            ([D, C, B], [E, F])
+
+        """
+        my_parents = list(self.iter_parents())
+        their_parents = list(other.iter_parents())
+        common_parent = next((p for p in my_parents if p in their_parents), None)
+        if common_parent is None:
+            slf = f"{self.__class__.__name__} {id(self)}"
+            nd = f"{other.__class__.__name__} {id(other)}"
+            raise RuntimeError(f"No common parent between nodes {slf} and {nd}.")
+
+        up = my_parents[: my_parents.index(common_parent) + 1]
+        down = their_parents[: their_parents.index(common_parent)][::-1]
+        return (up, down)
+
+    def iter_parents(self) -> Iterator[Node]:
+        """
+        Return the list of parents starting from this node. The chain ends
+        at the first node with no parents.
+        """
+        yield self
+
+        x = self
+        while True:
+            try:
+                parent = x.parent
+            except Exception:
+                break
+            if parent is None:
+                break
+            yield parent
+            x = parent
