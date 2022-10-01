@@ -5,7 +5,9 @@ from functools import lru_cache
 from importlib import import_module
 from typing import Any, ClassVar, Dict, Generic, Optional, Protocol, Type, TypeVar
 
+import numpy as np
 from psygnal import EmissionInfo, EventedModel
+from psygnal.containers import EventedList
 from pydantic.fields import Field, PrivateAttr
 
 from .._logs import logger
@@ -22,6 +24,7 @@ class ModelBase(EventedModel):
         extra = "ignore"
         validate_assignment = True
         allow_property_setters = True
+        json_encoders = {EventedList: lambda x: list(x), np.ndarray: np.ndarray.tolist}
 
 
 F = TypeVar("F", covariant=True, bound="FrontEndFor")

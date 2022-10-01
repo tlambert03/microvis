@@ -4,18 +4,18 @@ from abc import abstractmethod
 from typing import (
     TYPE_CHECKING,
     Any,
-    ClassVar,
-    Iterator,
-    List,
+    Dict,
     Optional,
     Protocol,
     Sequence,
     SupportsIndex,
     Tuple,
     TypeVar,
+    Union,
 )
 
 from psygnal import EventedModel
+from pydantic import validator
 
 from .._types import ArrayLike, Color
 from ._base import Field, FrontEndFor
@@ -54,9 +54,17 @@ class ViewBackend(NodeBackend['View'], Protocol):
 
 
 class Slice(EventedModel):
-    start: float = Field(default=None)
-    stop: float = Field(default=None)
-    step: float = Field(default=None)
+    start: Union[float, None] = Field(default=None)
+    stop: Union[float, None] = Field(default=None)
+    step: Union[float, None] = Field(default=None)
+
+    def __init__(_model_self_, *args: float, **data: float) -> None:
+        if args:
+            if data:
+                raise TypeError("Cannot pass both args and kwargs")
+            _slc = slice(*args)
+            data = {"start": _slc.start, "stop": _slc.stop, "step": _slc.step}
+        super().__init__(**data)
 
     def indices(self, length: SupportsIndex) -> Tuple[int, int, int]:
         """
@@ -69,20 +77,62 @@ class Slice(EventedModel):
         """
         return slice(self.start, self.stop, self.step).indices(length)
 
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v: Any) -> Slice:
+        if v is None:
+            return cls()
+        if isinstance(v, slice):
+            return cls(start=v.start, stop=v.stop, step=v.step)
+        if isinstance(v, (int, float)):
+            return cls(v)
+        raise TypeError(f"Cannot convert {type(v)} to Slice")
+
+    def __repr__(self) -> str:
+        return f"Slice({self.start}, {self.stop}, {self.step})"
 
 
-class WorldSlice(EventedModel):
-    slices: List[Slice] = []
+class Dimensions(EventedModel):
+    __root__: Dict[Union[int, str], Slice]
 
+    def __init__(_model_self_, __root__: Any) -> None:
+        super().__init__(__root__=__root__)
+
+    def __repr__(self) -> str:
+        return f"Dimensions({repr(self.__root__)})"
+
+    @validator("__root__", pre=True)
+    def _validate_root(cls, v: Any) -> Dict[Union[int, str], Slice]:
+        if isinstance(v, (tuple, list, Sequence)):
+            # Dimensions(range(3))
+            # Dimensions([0, 1, 2])
+            # Dimensions('ZYX')
+            v = {i: None for i in v}
+        if isinstance(v, dict):
+            for k in list(v):
+                if v[k] is None:
+                    v[k] = Slice()
+        return v  # type: ignore
 
 
 class View(Node, FrontEndFor[ViewBackend]):
     """A rectangular area on a canvas that displays a scene, with a camera."""
 
-    _BackendProtocol: ClassVar[type] = ViewBackend
-
     camera: Camera = Field(default_factory=Camera)
     scene: Scene = Field(default_factory=Scene)  # necessary additional layer?
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.add(self.camera)
+        self.add(self.scene)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        super().__setattr__(name, value)
+        if name in {"camera", "scene"}:
+            self.add(getattr(self, name))
 
     # TODO:
     # position and size are problematic...
@@ -142,3 +192,12 @@ class View(Node, FrontEndFor[ViewBackend]):
     def add_image(self, data: ArrayLike, **kwargs: Any) -> Image:
         """Add an image to the scene."""
         return self.add_node(Image(data, **kwargs))
+
+    def add(self, node: Node) -> None:
+        """Add any node to the scene."""
+        # View is a special case of Node, only accepts top level
+        if not isinstance(node, (Camera, Scene)):
+            raise TypeError(
+                f"View can only contain a Camera and a Scene, not {type(node)}"
+            )
+        return super().add(node)

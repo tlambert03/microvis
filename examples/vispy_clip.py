@@ -1,6 +1,7 @@
 import numpy as np
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QSlider, QVBoxLayout, QWidget
 from skimage import data
-
 from vispy import scene
 
 # Prepare canvas
@@ -23,9 +24,6 @@ zhat = np.array([0, 0, 1])
 
 print(volume_center)
 volume.clipping_planes = [[[0, 0, 30], zhat]]
-
-from qtpy.QtWidgets import QSlider, QWidget, QVBoxLayout
-from qtpy.QtCore import Qt
 
 
 w = QWidget()

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import warnings
 from abc import abstractmethod
-from typing import TYPE_CHECKING, ClassVar, Optional, Protocol
+from typing import TYPE_CHECKING, Optional, Protocol
 
 from psygnal.containers import EventedList
 
@@ -47,8 +47,6 @@ class ViewList(EventedList[View]):
 
 class Canvas(FrontEndFor[CanvasBackend]):
     """Canvas onto which views are rendered."""
-
-    _BackendProtocol: ClassVar[type] = CanvasBackend
 
     width: float = Field(500, description="The width of the canvas in pixels.")
     height: float = Field(500, description="The height of the canvas in pixels.")

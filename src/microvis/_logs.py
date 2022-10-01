@@ -19,11 +19,12 @@ logger = Logger(
     extra={},
 )
 
-AUTOINIT = True
-DEFAULT_LOG_LEVEL = "DEBUG" if os.getenv("DEBUG") else "INFO"
+DEBUG = os.getenv("DEBUG", "0") in ("1", "true", "True", "yes")
+DEFAULT_LOG_LEVEL = "DEBUG" if DEBUG else "INFO"
 
-
-if AUTOINIT and sys.stderr:
+# automatically log to stderr
+# TODO: add file outputs
+if sys.stderr:
     logger.add(sys.stderr, level=DEFAULT_LOG_LEVEL, backtrace=False)
 
 atexit.register(logger.remove)

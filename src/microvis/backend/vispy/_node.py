@@ -3,7 +3,9 @@ from __future__ import annotations
 from typing import Any
 
 from vispy import scene
+from vispy.visuals.transforms import MatrixTransform, NullTransform
 
+from ...core import Transform
 from ...core.nodes import node as core_node
 
 
@@ -40,8 +42,9 @@ class Node(core_node.NodeBackend):
     def _viz_set_interactive(self, arg: bool) -> None:
         self._native.interactive = arg
 
-    def _viz_set_transform(self, arg: core_node.Transform | None) -> None:
-        raise NotImplementedError
+    def _viz_set_transform(self, arg: Transform) -> None:
+        T = NullTransform() if arg.is_null() else MatrixTransform(arg.matrix)
+        self._native.transform = T
 
     def _viz_add_node(self, node: core_node.Node) -> None:
         assert isinstance(node.native, scene.Node)

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, ClassVar, Protocol, TypeVar, cast
+from typing import Any, Protocol, TypeVar, cast
 
 from psygnal import EmissionInfo
 from psygnal.containers import EventedObjectProxy
@@ -34,7 +34,6 @@ class DataNode(Node[DataNodeBackendT]):
     Data is wrapped in an evented object proxy so that mutation events can be seen.
     """
 
-    _BackendProtocol: ClassVar[type] = DataNodeBackend
     _data: EventedObjectProxy[ArrayLike] = PrivateAttr(None)
 
     def __init__(self, data: ArrayLike, **kwargs: Any) -> None:

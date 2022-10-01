@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, ClassVar, Iterable, Optional, Protocol, Sequence, Tuple, Union
+from typing import Any, Iterable, Optional, Protocol, Sequence, Tuple, Union
 
 import numpy as np
 from pydantic import Field, validator
@@ -104,8 +104,6 @@ class Cmap(str, Enum):
 
 class Image(DataNode[ImageBackend]):
     """A Image that can be placed in scene."""
-
-    _BackendProtocol: ClassVar[type] = ImageBackend
 
     cmap: Cmap = Field(
         default="grays",
