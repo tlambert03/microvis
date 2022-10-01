@@ -40,3 +40,12 @@ def test_canvas(qtbot: "QtBot") -> None:
 
     canvas.dict()
     view.dict()
+
+
+def test_serialization():
+    c = Canvas()
+    v = c.add_view()
+    img = v.add_image(np.zeros((10, 10)))
+    assert c.json()
+    assert v.json()
+    assert img.json()
