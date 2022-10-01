@@ -1,13 +1,12 @@
 from __future__ import annotations
-import math
 
+import math
 from typing import Any, Callable, Generator, Sequence
 
 import numpy as np
 from numpy.typing import ArrayLike, DTypeLike
 
 from ._base import Field, ModelBase
-from vispy.visuals.transforms import STTransform
 
 
 class Transform(ModelBase):
@@ -45,7 +44,7 @@ class Transform(ModelBase):
         raise TypeError(f"Cannot convert {v!r} to Transform")
 
     def is_null(self) -> bool:
-        return np.allclose(self.matrix, np.eye(4))
+        return np.allclose(self.matrix, np.eye(4))  # type: ignore [no-any-return]
 
     def __matmul__(self, other: Transform | ArrayLike) -> Transform:
         """Return the dot product of this transform with another."""
@@ -171,7 +170,7 @@ def translate(offset: ArrayLike) -> np.ndarray:
     M : ndarray
         Transformation matrix describing the translation.
     """
-    _offset = tuple(offset)  # type: ignore
+    _offset = tuple(offset)
     assert len(_offset) == 3
     x, y, z = _offset
     return np.array(

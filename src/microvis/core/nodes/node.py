@@ -10,11 +10,13 @@ from ..._logs import logger
 from .._base import Field, FrontEndFor, SupportsVisibility
 from .._transform import Transform
 
+NodeTypeCoV = TypeVar("NodeTypeCoV", bound="Node", covariant=True)
 NodeType = TypeVar("NodeType", bound="Node")
+NodeBackendTypeCoV = TypeVar("NodeBackendTypeCoV", bound="NodeBackend", covariant=True)
 
 
 # fmt: off
-class NodeBackend(SupportsVisibility[NodeType], Protocol):
+class NodeBackend(SupportsVisibility[NodeTypeCoV], Protocol):
     """Backend interface for a Node."""
 
     @abstractmethod
@@ -38,9 +40,6 @@ class NodeBackend(SupportsVisibility[NodeType], Protocol):
 # fmt: on
 
 
-NodeBackendType = TypeVar("NodeBackendType", bound="NodeBackend", covariant=True)
-
-
 class NodeList(EventedList[NodeType]):
     _owner: Optional[Node] = None
 
@@ -54,14 +53,15 @@ class NodeList(EventedList[NodeType]):
         super()._post_insert(new_item)
 
 
-class Node(FrontEndFor[NodeBackendType]):
+class Node(FrontEndFor[NodeBackendTypeCoV]):
     """Base class for all nodes."""
 
     name: Optional[str] = Field(None, description="Name of the node.")
     parent: Optional[Node] = Field(
         None,
         description="Parent node. If None, this node is a root node.",
-        exclude=True,  # prevents recursion in serialization.  # TODO: maybe make children
+        exclude=True,  # prevents recursion in serialization.
+        # TODO: maybe make children the derived field?
     )
     # make immutable?
     children: NodeList[Node] = Field(default_factory=NodeList, hide_control=True)

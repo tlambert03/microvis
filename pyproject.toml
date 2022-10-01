@@ -115,6 +115,7 @@ D100  # missing docstring in public module
 D401  # imperative mood
 W503  # line break before binary operator
 E704  # multiple statements on one line
+D  # TEMPORARY
 """
 per-file-ignores = [
     "notes/*,tests/*:D",

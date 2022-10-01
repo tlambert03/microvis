@@ -4,7 +4,9 @@ from abc import abstractmethod
 from typing import (
     TYPE_CHECKING,
     Any,
+    Callable,
     Dict,
+    Generator,
     Optional,
     Protocol,
     Sequence,
@@ -78,7 +80,7 @@ class Slice(EventedModel):
         return slice(self.start, self.stop, self.step).indices(length)
 
     @classmethod
-    def __get_validators__(cls):
+    def __get_validators__(cls) -> Generator[Callable, None, None]:
         yield cls.validate
 
     @classmethod

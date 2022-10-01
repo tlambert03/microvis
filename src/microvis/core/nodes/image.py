@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, Iterable, Optional, Protocol, Sequence, Tuple, Union
+from typing import Any, Iterable, Optional, Protocol, Sequence, Tuple, Union, overload
 
 import numpy as np
 from pydantic import Field, validator
 
 from ..._types import ArrayLike, ImageInterpolation
-from .._base import Field
 from ._data import DataField, DataNode, DataNodeBackend
 
 
@@ -47,7 +46,15 @@ class AbsContrast(DataField, Sequence[float]):
         yield self.min
         yield self.max
 
-    def __getitem__(self, index: int | slice) -> float:
+    @overload
+    def __getitem__(self, index: int) -> float:
+        ...
+
+    @overload
+    def __getitem__(self, index: slice) -> Sequence[float]:
+        ...
+
+    def __getitem__(self, index: int | slice) -> float | Sequence[float]:
         return (self.min, self.max)[index]
 
     def __len__(self) -> int:
@@ -68,7 +75,15 @@ class PercentileContrast(DataField, Sequence[float]):
         yield self.pmin
         yield self.pmax
 
-    def __getitem__(self, index: int | slice) -> float:
+    @overload
+    def __getitem__(self, index: int) -> float:
+        ...
+
+    @overload
+    def __getitem__(self, index: slice) -> Sequence[float]:
+        ...
+
+    def __getitem__(self, index: int | slice) -> float | Sequence[float]:
         return (self.pmin, self.pmax)[index]
 
     def __len__(self) -> int:

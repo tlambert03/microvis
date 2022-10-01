@@ -9,10 +9,10 @@ from pydantic import PrivateAttr
 from pydantic.generics import GenericModel
 
 from ..._types import ArrayLike
-from .node import Node, NodeBackend, NodeType
+from .node import Node, NodeBackend, NodeTypeCoV
 
 
-class DataNodeBackend(NodeBackend[NodeType], Protocol):
+class DataNodeBackend(NodeBackend[NodeTypeCoV], Protocol):
     """Protocol for a backend DataNode adapter object."""
 
     @abstractmethod

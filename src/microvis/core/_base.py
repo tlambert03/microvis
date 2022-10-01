@@ -97,10 +97,10 @@ class FrontEndFor(ModelBase, Generic[T]):
             backend_module = import_module(f"...backend.{backend}", __name__)
             backend_class = getattr(backend_module, class_name)
 
-        # todo: TypeGuard
+        # TODO: fix TypeGuard
         backend_class = validate_backend_class(type(self), backend_class)
         logger.debug(f"Attaching {type(self)} to backend {backend_class}")
-        return backend_class(self, **(backend_kwargs or {}))
+        return backend_class(self, **(backend_kwargs or {}))  # type: ignore
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
