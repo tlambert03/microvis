@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from functools import lru_cache
 from importlib import import_module
-from typing import Any, ClassVar, Dict, Generic, Optional, Protocol, Type, TypeVar
+from typing import Any, ClassVar, Generic, Protocol, TypeVar
 
 import numpy as np
 from psygnal import EmissionInfo, EventedModel
@@ -35,7 +35,7 @@ class BackendAdaptor(Protocol[F]):
 
     @abstractmethod
     def __init__(self, obj: F, **backend_kwargs: Any) -> None:
-        """All backend adaptor objects recieve the object they are adapting"""
+        """All backend adaptor objects recieve the object they are adapting."""
         ...
 
     @abstractmethod
@@ -59,8 +59,8 @@ T = TypeVar("T", bound=BackendAdaptor)
 class FrontEndFor(ModelBase, Generic[T]):
     """Front end object driving a backend interface."""
 
-    _backend: Optional[T] = PrivateAttr(None)
-    _backend_lookup: ClassVar[Dict[str, Type[BackendAdaptor]]] = {}
+    _backend: T | None = PrivateAttr(None)
+    _backend_lookup: ClassVar[dict[str, type[BackendAdaptor]]] = {}
 
     @property
     def has_backend(self) -> bool:
@@ -132,7 +132,7 @@ class FrontEndFor(ModelBase, Generic[T]):
 
 
 @lru_cache
-def validate_backend_class(cls: Type[FrontEndFor], backend_class: Type[T]) -> Type[T]:
+def validate_backend_class(cls: type[FrontEndFor], backend_class: type[T]) -> type[T]:
     """Validate that the backend class is appropriate for the object."""
     logger.debug(f"Validating backend class {backend_class} for {cls}")
     if missing := {

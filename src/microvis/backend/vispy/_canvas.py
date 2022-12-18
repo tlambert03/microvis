@@ -40,7 +40,8 @@ class Canvas(core.canvas.CanvasBackend):
         self._native.show(visible=arg)
 
     def _viz_add_view(self, view: core.View) -> None:
-        assert isinstance(view.native, scene.ViewBox)
+        if not isinstance(view.native, scene.ViewBox):
+            raise TypeError("View must be a Vispy ViewBox")
         self._native.central_widget.add_widget(view.native)
 
     def _viz_set_width(self, arg: int) -> None:

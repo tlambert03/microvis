@@ -33,5 +33,3 @@ if sys.stderr:
     logger.add(sys.stderr, level=DEFAULT_LOG_LEVEL, backtrace=False)
 
 atexit.register(logger.remove)
-
-logger.debug("hi")

@@ -37,7 +37,8 @@ class Camera(Node, camera.CameraBackend):
         self._native.view_changed()
 
     def _viz_set_type(self, arg: CameraType) -> None:
-        assert isinstance(self._native.parent, scene.ViewBox)
+        if not isinstance(self._native.parent, scene.ViewBox):
+            raise TypeError("Camera must be attached to a ViewBox")
         self._native.parent.camera = str(arg)
 
     def _view_size(self) -> tuple[float, float] | None:

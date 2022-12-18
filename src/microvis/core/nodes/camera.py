@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Protocol, Tuple, Union
+from typing import Protocol
 
 from ..._types import CameraType
 from .._base import Field, FrontEndFor
@@ -18,7 +18,7 @@ class Camera(Node, FrontEndFor["CameraBackend"]):
         "such as mouse and keyboard events.",
     )
     zoom: float = Field(1.0, description="Zoom factor of the camera.")
-    center: Union[Tuple[float, float, float], Tuple[float, float]] = Field(
+    center: tuple[float, float, float] | tuple[float, float] = Field(
         (0, 0, 0), description="Center position of the view."
     )
 

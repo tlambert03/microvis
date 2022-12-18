@@ -19,7 +19,7 @@ class Canvas:
     # base interface
     def draw_frame(self) -> None: ...
     def request_draw(self, draw_function: Callable | None = None) -> None:
-        """Request from the main loop to schedule a new draw event"""
+        """Request from the main loop to schedule a new draw event."""
     def get_pixel_ratio(self) -> float:
         """Get the logical size in float pixels."""
     def get_physical_size(self) -> tuple[int, int]:
@@ -45,9 +45,11 @@ Matrix3x4 = np.ndarray
 Matrix4x4 = np.ndarray
 
 class Geometry:
-    """A geometry object contains the data that defines (the shape of) the
-    object, such as positions, plus data associated with these positions
-    (normals, texcoords, colors, etc.)."""
+    """A geometry object contains the data that defines (the shape of) the object.
+
+    such as positions, plus data associated with these positions
+    (normals, texcoords, colors, etc.).
+    """
 
     indices: np.ndarray | None  # typically Nx3 for mesh geometry
     positions: np.ndarray | None  # Nx3 positions (xyz) defining location of verts
@@ -116,8 +118,8 @@ class WorldObject:
         """Traverse the scene graph, calling a callback for each object."""
 
 class Camera(WorldObject):
-    """
-    The purpose of a camera is to define the viewpoint for rendering a scene.
+    """Define the viewpoint for rendering a scene.
+
     This viewpoint consists of its position (in the world) and its projection.
     """
 
@@ -138,4 +140,4 @@ class Renderer:
     ):
         """Render a scene with the specified camera as the viewpoint."""
     def flush(self) -> None:
-        """Render the result into the target texture view"""
+        """Render the result into the target texture view."""

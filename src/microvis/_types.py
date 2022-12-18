@@ -30,7 +30,7 @@ class UndefinedType:
     _instance = None
 
     def __new__(cls) -> "UndefinedType":
-        """singleton"""
+        """singleton."""
         if cls._instance is None:
             cls.instance = super().__new__(cls)
         return cls.instance
