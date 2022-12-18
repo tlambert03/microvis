@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import warnings
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Optional, Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from psygnal.containers import EventedList
 
@@ -27,7 +27,7 @@ class CanvasBackend(SupportsVisibility['Canvas'], Protocol):
     @abstractmethod
     def _viz_set_size(self, arg: tuple[int, int]) -> None: ...
     @abstractmethod
-    def _viz_set_background_color(self, arg: Optional[Color]) -> None: ...
+    def _viz_set_background_color(self, arg: Color | None) -> None: ...
     @abstractmethod
     def _viz_set_title(self, arg: str) -> None: ...
     @abstractmethod
@@ -41,7 +41,8 @@ class CanvasBackend(SupportsVisibility['Canvas'], Protocol):
 
 class ViewList(EventedList[View]):
     def _pre_insert(self, value: View) -> View:
-        assert isinstance(value, View), "Canvas views must be View objects"
+        if not isinstance(value, View):
+            raise TypeError("Canvas views must be View objects")
         return super()._pre_insert(value)
 
 
@@ -50,7 +51,7 @@ class Canvas(FrontEndFor[CanvasBackend]):
 
     width: float = Field(500, description="The width of the canvas in pixels.")
     height: float = Field(500, description="The height of the canvas in pixels.")
-    background_color: Optional[Color] = Field(
+    background_color: Color | None = Field(
         None,
         description="The background color. None implies transparent "
         "(which is usually black)",

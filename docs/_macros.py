@@ -18,7 +18,8 @@ def define_env(env: "MacrosPlugin"):
     @env.macro
     def pydantic_table(name: str):
         cls = _import_attr(name)
-        assert issubclass(cls, BaseModel)
+        if not issubclass(cls, BaseModel):
+            raise ValueError(f"{name} is not a pydantic model")
         rows = ["| Field | Type | Description |", "| ----  | ---- | ----------- |"]
         for f in cls.__fields__.values():
             type_ = _build_type_link(f.outer_type_)

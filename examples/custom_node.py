@@ -1,4 +1,4 @@
-"""An example of creating a custom node that can be added to a scene"""
+"""An example of creating a custom node that can be added to a scene."""
 import numpy as np
 from vispy import scene
 

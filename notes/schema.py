@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import List, Optional, Tuple, Union
-
 from psygnal import EventedModel
 from pydantic import Field, PrivateAttr
 from pydantic.color import Color
@@ -24,11 +22,11 @@ class Transform(ModelBase):
 class Node(ModelBase):
     """World object in a scene graph."""
 
-    name: Optional[str] = Field(None, description="Name of the node.")
-    parent: Optional[Node] = Field(
+    name: str | None = Field(None, description="Name of the node.")
+    parent: Node | None = Field(
         None, description="Parent node. If None, this node is a root node."
     )
-    children: List[Node] = Field(default_factory=list)
+    children: list[Node] = Field(default_factory=list)
     visible: bool = Field(True, description="Whether this node is visible.")
     opacity: float = Field(default=1.0, ge=0, le=1, description="Opacity of this node.")
     order: int = Field(
@@ -39,7 +37,7 @@ class Node(ModelBase):
     interactive: bool = Field(
         False, description="Whether this node accepts mouse and touch events"
     )
-    transform: Optional[Transform] = Field(
+    transform: Transform | None = Field(
         None,
         description="Transform that maps the local coordinate frame to the coordinate "
         "frame of the parent.",
@@ -64,7 +62,7 @@ class Camera(Node):
         "such as mouse and keyboard events.",
     )
     zoom: float = Field(1.0, description="Zoom factor of the camera.")
-    center: Union[Tuple[float, float, float], Tuple[float, float]] = Field(
+    center: tuple[float, float, float] | tuple[float, float] = Field(
         (0, 0, 0), description="Center position of the view."
     )
     # flip : tuple of bools
@@ -77,7 +75,7 @@ class Camera(Node):
 class PanZoomCamera(Camera):
     """i.e. 2D Orthographic Camera."""
 
-    aspect_ratio: Optional[float] = Field(
+    aspect_ratio: float | None = Field(
         1,
         description="The ratio between the x and y dimension. If None, the dimensions "
         "are scaled automatically, dependening on the available space",
@@ -92,12 +90,12 @@ class PerspectiveCamera(Camera):
         description="Field of view in degrees. Zero (default) means orthographic "
         "projection.",
     )
-    distance: Optional[float] = Field(
+    distance: float | None = Field(
         description="The distance of the camera from the rotation point (only makes "
         "sense if fov > 0). If None (default) the distance is determined from the"
         "zoom and fov."
     )
-    angles: Tuple[float, float, float] = (0.0, 0.0, 90.0)
+    angles: tuple[float, float, float] = (0.0, 0.0, 90.0)
 
 
 # data objects
@@ -123,7 +121,7 @@ class VolumeDisplay(LayerDisplay):
 
 class Image2DDisplay(LayerDisplay):
     cmap: str = "gray"  # TODO
-    clim: Optional[Tuple[float, float]] = None  # where none means auto
+    clim: tuple[float, float] | None = None  # where none means auto
     gamma: float = 1
     interpolation: str = "nearest"
     visible: bool = True
@@ -154,18 +152,18 @@ class View(Node):  # should it be a node?
         (0, 0),
         description="The position of the view with respect to its canvas",
     )
-    size: Optional[tuple[float, float]] = Field(
+    size: tuple[float, float] | None = Field(
         None,
         description="The size of the scene. None implies size of parent canvas",
     )
 
-    background_color: Optional[Color] = Field(
+    background_color: Color | None = Field(
         None, description="The background color. None implies transparent."
     )
     border_width: float = Field(
         0, description="The width of the border line in pixels."
     )
-    border_color: Optional[Color] = Field(None, description="The color of the border.")
+    border_color: Color | None = Field(None, description="The color of the border.")
     padding: int = Field(
         0,
         description="The amount of padding in the widget "
@@ -181,7 +179,7 @@ class Canvas(ModelBase):
 
     width: float = Field(500, description="The width of the canvas in pixels.")
     height: float = Field(500, description="The height of the canvas in pixels.")
-    background_color: Optional[Color] = Field(
+    background_color: Color | None = Field(
         None,
         description="The background color. None implies transparent "
         "(which is usually black)",

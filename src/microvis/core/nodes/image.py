@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, Iterable, Optional, Protocol, Sequence, Tuple, Union, overload
+from typing import Any, Iterable, Protocol, Sequence, overload
 
 import numpy as np
 from pydantic import Field, validator
@@ -18,7 +18,7 @@ class ImageBackend(DataNodeBackend['Image'], Protocol):
     @abstractmethod
     def _viz_set_cmap(self, arg: str) -> None: ...
     @abstractmethod
-    def _viz_set_clim(self, arg: Optional[Tuple[float, float]]) -> None: ...
+    def _viz_set_clim(self, arg: tuple[float, float] | None) -> None: ...
     @abstractmethod
     def _viz_set_gamma(self, arg: float) -> None: ...
     @abstractmethod
@@ -124,7 +124,7 @@ class Image(DataNode[ImageBackend]):
         default="grays",
         description="The colormap to use for the image.",
     )
-    clim: Union[AbsContrast, PercentileContrast] = Field(
+    clim: AbsContrast | PercentileContrast = Field(
         default_factory=PercentileContrast,
         description="The contrast limits to use when rendering the image.",
     )
@@ -135,7 +135,7 @@ class Image(DataNode[ImageBackend]):
     )
 
     @validator("clim", pre=True)
-    def _vclim(cls, v: Any) -> Union[dict, PercentileContrast, AbsContrast]:
+    def _vclim(cls, v: Any) -> dict | PercentileContrast | AbsContrast:
         # contrast limits can be expressed Falsey (autoscale 0-100%)
         # a tuple (min, max) or scalar (max) of Absolute contrast
         # a dict {'min', 'max'} or {'pmin', 'pmax'}

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Iterator, Optional, Protocol, Sequence, TypeVar
+from typing import Any, Iterator, Protocol, Sequence, TypeVar
 
 from psygnal.containers import EventedList
 from pydantic import validator
@@ -41,10 +41,11 @@ class NodeBackend(SupportsVisibility[NodeTypeCoV], Protocol):
 
 
 class NodeList(EventedList[NodeType]):
-    _owner: Optional[Node] = None
+    _owner: Node | None = None
 
     def _pre_insert(self, value: NodeType) -> NodeType:
-        assert isinstance(value, Node), "Canvas views must be View objects"
+        if not isinstance(value, Node):
+            raise TypeError("Canvas views must be View objects")
         return super()._pre_insert(value)
 
     def _post_insert(self, new_item: NodeType) -> None:
@@ -53,11 +54,11 @@ class NodeList(EventedList[NodeType]):
         super()._post_insert(new_item)
 
 
-class Node(FrontEndFor[NodeBackendTypeCoV]):
+class Node(FrontEndFor[NodeBackendTypeCoV]):  # type: ignore  # FIXME
     """Base class for all nodes."""
 
-    name: Optional[str] = Field(None, description="Name of the node.")
-    parent: Optional[Node] = Field(
+    name: str | None = Field(None, description="Name of the node.")
+    parent: Node | None = Field(
         None,
         description="Parent node. If None, this node is a root node.",
         exclude=True,  # prevents recursion in serialization.
@@ -143,7 +144,7 @@ class Node(FrontEndFor[NodeBackendTypeCoV]):
         return Transform.chain(*tforms[::-1])
 
     def path_to_node(self, other: Node) -> tuple[list[Node], list[Node]]:
-        """Return two lists describing the path from this node to another
+        """Return two lists describing the path from this node to another.
 
         Parameters
         ----------

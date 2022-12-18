@@ -5,15 +5,11 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Dict,
     Generator,
-    Optional,
     Protocol,
     Sequence,
     SupportsIndex,
-    Tuple,
     TypeVar,
-    Union,
 )
 
 from psygnal import EventedModel
@@ -56,9 +52,9 @@ class ViewBackend(NodeBackend['View'], Protocol):
 
 
 class Slice(EventedModel):
-    start: Union[float, None] = Field(default=None)
-    stop: Union[float, None] = Field(default=None)
-    step: Union[float, None] = Field(default=None)
+    start: float | None = Field(default=None)
+    stop: float | None = Field(default=None)
+    step: float | None = Field(default=None)
 
     def __init__(_model_self_, *args: float, **data: float) -> None:
         if args:
@@ -68,7 +64,7 @@ class Slice(EventedModel):
             data = {"start": _slc.start, "stop": _slc.stop, "step": _slc.step}
         super().__init__(**data)
 
-    def indices(self, length: SupportsIndex) -> Tuple[int, int, int]:
+    def indices(self, length: SupportsIndex) -> tuple[int, int, int]:
         """
         This method takes a single integer argument length and computes
         information about the slice that the slice object would describe if
@@ -98,7 +94,7 @@ class Slice(EventedModel):
 
 
 class Dimensions(EventedModel):
-    __root__: Dict[Union[int, str], Slice]
+    __root__: dict[int | str, Slice]
 
     def __init__(_model_self_, __root__: Any) -> None:
         super().__init__(__root__=__root__)
@@ -107,7 +103,7 @@ class Dimensions(EventedModel):
         return f"Dimensions({repr(self.__root__)})"
 
     @validator("__root__", pre=True)
-    def _validate_root(cls, v: Any) -> Dict[Union[int, str], Slice]:
+    def _validate_root(cls, v: Any) -> dict[int | str, Slice]:
         if isinstance(v, (tuple, list, Sequence)):
             # Dimensions(range(3))
             # Dimensions([0, 1, 2])
@@ -142,16 +138,16 @@ class View(Node, FrontEndFor[ViewBackend]):
     # their meaning changes. also vispy will overwrite position and size (with .rect)
     # on resize events.
     # consider making these fractional values (0-1) and then scaling them to the canvas
-    position: Tuple[float, float] = Field(
+    position: tuple[float, float] = Field(
         default=(0, 0),
         description="The position of the view with respect to its canvas",
     )
-    size: Optional[Tuple[float, float]] = Field(
+    size: tuple[float, float] | None = Field(
         default=None,
         description="The size of the scene. None implies size of parent canvas",
     )
 
-    background_color: Optional[Color] = Field(
+    background_color: Color | None = Field(
         default=None,
         description="The background color. None implies transparent.",
     )
@@ -159,7 +155,7 @@ class View(Node, FrontEndFor[ViewBackend]):
         default=0,
         description="The width of the border line in pixels.",
     )
-    border_color: Optional[Color] = Field(None, description="The color of the border.")
+    border_color: Color | None = Field(None, description="The color of the border.")
     padding: int = Field(
         default=0,
         description="The amount of padding in the widget "

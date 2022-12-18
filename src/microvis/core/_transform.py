@@ -45,7 +45,7 @@ def _arg_to_vec4(func: Callable[..., np.ndarray]) -> Callable[..., np.ndarray]:
 
 
 class Transform(ModelBase):
-    """Transformation"""
+    """Transformation."""
 
     matrix: np.ndarray = Field(default_factory=lambda: np.eye(4))
 
@@ -58,7 +58,8 @@ class Transform(ModelBase):
 
     def __init__(_model_self_, matrix: ArrayLike | None = None) -> None:
         matrix = np.eye(4) if matrix is None else np.asarray(matrix, dtype=float)
-        assert matrix.shape == (4, 4), f"Expected 4x4 matrix, got {matrix.shape}"
+        if matrix.shape != (4, 4):
+            raise ValueError(f"Expected 4x4 matrix, got {matrix.shape}")
         super().__init__(matrix=matrix)
 
     def __repr_args__(self) -> Sequence[tuple[str | None, Any]]:
@@ -163,7 +164,7 @@ class Transform(ModelBase):
 
     @_arg_to_vec4
     def map(self, coords: ArrayLike) -> np.ndarray:
-        """Map coordinates
+        """Map coordinates.
 
         Parameters
         ----------
@@ -180,7 +181,7 @@ class Transform(ModelBase):
 
     @_arg_to_vec4
     def imap(self, coords: ArrayLike) -> np.ndarray:
-        """Inverse map coordinates
+        """Inverse map coordinates.
 
         Parameters
         ----------
@@ -231,7 +232,8 @@ def rotate(angle: float, axis: ArrayLike) -> np.ndarray:
     """
     angle = np.radians(angle)
     axis = np.array(axis, copy=False)
-    assert len(axis) == 3
+    if len(axis) != 3:
+        raise ValueError("axis must be a 3-element vector")
     x, y, z = axis / np.linalg.norm(axis)
     c, s = math.cos(angle), math.sin(angle)
     cx, cy, cz = (1 - c) * x, (1 - c) * y, (1 - c) * z
@@ -258,7 +260,8 @@ def translate(offset: ArrayLike) -> np.ndarray:
         Transformation matrix describing the translation.
     """
     _offset = tuple(offset)
-    assert len(_offset) == 3
+    if len(_offset) != 3:
+        raise ValueError("offset must be a length 3 sequence")
     x, y, z = _offset
     return np.array(
         [
@@ -271,7 +274,7 @@ def translate(offset: ArrayLike) -> np.ndarray:
 
 
 def scale(s: ArrayLike) -> np.ndarray:
-    """Non-uniform scaling along the x, y, and z axes
+    """Non-uniform scaling along the x, y, and z axes.
 
     Parameters
     ----------
@@ -283,12 +286,13 @@ def scale(s: ArrayLike) -> np.ndarray:
     M : ndarray
         Transformation matrix describing the scaling.
     """
-    assert len(s) == 3
+    if len(s) != 3:
+        raise ValueError("scale must be a length 3 sequence")
     return np.array(np.diag(np.concatenate([s, (1.0,)])))
 
 
 def as_vec4(obj: ArrayLike, default: ArrayLike = (0, 0, 0, 1)) -> np.ndarray:
-    """Convert `obj` to 4-element vector (numpy array with shape[-1] == 4)
+    """Convert `obj` to 4-element vector (numpy array with shape[-1] == 4).
 
     Parameters
     ----------
