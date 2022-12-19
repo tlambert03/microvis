@@ -64,16 +64,17 @@ class Slice(EventedModel):
             data = {"start": _slc.start, "stop": _slc.stop, "step": _slc.step}
         super().__init__(**data)
 
-    def indices(self, length: SupportsIndex) -> tuple[int, int, int]:
+    def indices(self, len: SupportsIndex) -> tuple[int, int, int]:
+        """Return (start, stop, step) tuple representing indices.
+
+        Assuming a sequence of length `len`, calculate the start and stop indices, and
+        the stride length of the extended slice described by S. Out of bounds indices
+        are clipped in a manner consistent with the handling of normal slices.
+
+        It returns a tuple of three integers; respectively these are the
+        start and stop indices and the step or stride length of the slice.
         """
-        This method takes a single integer argument length and computes
-        information about the slice that the slice object would describe if
-        applied to a sequence of length items. It returns a tuple of three
-        integers; respectively these are the start and stop indices and the
-        step or stride length of the slice. Missing or out-of-bounds indices
-        are handled in a manner consistent with regular slices.
-        """
-        return slice(self.start, self.stop, self.step).indices(length)
+        return slice(self.start, self.stop, self.step).indices(len)
 
     @classmethod
     def __get_validators__(cls) -> Generator[Callable, None, None]:

@@ -10,13 +10,14 @@ copyright: Copyright &copy; 2021 - 2022 Talley Lambert
 watch:
   - src
 
+hooks:
+  - docs/_hooks.py
+
 plugins:
   - search
   - autorefs
   - minify:
       minify_html: true
-  - macros:
-      module_name: docs/_macros
   - mkdocstrings:
       handlers:
         python:
@@ -41,13 +42,24 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.details
   - admonition
+  - toc:
+      permalink: "#"
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.tabbed:
+      alternate_style: true
 
 theme:
   name: material
   icon:
-    repo: material/github
-    logo: material/image-outline
+    repo: fontawesome/brands/github
+    logo: material/image
   features:
     - navigation.instant
     - search.highlight
     - search.suggest
+
+
+extra_css:
+  - stylesheets/extra.css

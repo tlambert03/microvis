@@ -12,9 +12,7 @@ from ._base import Field, ModelBase
 
 
 def _arg_to_vec4(func: Callable[..., np.ndarray]) -> Callable[..., np.ndarray]:
-    """
-    Decorator for converting argument to vec4 format suitable for 4x4 matrix
-    multiplication.
+    """Decorator for converting argument to vec4 format suitable for 4x4 matrix mul.
 
     [x, y]      =>  [[x, y, 0, 1]]
 
@@ -26,7 +24,6 @@ def _arg_to_vec4(func: Callable[..., np.ndarray]) -> Callable[..., np.ndarray]:
 
     If 1D input is provided, then the return value will be flattened.
     Accepts input of any dimension, as long as shape[-1] <= 4
-
     """
 
     @functools.wraps(func)

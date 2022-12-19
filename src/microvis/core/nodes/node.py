@@ -131,7 +131,7 @@ class Node(FrontEndFor[NodeBackendTypeCoV]):  # type: ignore  # FIXME
 
         Parameters
         ----------
-        node : instance of Node
+        other : instance of Node
             The other node.
 
         Returns
@@ -148,7 +148,7 @@ class Node(FrontEndFor[NodeBackendTypeCoV]):  # type: ignore  # FIXME
 
         Parameters
         ----------
-        node : instance of Node
+        other : instance of Node
             The other node.
 
         Returns
@@ -188,9 +188,9 @@ class Node(FrontEndFor[NodeBackendTypeCoV]):  # type: ignore  # FIXME
         return (up, down)
 
     def iter_parents(self) -> Iterator[Node]:
-        """
-        Return the list of parents starting from this node. The chain ends
-        at the first node with no parents.
+        """Return list of parents starting from this node.
+
+        The chain ends at the first node with no parents.
         """
         yield self
 
