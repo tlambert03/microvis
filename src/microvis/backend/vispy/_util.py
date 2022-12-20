@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pydantic.color import Color
+    from microvis._types import Color
 
 
 def pyd_color_to_vispy(color: Color | None) -> str:

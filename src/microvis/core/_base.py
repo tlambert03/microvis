@@ -149,6 +149,11 @@ class FrontEndFor(ModelBase, Generic[T]):
         except Exception as e:
             logger.exception(e)
 
+    # TODO:
+    # def detach(self) -> None:
+    #     """Disconnect and destroy the backend adaptor from the object."""
+    #     self._backend = None
+
 
 @lru_cache
 def validate_backend_class(cls: type[FrontEndFor], backend_class: type[T]) -> type[T]:
