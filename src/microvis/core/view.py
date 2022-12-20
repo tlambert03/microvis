@@ -119,6 +119,11 @@ class Dimensions(EventedModel):
         return v
 
 
+# thinking about this
+# class WorldSlice(EventedModel):
+#     slices: List[Slice] = []
+
+
 class View(Node, FrontEndFor[ViewBackend]):
     """A rectangular area on a canvas that displays a scene, with a camera.
 
@@ -129,6 +134,25 @@ class View(Node, FrontEndFor[ViewBackend]):
     Outside of these two primary properties, a view has a number of other aesthetic
     properties like position, size, border, padding, and margin (which follows the
     CSS box model).
+
+        position
+        |
+        v
+    --->+--------------------------------+  ^
+        |            margin              |  |
+        |  +--------------------------+  |  |
+        |  |         border           |  |  |
+        |  |  +--------------------+  |  |  |
+        |  |  |      padding       |  |  |  |
+        |  |  |  +--------------+  |  |  |   height
+        |  |  |  |   content    |  |  |  |  |
+        |  |  |  |              |  |  |  |  |
+        |  |  |  +--------------+  |  |  |  |
+        |  |  +--------------------+  |  |  |
+        |  +--------------------------+  |  |
+        +--------------------------------+  v
+
+        <------------ width ------------->
     """
 
     camera: Camera = Field(default_factory=Camera)
@@ -162,7 +186,8 @@ class View(Node, FrontEndFor[ViewBackend]):
 
     background_color: Color | None = Field(
         default=None,
-        description="The background color. None implies transparent.",
+        description="The background color (inside of the border). "
+        "None implies transparent.",
     )
     border_width: float = Field(
         default=0,

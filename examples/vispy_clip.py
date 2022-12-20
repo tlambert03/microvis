@@ -6,11 +6,17 @@ from vispy import scene
 
 # Prepare canvas
 canvas = scene.SceneCanvas(keys="interactive", size=(800, 600), show=True)
-view = canvas.central_widget.add_view(camera="panzoom")
+grid = canvas.central_widget.add_grid()
+view = grid.add_view(row=0, col=0, camera="panzoom")
 view.camera.aspect = 1
+view2 = grid.add_view(row=0, col=1, camera="panzoom")
+view2.camera.aspect = 1
+view2.camera = view.camera
 
 cells = data.cells3d()[:, 0]
-volume = scene.visuals.Volume(cells, parent=view.scene)
+volume = scene.visuals.Volume(
+    cells, parent=view.scene, interpolation="nearest", clim=[0, 25000]
+)
 view.camera.set_range()
 
 
@@ -30,27 +36,25 @@ w = QWidget()
 w.setLayout(QVBoxLayout())
 
 s1 = QSlider(Qt.Horizontal)
-s2 = QSlider(Qt.Horizontal)
-s3 = QSlider(Qt.Horizontal)
+s1.setRange(0, len(cells) - 1)
+# s2 = QSlider(Qt.Horizontal)
+# s2.setRange(0, len(cells) - 1)
 
 
+@s1.valueChanged.connect
 def update():
-    if s1.sender() is s1:
-        s2.setValue(max(s2.value(), s1.value() + 1))
-    elif s1.sender() is s2:
-        s1.setValue(min(s2.value() - 1, s1.value()))
+    zhat = np.array([0, 0, 1])
     volume.clipping_planes = [
         [[0, 0, s1.value()], zhat],
-        [[0, 0, s2.value()], -zhat],
+        [[0, 0, s1.value() + 1], -zhat],
     ]
 
 
-s1.valueChanged.connect(update)
-s2.valueChanged.connect(update)
-s3.valueChanged.connect(update)
+# s2.valueChanged.connect(update)
+# s3.valueChanged.connect(update)
+# w.layout().addWidget(s3)
 w.layout().addWidget(s1)
-w.layout().addWidget(s2)
-w.layout().addWidget(s3)
+# w.layout().addWidget(s2)
 w.show()
 
 if __name__ == "__main__":
