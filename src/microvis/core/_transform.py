@@ -3,15 +3,17 @@ from __future__ import annotations
 import functools
 import math
 from functools import reduce
-from typing import Any, Callable, Generator, Sequence
+from typing import Any, Callable, Generator, Iterable, Sequence, Sized, cast
 
 import numpy as np
-from numpy.typing import ArrayLike, DTypeLike
+from numpy.typing import ArrayLike, DTypeLike, NDArray
 
 from ._base import Field, ModelBase
 
 
-def _arg_to_vec4(func: Callable[..., np.ndarray]) -> Callable[..., np.ndarray]:
+def _arg_to_vec4(
+    func: Callable[[Transform, ArrayLike], NDArray]
+) -> Callable[[Transform, ArrayLike], NDArray]:
     """Decorator for converting argument to vec4 format suitable for 4x4 matrix mul.
 
     [x, y]      =>  [[x, y, 0, 1]]
@@ -27,16 +29,15 @@ def _arg_to_vec4(func: Callable[..., np.ndarray]) -> Callable[..., np.ndarray]:
     """
 
     @functools.wraps(func)
-    def wrapper(self_: Transform, arg: Any, *args: Any, **kwargs: Any) -> np.ndarray:
-        if isinstance(arg, (tuple, list, np.ndarray)):
-            arg = np.array(arg)
-            flatten = arg.ndim == 1
-            arg = as_vec4(arg)
+    def wrapper(self_: Transform, arg: ArrayLike) -> NDArray:
+        if not isinstance(arg, (tuple, list, np.ndarray)):
+            raise TypeError(f"Cannot convert argument to 4D vector: {arg!r}")
+        arg = np.array(arg)
+        flatten = arg.ndim == 1
+        arg = as_vec4(arg)
 
-            ret = func(self_, arg, *args, **kwargs)
-            return ret.flatten() if flatten and ret is not None else ret
-        else:
-            raise TypeError(f"Cannot convert argument to 4D vector: {arg}")
+        ret = func(self_, arg)
+        return np.copy(np.ravel(ret)) if flatten and ret is not None else ret
 
     return wrapper
 
@@ -77,7 +78,7 @@ class Transform(ModelBase):
         raise TypeError(f"Cannot convert {v!r} to Transform")
 
     def is_null(self) -> bool:
-        return np.allclose(self.matrix, np.eye(4))  # type: ignore [no-any-return]
+        return np.allclose(self.matrix, np.eye(4))
 
     def __matmul__(self, other: Transform | ArrayLike) -> Transform:
         """Return the dot product of this transform with another."""
@@ -160,7 +161,7 @@ class Transform(ModelBase):
         return self.dot(_scale)
 
     @_arg_to_vec4
-    def map(self, coords: ArrayLike) -> np.ndarray:
+    def map(self, coords: ArrayLike) -> NDArray:
         """Map coordinates.
 
         Parameters
@@ -174,10 +175,10 @@ class Transform(ModelBase):
             Coordinates.
         """
         # looks backwards, but both matrices are transposed.
-        return np.dot(coords, self.matrix)
+        return cast(NDArray, np.dot(coords, self.matrix))
 
     @_arg_to_vec4
-    def imap(self, coords: ArrayLike) -> np.ndarray:
+    def imap(self, coords: ArrayLike) -> NDArray:
         """Inverse map coordinates.
 
         Parameters
@@ -190,7 +191,7 @@ class Transform(ModelBase):
         coords : ndarray
             Coordinates.
         """
-        return np.dot(coords, np.linalg.inv(self.matrix))
+        return cast(NDArray, np.dot(coords, np.linalg.inv(self.matrix)))
 
     @classmethod
     def chain(cls, *transforms: Transform) -> Transform:
@@ -243,13 +244,13 @@ def rotate(angle: float, axis: ArrayLike) -> np.ndarray:
     return np.array(M).T
 
 
-def translate(offset: ArrayLike) -> np.ndarray:
+def translate(offset: Iterable[float]) -> np.ndarray:
     """Translate by an offset (x, y, z) .
 
     Parameters
     ----------
-    offset : array-like, shape (3,)
-        Translation in x, y, z.
+    offset : Iterable[float]
+        Must be length 3. Translation in x, y, z.
 
     Returns
     -------
@@ -270,7 +271,7 @@ def translate(offset: ArrayLike) -> np.ndarray:
     )
 
 
-def scale(s: ArrayLike) -> np.ndarray:
+def scale(s: Sized) -> np.ndarray:
     """Non-uniform scaling along the x, y, and z axes.
 
     Parameters

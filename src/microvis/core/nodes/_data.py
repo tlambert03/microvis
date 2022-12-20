@@ -8,7 +8,8 @@ from psygnal.containers import EventedObjectProxy
 from pydantic import PrivateAttr
 from pydantic.generics import GenericModel
 
-from ..._types import ArrayLike
+from microvis._types import ArrayLike
+
 from .node import Node, NodeBackend, NodeTypeCoV
 
 
@@ -48,6 +49,7 @@ class DataNode(Node[DataNodeBackendT]):
     @data.setter
     def data(self, data: ArrayLike) -> None:
         if self._data is not None:
+            # disconnect the old wrapper
             self._data.events.disconnect(self._on_data_changed)
         if isinstance(data, EventedObjectProxy):
             self._data = data  # don't rewrap
@@ -60,7 +62,7 @@ class DataNode(Node[DataNodeBackendT]):
         # Note: could accept an EmissionInfo argument here and gate the
         # update on event types.
         if self.has_backend:
-            self.backend_adaptor()._viz_set_data(self.data_raw)
+            self.backend_adaptor()._viz_set_data(cast(ArrayLike, self.data_raw))
 
     @property
     def data_raw(self) -> ArrayLike | None:
@@ -78,8 +80,8 @@ class DataNode(Node[DataNodeBackendT]):
         # ... TODO: this is subject to change
         signal_name = info.signal.name
         obj = getattr(self, signal_name)
-        if isinstance(obj, DataField):
-            val = obj.apply(self.data_raw)
+        if isinstance(obj, DataField) and self._data is not None:
+            val = obj.apply(cast(ArrayLike, self.data_raw))
             info = EmissionInfo(info.signal, (val,))
 
         super()._on_any_event(info)

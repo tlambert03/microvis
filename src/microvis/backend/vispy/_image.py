@@ -4,11 +4,12 @@ from typing import TYPE_CHECKING, Any
 
 from vispy import scene
 
-from ... import core
+from microvis import core
+
 from ._node import Node
 
 if TYPE_CHECKING:
-    from ..._types import ArrayLike, ImageInterpolation
+    from microvis._types import ArrayLike, ImageInterpolation
 
 
 class Image(Node):

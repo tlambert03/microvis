@@ -15,7 +15,8 @@ from typing import (
 from psygnal import EventedModel
 from pydantic import validator
 
-from .._types import ArrayLike, Color
+from microvis._types import ArrayLike, Color
+
 from ._base import Field, FrontEndFor
 from .nodes import Camera, Image, Scene
 from .nodes.node import Node, NodeBackend
@@ -110,22 +111,23 @@ class Dimensions(EventedModel):
             # Dimensions([0, 1, 2])
             # Dimensions('ZYX')
             v = {i: None for i in v}
-        if isinstance(v, dict):
-            for k in list(v):
-                if v[k] is None:
-                    v[k] = Slice()
-        return v  # type: ignore
+        if not isinstance(v, dict):
+            raise TypeError(f"Cannot convert {type(v)} to Dimensions")
+        for k in list(v):
+            if v[k] is None:
+                v[k] = Slice()
+        return v
 
 
 class View(Node, FrontEndFor[ViewBackend]):
     """A rectangular area on a canvas that displays a scene, with a camera.
-    
+
     A canvas can have one or more views. Each view has a single scene (i.e. a
     scene graph of nodes) and a single camera. The camera defines the view
     transformation.
 
     Outside of these two primary properties, a view has a number of other aesthetic
-    properties like position, size, border, padding, and margin (which follows the 
+    properties like position, size, border, padding, and margin (which follows the
     CSS box model).
     """
 

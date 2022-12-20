@@ -43,3 +43,4 @@ repos:
         additional_dependencies:
           - psygnal[proxy]
           - pydantic
+          - numpy

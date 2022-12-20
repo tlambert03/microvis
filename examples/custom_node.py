@@ -1,4 +1,6 @@
 """An example of creating a custom node that can be added to a scene."""
+from typing import Any
+
 import numpy as np
 from vispy import scene
 
@@ -10,10 +12,10 @@ from microvis.core.nodes._data import DataNode
 # here, we're creating a custom node that works for vispy, so extending
 # vispy.Node is easeiest approach
 class CustomBackend(vispy.Node):
-    def __init__(self, obj: "CustomNode", **backend_kwargs) -> None:
+    def __init__(self, obj: "CustomNode", **backend_kwargs: Any) -> None:
         self._native = scene.Markers(pos=obj.data_raw, size=obj.size, **backend_kwargs)
 
-    def _viz_set_data(self, data) -> None:
+    def _viz_set_data(self, data: Any) -> None:
         self._native.set_data(pos=data)
 
     def _viz_set_size(self, size: int) -> None:

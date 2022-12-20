@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING, Any
 from vispy import scene
 from vispy.scene import subscene
 
-from ... import core
+from microvis import core
+
 from ._camera import Camera
 from ._node import Node
 from ._scene import Scene
@@ -20,7 +21,7 @@ class View(Node, core.view.ViewBackend):
 
     _native: scene.ViewBox
 
-    def __init__(self, view: core.View, **backend_kwargs: Any):
+    def __init__(self, view: core.View, **backend_kwargs: Any) -> None:
         backend_kwargs.update(
             {
                 "pos": view.position,

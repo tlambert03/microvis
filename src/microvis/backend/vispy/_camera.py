@@ -5,8 +5,9 @@ from typing import Any, cast
 import numpy as np
 from vispy import scene
 
-from ..._types import CameraType
-from ...core.nodes import camera
+from microvis._types import CameraType
+from microvis.core.nodes import camera
+
 from ._node import Node
 
 

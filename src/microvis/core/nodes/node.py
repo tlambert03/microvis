@@ -6,9 +6,9 @@ from typing import Any, Iterator, Protocol, Sequence, TypeVar
 from psygnal.containers import EventedList
 from pydantic import validator
 
-from ..._logs import logger
-from .._base import Field, FrontEndFor, SupportsVisibility
-from .._transform import Transform
+from microvis._logger import logger
+from microvis.core._base import Field, FrontEndFor, SupportsVisibility
+from microvis.core._transform import Transform
 
 NodeTypeCoV = TypeVar("NodeTypeCoV", bound="Node", covariant=True)
 NodeType = TypeVar("NodeType", bound="Node")

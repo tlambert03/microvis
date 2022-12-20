@@ -3,7 +3,8 @@ from typing import Any
 from vispy.scene.subscene import SubScene
 from vispy.visuals.filters import Clipper
 
-from ... import core
+from microvis import core
+
 from ._node import Node
 
 

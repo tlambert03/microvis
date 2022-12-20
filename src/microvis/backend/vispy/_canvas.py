@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING, Any, cast
 import numpy as np
 from vispy import scene
 
-from ... import core
+from microvis import core
+
 from ._util import pyd_color_to_vispy
 from ._view import View
 

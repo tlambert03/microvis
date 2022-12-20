@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     import numpy as np
     from wgpu.gui.base import WgpuAutoGui, WgpuCanvasBase
 
-    from .._types import ValidClim, ValidCmap, ValidColor
+    from microvis._types import ValidClim, ValidCmap, ValidColor
 
     class PygfxCanvas(WgpuAutoGui, WgpuCanvasBase):
         ...

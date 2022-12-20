@@ -3,8 +3,9 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Protocol
 
-from ..._types import CameraType
-from .._base import Field, FrontEndFor
+from microvis._types import CameraType
+from microvis.core._base import Field, FrontEndFor
+
 from .node import Node, NodeBackend
 
 

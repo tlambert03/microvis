@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, Iterable, Protocol, Sequence, overload
+from typing import Any, Iterable, Iterator, Protocol, Sequence, cast, overload
 
 import numpy as np
 from pydantic import Field, validator
 
-from ..._types import ArrayLike, ImageInterpolation
+from microvis._types import ArrayLike, ImageInterpolation
+
 from ._data import DataField, DataNode, DataNodeBackend
 
 
@@ -42,7 +43,7 @@ class AbsContrast(DataField, Sequence[float]):
             raise TypeError("First argument must be a number or an iterable.")
         super().__init__(min=_min, max=_max)
 
-    def __iter__(self) -> Iterable[float]:  # type: ignore
+    def __iter__(self) -> Iterator[float]:  # type: ignore [override]
         yield self.min
         yield self.max
 
@@ -71,7 +72,7 @@ class PercentileContrast(DataField, Sequence[float]):
         default=100, ge=0, le=100, description="Maximum contrast percentile."
     )
 
-    def __iter__(self) -> Iterable[float]:  # type: ignore
+    def __iter__(self) -> Iterator[float]:  # type: ignore [override]
         yield self.pmin
         yield self.pmax
 
@@ -148,4 +149,11 @@ class Image(DataNode[ImageBackend]):
         raise TypeError("clim must be an iterable or dict.")
 
     def clim_applied(self) -> tuple[float, float]:
-        return self.clim.apply(self.data_raw) if self._data is not None else (0, 0)
+        """Return the current contrast limits, taking the data into account."""
+        # TODO: from a typing perspective, having to cast to ArrayLike everytime
+        # self._data is not None is a bit of an annoying hack.
+        return (
+            self.clim.apply(cast(ArrayLike, self.data_raw))
+            if self._data is not None
+            else (0, 0)
+        )

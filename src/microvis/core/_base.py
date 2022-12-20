@@ -3,14 +3,14 @@ from __future__ import annotations
 from abc import abstractmethod
 from functools import lru_cache
 from importlib import import_module
-from typing import Any, ClassVar, Generic, Protocol, TypeVar
+from typing import Any, ClassVar, Generic, Protocol, TypeVar, cast
 
 import numpy as np
 from psygnal import EmissionInfo, EventedModel
 from psygnal.containers import EventedList
 from pydantic.fields import Field, PrivateAttr
 
-from .._logs import logger
+from microvis._logger import logger
 
 __all__ = ["Field", "FrontEndFor", "ModelBase", "SupportsVisibility"]
 
@@ -58,9 +58,15 @@ T = TypeVar("T", bound=BackendAdaptor)
 
 class FrontEndFor(ModelBase, Generic[T]):
     """Front end object driving a backend interface.
-    
+
     This is an important class.  Most things subclass this.  It provides the event
     connection between the model object and a backend adaptor.
+
+    A backend adaptor is a class that implements the BackendAdaptor protocol (of type
+    `T`... for which this class is a generic). The backend adaptor is an object
+    responsible for converting all of the microvis protocol methods (stuff like
+    "_viz_set_width", "_viz_set_visible", etc...) into the appropriate calls for
+    the given backend.
 
     TODO: looks like we assume a single backend adaptor per object.
     But that feels like a limitation.  We might want to have multiple
@@ -108,7 +114,7 @@ class FrontEndFor(ModelBase, Generic[T]):
         # TODO: fix TypeGuard
         backend_class = validate_backend_class(type(self), backend_class)
         logger.debug(f"Attaching {type(self)} to backend {backend_class}")
-        return backend_class(self, **(backend_kwargs or {}))  # type: ignore
+        return cast("T", backend_class(self, **(backend_kwargs or {})))
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)

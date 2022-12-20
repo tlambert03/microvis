@@ -52,4 +52,4 @@ def print_tree(
     obj: _SupportsChildren, represent: Callable[[object], str] | None = _simple_repr
 ) -> None:
     """Pretty print a tree of objects."""
-    print(strf_tree(obj, represent=represent))
+    print(strf_tree(obj, represent=represent))  # noqa: T201

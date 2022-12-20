@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import warnings
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Protocol, cast
 
 from psygnal.containers import EventedList
 
-from .._types import Color
+from microvis._types import Color
+
 from ._base import Field, FrontEndFor, SupportsVisibility
 from .view import View
 
@@ -48,7 +49,7 @@ class ViewList(EventedList[View]):
 
 class Canvas(FrontEndFor[CanvasBackend]):
     """Canvas onto which views are rendered.
-    
+
     In desktop applications, this will be a window. In web applications, this will be a
     div.  The canvas has one or more views, which are rendered onto it.  For example,
     an orthoviewer might be a single canvas with three views, one for each axis.
@@ -105,10 +106,10 @@ class Canvas(FrontEndFor[CanvasBackend]):
         # TODO: change kwargs to params
         if view is None:
             view = View(**kwargs)
-        elif not isinstance(view, View):
-            raise TypeError("view must be an instance of View")
         elif kwargs:
             warnings.warn("kwargs ignored when view is provided")
+        elif not isinstance(view, View):
+            raise TypeError("view must be an instance of View")
 
         self.views.append(view)
         if self.has_backend:
@@ -123,7 +124,7 @@ class Canvas(FrontEndFor[CanvasBackend]):
         Allowing different backends to support Jupyter or other rich display.
         """
         if hasattr(self.native, "_repr_mimebundle_"):
-            return self.native._repr_mimebundle_(*args, **kwargs)  # type: ignore
+            return cast(dict, self.native._repr_mimebundle_(*args, **kwargs))
         return NotImplemented
 
 

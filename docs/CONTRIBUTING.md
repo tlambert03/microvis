@@ -23,7 +23,7 @@ a few considerations and principles in mind:
   source of truth for those attributes.
 
 - **The model should be very clearly separated from the view.**
-  
+
   The model in microvis should be a pure data structure: easily
   **serializable** and deserializable, and easily attached/detached
   from a view.  (Difficulty with issues like
@@ -155,13 +155,13 @@ a few considerations and principles in mind:
   better than fast development of untested code.
 
 - **Non-goals**
-  
+
   Until the above goals are met, microvis should not focus on
 
   - preferences and persistent settings
   - plugins
 
-## Structure and dependencies
+## Dependencies
 
 - [psygnal](https://github.com/pyapp-kit/psygnal), implements
   the [observer pattern](https://en.wikipedia.org/wiki/Observer_pattern).
