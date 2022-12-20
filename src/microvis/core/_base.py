@@ -3,7 +3,18 @@ from __future__ import annotations
 from abc import abstractmethod
 from functools import lru_cache
 from importlib import import_module
-from typing import Any, ClassVar, Dict, Generic, Protocol, Type, TypeVar, Union, cast
+from typing import (
+    Any,
+    ClassVar,
+    Dict,
+    Generic,
+    Hashable,
+    Optional,
+    Protocol,
+    Type,
+    TypeVar,
+    cast,
+)
 
 import numpy as np
 from psygnal import EmissionInfo, EventedModel
@@ -73,7 +84,11 @@ class FrontEndFor(ModelBase, Generic[T]):
     backend adaptors per object.
     """
 
-    _backend: Union[T, None] = PrivateAttr(None)
+    # Really, this should be `_backend: ClassVar[Optional[T]]``, but that a type error
+    # PEP 526 states that ClassVar cannot include any type variables...
+    # but there is discussion that this might be too limiting.
+    # dicsussion: https://github.com/python/mypy/issues/5144
+    _backend: ClassVar[Optional[Any]] = PrivateAttr(None)
     _backend_lookup: ClassVar[Dict[str, Type[BackendAdaptor]]] = {}
 
     @property
@@ -86,8 +101,22 @@ class FrontEndFor(ModelBase, Generic[T]):
         # if we make this a property, it will be cause the side effect of
         # spinning up a backend on tab auto-complete in ipython/jupyter
         if self._backend is None:
-            self._backend = self._get_backend_obj()
-        return self._backend
+            # The type error is that we can't assign to a Class Variable.
+            # However, if we don't mark `_backend` as a Class
+            self._backend = self._get_backend_obj()  # type: ignore [misc]
+        return cast("T", self._backend)
+
+    def _directly_set_backend_adaptor(self, backend_object: Hashable) -> None:
+        """Set the backend adaptor for this object.
+
+        This method is here for use by the backend adaptor itself to provide a
+        new version of itself. It is not intended to be used by users (and should
+        probably be used sparingly by backend adaptors.).  It checks that the
+        backend adaptor
+        """
+        validate_backend_class(type(self), type(backend_object))
+        # same type ignore reason as mentioned in backend_adaptor()
+        self._backend = backend_object  # type: ignore [misc]
 
     @property
     def native(self) -> Any:
@@ -155,6 +184,9 @@ class FrontEndFor(ModelBase, Generic[T]):
     #     self._backend = None
 
 
+# NOTE: if the hashability of either cls or backend_class is ever an issue,
+# this might not need to be cached, or `cls` could be replaced with a frozenset
+# of signal names.
 @lru_cache
 def validate_backend_class(cls: type[FrontEndFor], backend_class: type[T]) -> type[T]:
     """Validate that the backend class is appropriate for the object."""

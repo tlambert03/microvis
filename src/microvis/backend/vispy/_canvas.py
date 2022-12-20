@@ -31,7 +31,7 @@ class Canvas(core.canvas.CanvasBackend):
         # the view tree was handled by the FrontEndFor logic...
         for view in canvas.views:
             if not view.has_backend:
-                view._backend = View(view)
+                view._directly_set_backend_adaptor(View(view))
             self._viz_add_view(view)
 
     def _viz_get_native(self) -> scene.SceneCanvas:

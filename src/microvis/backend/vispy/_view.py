@@ -44,7 +44,7 @@ class View(Node, core.view.ViewBackend):
 
     def _viz_set_camera(self, cam: core.Camera) -> None:
         if not cam.has_backend:
-            cam._backend = Camera(cam)
+            cam._directly_set_backend_adaptor(Camera(cam))
         if not isinstance(cam.native, scene.cameras.BaseCamera):
             raise TypeError("Camera must be a Vispy Camera")
         self._native.camera = cam.native
@@ -52,7 +52,7 @@ class View(Node, core.view.ViewBackend):
 
     def _viz_set_scene(self, scene: core.Scene) -> None:
         if not scene.has_backend:
-            scene._backend = Scene(scene)
+            scene._directly_set_backend_adaptor(Scene(scene))
 
         if not isinstance(scene.native, subscene.SubScene):
             raise TypeError("Scene must be a Vispy SubScene")
