@@ -1,5 +1,5 @@
 try:
-    pass
+    import pytestqt  # noqa: F401
 except Exception:
     import pytest
 

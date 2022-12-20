@@ -39,7 +39,7 @@ dependencies = [
 [project.optional-dependencies]
 vispy = ["vispy", "pyopengl", "jupyter-rfb", "ipywidgets<8.0"]
 test = ["pytest>=6.0", "pytest-cov"]
-# test = ["pytest>=6.0", "pytest-cov", "pytest-qt", "vispy", "pygfx"]
+test-qt = ["pytest-qt"]
 dev = [
     "black",
     "ipython",
@@ -87,10 +87,23 @@ scripts = { cov = "pytest {args}" }
 
 [[tool.hatch.envs.test.matrix]]
 python = ["38", "39", "310", "311"]
+backend = ["None", "vispy"]
+qt = ["None", "pyside2", "pyqt5", "pyqt6", "pyside6"]
 
-[[tool.hatch.envs.test.matrix]]
-scene_backend = ['vispy']
-qt_backend = ['pyqt5', 'pyqt6', 'pyside2', 'pyside6']
+[tool.hatch.envs.test.overrides]
+matrix.backend.features = [
+  { value = "vispy", if = ["vispy"] },
+]
+matrix.qt.features = [
+  { value = "test-qt", if = ["pyside2", "pyqt5", "pyqt6", "pyside6"] },
+]
+
+matrix.qt.dependencies = [
+  { value = "pyside2", if = ["pyside2"] },
+  { value = "pyqt5", if = ["pyqt5"] },
+  { value = "pyqt6", if = ["pyqt6"] },
+  { value = "pyside6", if = ["pyside6"] },
+]
 
 
 # https://github.com/charliermarsh/ruff
