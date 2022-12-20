@@ -154,6 +154,7 @@ class View(Node, FrontEndFor[ViewBackend]):
         default=(0, 0),
         description="The position of the view with respect to its canvas",
     )
+    # TODO: canvas has height and width, but view has size. should this be consistent?
     size: tuple[float, float] | None = Field(
         default=None,
         description="The size of the scene. None implies size of parent canvas",

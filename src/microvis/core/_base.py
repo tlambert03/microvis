@@ -101,7 +101,12 @@ class FrontEndFor(ModelBase, Generic[T]):
         class_name: str = "",
     ) -> T:
         """Retrieves the backend class with the same name as the object class name."""
-        backend = backend or "vispy"  # TODO
+        # TODO: we're mostly just falling back on vispy here all the time for
+        # early development, but it needs to be clearer how one would pick
+        # a different backend.  (though... the default behavior should be to
+        # pick the "right" backend for the current environment.  i.e. microvis
+        # should work with no configuration in both jupyter and ipython desktop.)
+        backend = backend or "vispy"
 
         if backend in self._backend_lookup:
             backend_class = self._backend_lookup[backend]

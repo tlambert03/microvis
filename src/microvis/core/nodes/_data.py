@@ -29,6 +29,9 @@ class DataField(GenericModel):
         return self
 
 
+# TODO: make the ArrayLike here a generic type parameter on DataNode
+
+
 class DataNode(Node[DataNodeBackendT]):
     """A node that has data.
 

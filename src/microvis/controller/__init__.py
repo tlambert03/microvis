@@ -19,7 +19,10 @@ def make_controller(model: EventedModel) -> Container:
             continue
         current_value = getattr(model, field.name)
         wdg: ValueWidget = create_widget(
-            value=current_value, annotation=field.outer_type_, name=f"{field.name}_"
+            value=current_value,
+            annotation=field.outer_type_,
+            name=f"{field.name}_",
+            raise_on_unknown=False,
         )
 
         wdg.changed.connect_setattr(model, field.name)
