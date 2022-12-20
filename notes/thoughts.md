@@ -1,21 +1,6 @@
-# features
+# Thoughts
 
-- in place .data mutations
-- ortho viewer
-- browser support
-- clear backend abstraction
-- serialization
-- state interpolation
-
-
-# principles
-
-- model is light
-- always serializeable
-- only on visualization do we connect backend
-- no backend specific code in model
-
-
+this folder is temporary
 # TODO ... issues
 
 - things that rely on data.  eg. contrast limits

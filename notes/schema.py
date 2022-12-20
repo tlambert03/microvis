@@ -1,3 +1,4 @@
+"""Just here for thinking about the schema."""
 from __future__ import annotations
 
 from psygnal import EventedModel
