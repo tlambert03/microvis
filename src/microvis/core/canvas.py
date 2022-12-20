@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import warnings
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, Protocol, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Optional, Protocol, TypeVar, cast
 
 from psygnal.containers import EventedList
 
@@ -56,7 +56,7 @@ class Canvas(FrontEndFor[CanvasBackend]):
 
     width: float = Field(500, description="The width of the canvas in pixels.")
     height: float = Field(500, description="The height of the canvas in pixels.")
-    background_color: Color | None = Field(
+    background_color: Optional[Color] = Field(
         None,
         description="The background color. None implies transparent "
         "(which is usually black)",

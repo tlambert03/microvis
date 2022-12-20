@@ -16,7 +16,7 @@ requires-python = ">=3.8"
 license = { text = "BSD 3-Clause License" }
 authors = [{ email = "talley.lambert@gmail.com" }, { name = "Talley Lambert" }]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 2 - Pre-Alpha",
     "License :: OSI Approved :: BSD License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
@@ -38,7 +38,8 @@ dependencies = [
 # https://peps.python.org/pep-0621/#dependencies-optional-dependencies
 [project.optional-dependencies]
 vispy = ["vispy", "pyopengl", "jupyter-rfb", "ipywidgets<8.0"]
-test = ["pytest>=6.0", "pytest-cov", "pytest-qt", "vispy", "pygfx"]
+test = ["pytest>=6.0", "pytest-cov"]
+# test = ["pytest>=6.0", "pytest-cov", "pytest-qt", "vispy", "pygfx"]
 dev = [
     "black",
     "ipython",
@@ -50,6 +51,7 @@ dev = [
     "pytest",
     "rich",
     "ruff",
+    "hatch",
 ]
 pyqt5 = ["pyqt5"]
 pyqt6 = ["pyqt6"]
@@ -77,6 +79,18 @@ repository = "https://github.com/tlambert03/microvis"
 # https://peps.python.org/pep-0621/#entry-points
 # [project.entry-points."spam.magical"]
 # tomatoes = "spam:main_tomatoes"
+
+
+[tool.hatch.envs.test]
+dependencies = ["pytest", "pytest-cov"]
+scripts = { cov = "pytest {args}" }
+
+[[tool.hatch.envs.test.matrix]]
+python = ["38", "39", "310", "311"]
+
+[[tool.hatch.envs.test.matrix]]
+scene_backend = ['vispy']
+qt_backend = ['pyqt5', 'pyqt6', 'pyside2', 'pyside6']
 
 
 # https://github.com/charliermarsh/ruff
@@ -125,6 +139,10 @@ unfixable = [
 "examples/*.py" = ["D1", "ANN", "T20"]
 "src/**/*.py" = ["D1"]                 # FIXME
 
+[tool.ruff.pyupgrade]
+# Preserve types, even if a file imports `from __future__ import annotations`.
+keep-runtime-typing = true
+
 
 # https://mypy.readthedocs.io/en/stable/config_file.html
 [tool.mypy]
@@ -155,7 +173,7 @@ exclude_lines = [
     "@overload",
     "except ImportError",
     "\\.\\.\\.",
-    "return NotImplemented"
+    "return NotImplemented",
 ]
 [tool.coverage.run]
 source = ["src"]

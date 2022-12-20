@@ -5,11 +5,15 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    Dict,
     Generator,
+    Optional,
     Protocol,
     Sequence,
     SupportsIndex,
+    Tuple,
     TypeVar,
+    Union,
 )
 
 from psygnal import EventedModel
@@ -53,9 +57,9 @@ class ViewBackend(NodeBackend['View'], Protocol):
 
 
 class Slice(EventedModel):
-    start: float | None = Field(default=None)
-    stop: float | None = Field(default=None)
-    step: float | None = Field(default=None)
+    start: Optional[float] = Field(default=None)
+    stop: Optional[float] = Field(default=None)
+    step: Optional[float] = Field(default=None)
 
     def __init__(_model_self_, *args: float, **data: float) -> None:
         if args:
@@ -96,7 +100,7 @@ class Slice(EventedModel):
 
 
 class Dimensions(EventedModel):
-    __root__: dict[int | str, Slice]
+    __root__: Dict[Union[int, str], Slice]
 
     def __init__(_model_self_, __root__: Any) -> None:
         super().__init__(__root__=__root__)
@@ -174,17 +178,17 @@ class View(Node, FrontEndFor[ViewBackend]):
     # their meaning changes. also vispy will overwrite position and size (with .rect)
     # on resize events.
     # consider making these fractional values (0-1) and then scaling them to the canvas
-    position: tuple[float, float] = Field(
+    position: Tuple[float, float] = Field(
         default=(0, 0),
         description="The position of the view with respect to its canvas",
     )
     # TODO: canvas has height and width, but view has size. should this be consistent?
-    size: tuple[float, float] | None = Field(
+    size: Optional[Tuple[float, float]] = Field(
         default=None,
         description="The size of the scene. None implies size of parent canvas",
     )
 
-    background_color: Color | None = Field(
+    background_color: Optional[Color] = Field(
         default=None,
         description="The background color (inside of the border). "
         "None implies transparent.",
@@ -193,7 +197,7 @@ class View(Node, FrontEndFor[ViewBackend]):
         default=0,
         description="The width of the border line in pixels.",
     )
-    border_color: Color | None = Field(None, description="The color of the border.")
+    border_color: Optional[Color] = Field(None, description="The color of the border.")
     padding: int = Field(
         default=0,
         description="The amount of padding in the widget "

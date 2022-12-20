@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from functools import lru_cache
 from importlib import import_module
-from typing import Any, ClassVar, Generic, Protocol, TypeVar, cast
+from typing import Any, ClassVar, Dict, Generic, Protocol, Type, TypeVar, Union, cast
 
 import numpy as np
 from psygnal import EmissionInfo, EventedModel
@@ -73,8 +73,8 @@ class FrontEndFor(ModelBase, Generic[T]):
     backend adaptors per object.
     """
 
-    _backend: T | None = PrivateAttr(None)
-    _backend_lookup: ClassVar[dict[str, type[BackendAdaptor]]] = {}
+    _backend: Union[T, None] = PrivateAttr(None)
+    _backend_lookup: ClassVar[Dict[str, Type[BackendAdaptor]]] = {}
 
     @property
     def has_backend(self) -> bool:
