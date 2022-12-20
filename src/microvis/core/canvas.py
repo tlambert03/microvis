@@ -47,7 +47,12 @@ class ViewList(EventedList[View]):
 
 
 class Canvas(FrontEndFor[CanvasBackend]):
-    """Canvas onto which views are rendered."""
+    """Canvas onto which views are rendered.
+    
+    In desktop applications, this will be a window. In web applications, this will be a
+    div.  The canvas has one or more views, which are rendered onto it.  For example,
+    an orthoviewer might be a single canvas with three views, one for each axis.
+    """
 
     width: float = Field(500, description="The width of the canvas in pixels.")
     height: float = Field(500, description="The height of the canvas in pixels.")
@@ -112,7 +117,11 @@ class Canvas(FrontEndFor[CanvasBackend]):
         return view
 
     def _repr_mimebundle_(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
-        """Return a mimebundle for the canvas."""
+        """Return a mimebundle for the canvas.
+
+        This defer to the native object's _repr_mimebundle_ method if it exists.
+        Allowing different backends to support Jupyter or other rich display.
+        """
         if hasattr(self.native, "_repr_mimebundle_"):
             return self.native._repr_mimebundle_(*args, **kwargs)  # type: ignore
         return NotImplemented

@@ -118,7 +118,16 @@ class Dimensions(EventedModel):
 
 
 class View(Node, FrontEndFor[ViewBackend]):
-    """A rectangular area on a canvas that displays a scene, with a camera."""
+    """A rectangular area on a canvas that displays a scene, with a camera.
+    
+    A canvas can have one or more views. Each view has a single scene (i.e. a
+    scene graph of nodes) and a single camera. The camera defines the view
+    transformation.
+
+    Outside of these two primary properties, a view has a number of other aesthetic
+    properties like position, size, border, padding, and margin (which follows the 
+    CSS box model).
+    """
 
     camera: Camera = Field(default_factory=Camera)
     scene: Scene = Field(default_factory=Scene)  # necessary additional layer?

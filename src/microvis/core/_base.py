@@ -57,7 +57,15 @@ T = TypeVar("T", bound=BackendAdaptor)
 
 
 class FrontEndFor(ModelBase, Generic[T]):
-    """Front end object driving a backend interface."""
+    """Front end object driving a backend interface.
+    
+    This is an important class.  Most things subclass this.  It provides the event
+    connection between the model object and a backend adaptor.
+
+    TODO: looks like we assume a single backend adaptor per object.
+    But that feels like a limitation.  We might want to have multiple
+    backend adaptors per object.
+    """
 
     _backend: T | None = PrivateAttr(None)
     _backend_lookup: ClassVar[dict[str, type[BackendAdaptor]]] = {}
