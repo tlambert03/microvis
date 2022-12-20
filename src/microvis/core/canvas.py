@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import warnings
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Protocol, cast
+from typing import TYPE_CHECKING, Any, Optional, Protocol, TypeVar, cast
 
 from psygnal.containers import EventedList
 
@@ -12,10 +12,9 @@ from ._base import Field, FrontEndFor, SupportsVisibility
 from .view import View
 
 if TYPE_CHECKING:
-    from typing import Any
-
     import numpy as np
 
+ViewType = TypeVar("ViewType", bound=View)
 
 # fmt: off
 class CanvasBackend(SupportsVisibility['Canvas'], Protocol):
@@ -40,9 +39,9 @@ class CanvasBackend(SupportsVisibility['Canvas'], Protocol):
 # fmt: on
 
 
-class ViewList(EventedList[View]):
-    def _pre_insert(self, value: View) -> View:
-        if not isinstance(value, View):
+class ViewList(EventedList[ViewType]):
+    def _pre_insert(self, value: ViewType) -> ViewType:
+        if not isinstance(value, View):  # pragma: no cover
             raise TypeError("Canvas views must be View objects")
         return super()._pre_insert(value)
 
@@ -57,14 +56,14 @@ class Canvas(FrontEndFor[CanvasBackend]):
 
     width: float = Field(500, description="The width of the canvas in pixels.")
     height: float = Field(500, description="The height of the canvas in pixels.")
-    background_color: Color | None = Field(
+    background_color: Optional[Color] = Field(
         None,
         description="The background color. None implies transparent "
         "(which is usually black)",
     )
     visible: bool = Field(False, description="Whether the canvas is visible.")
     title: str = Field("", description="The title of the canvas.")
-    views: EventedList[View] = Field(default_factory=EventedList, allow_mutation=False)
+    views: ViewList[View] = Field(default_factory=ViewList, allow_mutation=False)
 
     @property
     def size(self) -> tuple[float, float]:
@@ -106,9 +105,9 @@ class Canvas(FrontEndFor[CanvasBackend]):
         # TODO: change kwargs to params
         if view is None:
             view = View(**kwargs)
-        elif kwargs:
+        elif kwargs:  # pragma: no cover
             warnings.warn("kwargs ignored when view is provided")
-        elif not isinstance(view, View):
+        elif not isinstance(view, View):  # pragma: no cover
             raise TypeError("view must be an instance of View")
 
         self.views.append(view)

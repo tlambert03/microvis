@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Protocol
+from typing import Protocol, Tuple, Union
 
 from microvis._types import CameraType
 from microvis.core._base import Field, FrontEndFor
@@ -19,7 +19,7 @@ class Camera(Node, FrontEndFor["CameraBackend"]):
         "such as mouse and keyboard events.",
     )
     zoom: float = Field(1.0, description="Zoom factor of the camera.")
-    center: tuple[float, float, float] | tuple[float, float] = Field(
+    center: Union[Tuple[float, float, float], Tuple[float, float]] = Field(
         (0, 0, 0), description="Center position of the view."
     )
 

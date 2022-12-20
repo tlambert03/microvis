@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, Iterable, Iterator, Protocol, Sequence, cast, overload
+from typing import Any, Iterable, Iterator, Protocol, Sequence, Union, cast, overload
 
 import numpy as np
 from pydantic import Field, validator
@@ -125,7 +125,7 @@ class Image(DataNode[ImageBackend]):
         default="grays",
         description="The colormap to use for the image.",
     )
-    clim: AbsContrast | PercentileContrast = Field(
+    clim: Union[AbsContrast, PercentileContrast] = Field(
         default_factory=PercentileContrast,
         description="The contrast limits to use when rendering the image.",
     )
