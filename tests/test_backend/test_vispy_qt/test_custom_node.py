@@ -24,15 +24,14 @@ def test_custom_node() -> None:
             mock(size=size)
 
     class CustomNode(DataNode):
-        BACKEND_ADAPTORS = {"__TEST__": CustomVispyAdaptor}
+        BACKEND_ADAPTORS = {"vispy": CustomVispyAdaptor}
         size: int = 10
 
     custom_node = CustomNode(np.random.rand(20, 2))
 
     # test that the backend adaptor is created correctly
     assert mock.call_count == 0
-    with patch.object(_base, "_get_default_backend", return_value="__TEST__"):
-        backend = custom_node.backend_adaptor()
+    backend = custom_node.backend_adaptor()
     mock.assert_called_once_with(custom_node)
     assert isinstance(backend, CustomVispyAdaptor)
 
