@@ -15,5 +15,6 @@ class Scene(Node):
         self._native.clip_children = True
 
         for node in scene.children:
-            node.backend_adaptor()  # create backend adaptor if it doesn't exist
+            # this creates a backend adaptor if it doesn't exist yet
+            node.backend_adaptors()
             self._viz_add_node(node)

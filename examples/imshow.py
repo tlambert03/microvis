@@ -10,13 +10,14 @@ c = imshow(camera, transform=Transform().scaled((0.5, 0.5)))
 v = c.views[0]
 img = v.scene.children[0]
 
-# also optional... example for now
-ctrl = make_controller(img)
-ctrl.show()
+
 
 
 if __name__ == "__main__":
     from qtpy.QtWidgets import QApplication
 
     app = QApplication.instance()
+    # # also optional... example for now
+    # ctrl = make_controller(img)
+    # ctrl.show()
     app.exec_()

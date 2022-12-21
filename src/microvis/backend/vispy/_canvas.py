@@ -31,7 +31,7 @@ class Canvas(core.canvas.CanvasBackend):
         # the view tree was handled by the FrontEndFor logic...
         for view in canvas.views:
             if not view.has_backend:
-                view._backend = View(view)
+                view._backends = View(view)
             self._viz_add_view(view)
 
     def _viz_get_native(self) -> scene.SceneCanvas:
@@ -41,9 +41,9 @@ class Canvas(core.canvas.CanvasBackend):
         self._native.show(visible=arg)
 
     def _viz_add_view(self, view: core.View) -> None:
-        if not isinstance(view.native, scene.ViewBox):
+        if not isinstance(view.native_objects, scene.ViewBox):
             raise TypeError("View must be a Vispy ViewBox")
-        self._native.central_widget.add_widget(view.native)
+        self._native.central_widget.add_widget(view.native_objects)
 
     def _viz_set_width(self, arg: int) -> None:
         _height = self._native.size[1]

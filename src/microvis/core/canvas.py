@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import warnings
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Protocol, cast
+from typing import TYPE_CHECKING, Protocol, cast, Dict
 
 from psygnal.containers import EventedList
 
@@ -23,20 +23,29 @@ class CanvasBackend(SupportsVisibility['Canvas'], Protocol):
 
     @abstractmethod
     def _viz_set_width(self, arg: int) -> None: ...
+
     @abstractmethod
     def _viz_set_height(self, arg: int) -> None: ...
+
     @abstractmethod
     def _viz_set_size(self, arg: tuple[int, int]) -> None: ...
+
     @abstractmethod
     def _viz_set_background_color(self, arg: Color | None) -> None: ...
+
     @abstractmethod
     def _viz_set_title(self, arg: str) -> None: ...
+
     @abstractmethod
     def _viz_close(self) -> None: ...
+
     @abstractmethod
     def _viz_render(self) -> np.ndarray: ...
+
     @abstractmethod
     def _viz_add_view(self, view: View) -> None: ...
+
+
 # fmt: on
 
 
@@ -56,15 +65,17 @@ class Canvas(FrontEndFor[CanvasBackend]):
     """
 
     width: float = Field(500, description="The width of the canvas in pixels.")
-    height: float = Field(500, description="The height of the canvas in pixels.")
+    height: float = Field(500,
+                          description="The height of the canvas in pixels.")
     background_color: Color | None = Field(
         None,
         description="The background color. None implies transparent "
-        "(which is usually black)",
+                    "(which is usually black)",
     )
     visible: bool = Field(False, description="Whether the canvas is visible.")
     title: str = Field("", description="The title of the canvas.")
-    views: EventedList[View] = Field(default_factory=EventedList, allow_mutation=False)
+    views: EventedList[View] = Field(default_factory=EventedList,
+                                     allow_mutation=False)
 
     @property
     def size(self) -> tuple[float, float]:
@@ -82,23 +93,28 @@ class Canvas(FrontEndFor[CanvasBackend]):
     def close(self) -> None:
         """Close the canvas."""
         if self.has_backend:
-            self.backend_adaptor()._viz_close()
+            for adaptor in self.backend_adaptors():
+                adaptor._viz_close()
 
     # show and render will trigger a backend connection
 
     def show(self) -> None:
         """Show the canvas."""
-        self.backend_adaptor()  # make sure backend is connected
+        self.backend_adaptors()  # make sure a backend is connected
         self.visible = True
 
     def hide(self) -> None:
         """Hide the canvas."""
         self.visible = False
 
-    def render(self) -> np.ndarray:
+    def render(self) -> Dict[type(CanvasBackend), np.ndarray]:
         """Render canvas to offscren buffer and return as numpy array."""
         # TODO: do we need to set visible=True temporarily here?
-        return self.backend_adaptor()._viz_render()
+        return {
+            type(adaptor): adaptor._viz_render()
+            for adaptor
+            in self.backend_adaptors()
+        }
 
     # consider using canavs.views.append?
     def add_view(self, view: View | None = None, **kwargs: Any) -> View:
@@ -113,7 +129,8 @@ class Canvas(FrontEndFor[CanvasBackend]):
 
         self.views.append(view)
         if self.has_backend:
-            self.backend_adaptor()._viz_add_view(view)
+            for adaptor in self.backend_adaptors():
+                adaptor._viz_add_view(view)
 
         return view
 
@@ -123,8 +140,9 @@ class Canvas(FrontEndFor[CanvasBackend]):
         This defer to the native object's _repr_mimebundle_ method if it exists.
         Allowing different backends to support Jupyter or other rich display.
         """
-        if hasattr(self.native, "_repr_mimebundle_"):
-            return cast(dict, self.native._repr_mimebundle_(*args, **kwargs))
+        if hasattr(self.native_objects, "_repr_mimebundle_"):
+            return cast(dict,
+                        self.native_objects._repr_mimebundle_(*args, **kwargs))
         return NotImplemented
 
 

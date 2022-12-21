@@ -23,8 +23,8 @@ class Node(core_node.NodeBackend):
     def _viz_set_parent(self, arg: core_node.Node | None) -> None:
         if arg is None:
             self._native.parent = None
-        elif isinstance(arg.native, scene.Node):
-            self._native.parent = arg.native
+        elif isinstance(arg.native_objects, scene.Node):
+            self._native.parent = arg.native_objects
         else:
             raise TypeError("Parent must be a Node")
 
@@ -48,6 +48,6 @@ class Node(core_node.NodeBackend):
         self._native.transform = T
 
     def _viz_add_node(self, node: core_node.Node) -> None:
-        if not isinstance(node.native, scene.Node):
+        if not isinstance(node.native_objects, scene.Node):
             raise TypeError("Node must be a Vispy Node")
-        node.native.parent = self._native
+        node.native_objects.parent = self._native

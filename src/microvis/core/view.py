@@ -222,7 +222,7 @@ class View(Node, FrontEndFor[ViewBackend]):
         """Add any node to the scene."""
         self.scene.add(node)
         if self.camera.has_backend:
-            self.camera.native.set_range(margin=0)  # TODO
+            self.camera.native_objects.set_range(margin=0)  # TODO
         return node
 
     def add_image(self, data: ArrayLike, **kwargs: Any) -> Image:

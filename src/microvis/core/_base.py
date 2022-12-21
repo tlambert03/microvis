@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from functools import lru_cache
 from importlib import import_module
-from typing import Any, ClassVar, Generic, Protocol, TypeVar, cast
+from typing import Any, ClassVar, Generic, Protocol, TypeVar, cast, List, Dict
 
 import numpy as np
 from psygnal import EmissionInfo, EventedModel
@@ -24,7 +24,8 @@ class ModelBase(EventedModel):
         extra = "ignore"
         validate_assignment = True
         allow_property_setters = True
-        json_encoders = {EventedList: lambda x: list(x), np.ndarray: np.ndarray.tolist}
+        json_encoders = {EventedList: lambda x: list(x),
+                         np.ndarray: np.ndarray.tolist}
 
 
 F = TypeVar("F", covariant=True, bound="FrontEndFor")
@@ -60,7 +61,7 @@ class FrontEndFor(ModelBase, Generic[T]):
     """Front end object driving a backend interface.
 
     This is an important class.  Most things subclass this.  It provides the event
-    connection between the model object and a backend adaptor.
+    connection between the model object and backend adaptors.
 
     A backend adaptor is a class that implements the BackendAdaptor protocol (of type
     `T`... for which this class is a generic). The backend adaptor is an object
@@ -73,26 +74,30 @@ class FrontEndFor(ModelBase, Generic[T]):
     backend adaptors per object.
     """
 
-    _backend: T | None = PrivateAttr(None)
+    _backends: List[T] = PrivateAttr([])
     _backend_lookup: ClassVar[dict[str, type[BackendAdaptor]]] = {}
 
     @property
     def has_backend(self) -> bool:
-        """Return True if the object has a backend adaptor."""
-        return self._backend is not None
+        """Return True if the object has backend adaptor(s)."""
+        return len(self._backends) > 0
 
-    def backend_adaptor(self) -> T:
+    def backend_adaptors(self) -> List[T]:
         """Get the backend adaptor for this object. Creates one if it doesn't exist."""
         # if we make this a property, it will be cause the side effect of
         # spinning up a backend on tab auto-complete in ipython/jupyter
-        if self._backend is None:
-            self._backend = self._get_backend_obj()
-        return self._backend
+        if not self.has_backend:
+            self._backends.append(self._get_backend_obj())
+        return self._backends
 
     @property
-    def native(self) -> Any:
+    def native_objects(self) -> Dict[T, Any]:
         """Return the native object of the backend."""
-        return self.backend_adaptor()._viz_get_native()
+        return {
+            type(adaptor): adaptor._viz_get_native()
+            for adaptor
+            in self.backend_adaptors()
+        }
 
     def _get_backend_obj(
         self,
@@ -136,7 +141,7 @@ class FrontEndFor(ModelBase, Generic[T]):
 
         try:
             name = SETTER_METHOD.format(name=signal_name)
-            setter = getattr(self._backend, name)
+            setter = getattr(self._backends, name)
         except AttributeError as e:
             logger.exception(e)
             return
@@ -151,7 +156,8 @@ class FrontEndFor(ModelBase, Generic[T]):
 
 
 @lru_cache
-def validate_backend_class(cls: type[FrontEndFor], backend_class: type[T]) -> type[T]:
+def validate_backend_class(cls: type[FrontEndFor], backend_class: type[T]) -> \
+    type[T]:
     """Validate that the backend class is appropriate for the object."""
     logger.debug(f"Validating backend class {backend_class} for {cls}")
     if missing := {

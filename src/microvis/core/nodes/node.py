@@ -107,7 +107,8 @@ class Node(FrontEndFor[NodeBackendTypeCoV]):  # type: ignore  # FIXME
             logger.debug(f"Adding node {nd} to {slf}")
             self.children.append(node)
             if self.has_backend:
-                self.backend_adaptor()._viz_add_node(node)
+                for adaptor in self.backend_adaptors():
+                    adaptor._viz_add_node(node)
 
     @classmethod
     def validate(cls, value: Any) -> Node:
