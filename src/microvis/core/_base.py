@@ -89,7 +89,11 @@ class FrontEndFor(ModelBase, Generic[T]):
     # but there is discussion that this might be too limiting.
     # dicsussion: https://github.com/python/mypy/issues/5144
     _backend: ClassVar[Optional[Any]] = PrivateAttr(None)
-    _backend_lookup: ClassVar[Dict[str, Type[BackendAdaptor]]] = {}
+
+    # This is an optional class variable that can be set by subclasses to
+    # provide a mapping of backend names to backend adaptor classes.
+    # see `examples/custom_node.py` for an example of how this is used.
+    BACKEND_ADAPTORS: ClassVar[Dict[str, Type[BackendAdaptor]]]
 
     @property
     def has_backend(self) -> bool:
@@ -135,10 +139,10 @@ class FrontEndFor(ModelBase, Generic[T]):
         # a different backend.  (though... the default behavior should be to
         # pick the "right" backend for the current environment.  i.e. microvis
         # should work with no configuration in both jupyter and ipython desktop.)
-        backend = backend or "vispy"
+        backend = backend or _get_default_backend()
 
-        if backend in self._backend_lookup:
-            backend_class = self._backend_lookup[backend]
+        if hasattr(self, "BACKEND_ADAPTORS") and backend in self.BACKEND_ADAPTORS:
+            backend_class = self.BACKEND_ADAPTORS[backend]
             logger.debug(f"Using class-provided backend class: {backend_class}")
         else:
             class_name = class_name or type(self).__name__
@@ -201,3 +205,11 @@ def validate_backend_class(cls: type[FrontEndFor], backend_class: type[T]) -> ty
             f"it is missing the following setters: {missing}"
         )
     return backend_class
+
+
+def _get_default_backend() -> str:
+    """Stub function for the concept of picking a backend when none is specified.
+
+    This will likely be context dependent.
+    """
+    return "vispy"
