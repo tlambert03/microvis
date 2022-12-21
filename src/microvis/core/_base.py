@@ -83,8 +83,8 @@ class FrontEndFor(ModelBase, Generic[T]):
         return len(self._backends) > 0
 
     def backend_adaptors(self) -> List[T]:
-        """Get the backend adaptor for this object. Creates one if it doesn't exist."""
-        # if we make this a property, it will be cause the side effect of
+        """Get backend adaptors for this object. Create one if it doesn't exist."""
+        # if we make this a property, it will cause the side effect of
         # spinning up a backend on tab auto-complete in ipython/jupyter
         if not self.has_backend:
             self._backends.append(self._get_backend_obj())
@@ -92,12 +92,16 @@ class FrontEndFor(ModelBase, Generic[T]):
 
     @property
     def native_objects(self) -> Dict[T, Any]:
-        """Return the native object of the backend."""
+        """Return the native objects for each backend."""
         return {
-            type(adaptor): adaptor._viz_get_native()
+            type(adaptor)._backend_name: adaptor._viz_get_native()
             for adaptor
             in self.backend_adaptors()
         }
+
+    @property
+    def native(self) -> Any:
+        """Return the native object for a particular backend"""
 
     def _get_backend_obj(
         self,

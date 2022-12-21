@@ -6,6 +6,7 @@ import numpy as np
 from vispy import scene
 
 from microvis import core
+from ._base import VispyBackend
 
 from ._util import pyd_color_to_vispy
 from ._view import View
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
     from microvis import _types
 
 
-class Canvas(core.canvas.CanvasBackend):
+class Canvas(core.canvas.CanvasBackend, VispyBackend):
     """Canvas interface for Vispy Backend."""
 
     def __init__(self, canvas: core.Canvas, **backend_kwargs: Any) -> None:
@@ -31,7 +32,7 @@ class Canvas(core.canvas.CanvasBackend):
         # the view tree was handled by the FrontEndFor logic...
         for view in canvas.views:
             if not view.has_backend:
-                view._backends = View(view)
+                view._backends.append(View(view))
             self._viz_add_view(view)
 
     def _viz_get_native(self) -> scene.SceneCanvas:

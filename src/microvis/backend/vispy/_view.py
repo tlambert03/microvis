@@ -44,11 +44,12 @@ class View(Node, core.view.ViewBackend):
 
     def _viz_set_camera(self, cam: core.Camera) -> None:
         if not cam.has_backend:
-            cam._backends = Camera(cam)
-        if not isinstance(cam.native_objects, scene.cameras.BaseCamera):
+            cam._backends.append(Camera(cam))
+        native_camera = cam.native_objects[self._backend_name]
+        if not isinstance(native_camera, scene.cameras.BaseCamera):
             raise TypeError("Camera must be a Vispy Camera")
-        self._native.camera = cam.native_objects
-        cam.native_objects.set_range(margin=0)  # TODO: put this elsewhere
+        self._native.camera = native_camera
+        native_camera.set_range(margin=0)  # TODO: put this elsewhere
 
     def _viz_set_scene(self, scene: core.Scene) -> None:
         if not scene.has_backend:
@@ -56,10 +57,10 @@ class View(Node, core.view.ViewBackend):
         for obj in scene.native_objects.values():
             if not isinstance(obj, subscene.SubScene):
                 raise TypeError("Scene must be a Vispy SubScene")
-        self._native._scene = scene.native_objects
+        self._native._scene = scene.native_objects[self._backend_name]
         # TODO: fixme: need an easy way to get at the native object for a
         #  specific backend from the backend, probably a constant string per backend
-        scene.native_objects.parent = self._native
+        scene.native_objects[self._backend_name].parent = self._native
 
     def _viz_set_position(self, arg: tuple[float, float]) -> None:
         self._native.pos = arg

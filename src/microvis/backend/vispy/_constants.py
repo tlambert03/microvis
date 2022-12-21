@@ -1,0 +1,1 @@
+VISPY_BACKEND_NAME = 'vispy'

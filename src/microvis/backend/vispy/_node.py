@@ -5,13 +5,13 @@ from typing import Any
 from vispy import scene
 from vispy.visuals.transforms import MatrixTransform, NullTransform
 
+from microvis.backend.vispy._base import VispyBackend
 from microvis.core import Transform
 from microvis.core.nodes import node as core_node
 
 
-class Node(core_node.NodeBackend):
+class Node(core_node.NodeBackend, VispyBackend):
     """Node adapter for Vispy Backend."""
-
     _native: scene.VisualNode
 
     def _viz_get_native(self) -> Any:
