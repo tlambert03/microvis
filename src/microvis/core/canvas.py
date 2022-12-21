@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import warnings
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, Optional, Protocol, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Optional, Protocol, TypeVar
 
 from psygnal.containers import EventedList
 
@@ -36,6 +36,10 @@ class CanvasBackend(SupportsVisibility['Canvas'], Protocol):
     def _viz_render(self) -> np.ndarray: ...
     @abstractmethod
     def _viz_add_view(self, view: View) -> None: ...
+    def _viz_get_ipython_mimebundle(
+        self, *args: Any, **kwargs: Any
+    ) -> dict | tuple[dict, dict]:
+        return NotImplemented
 # fmt: on
 
 
@@ -129,14 +133,17 @@ class Canvas(FrontEndFor[CanvasBackend]):
 
         return view
 
-    def _repr_mimebundle_(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
+    def _repr_mimebundle_(self, *args: Any, **kwargs: Any) -> dict | tuple[dict, dict]:
         """Return a mimebundle for the canvas.
 
         This defer to the native object's _repr_mimebundle_ method if it exists.
         Allowing different backends to support Jupyter or other rich display.
+
+        https://ipython.readthedocs.io/en/stable/config/integrating.html#more-powerful-methods
         """
-        if hasattr(self.native, "_repr_mimebundle_"):
-            return cast(dict, self.native._repr_mimebundle_(*args, **kwargs))
+        backend = self.backend_adaptor()
+        if hasattr(backend, "_viz_get_ipython_mimebundle"):
+            return backend._viz_get_ipython_mimebundle(*args, **kwargs)
         return NotImplemented
 
 

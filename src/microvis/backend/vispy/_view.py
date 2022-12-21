@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from vispy import scene
-from vispy.scene import subscene
 
 from microvis import core
 
@@ -35,16 +34,11 @@ class View(Node, core.view.ViewBackend):
         self._native = scene.ViewBox(**backend_kwargs)
 
     def _viz_set_camera(self, cam: core.Camera) -> None:
-        # cam._directly_set_backend_adaptor(Camera(cam))
-        if not isinstance(cam.native, scene.cameras.BaseCamera):
-            raise TypeError("Camera must be a Vispy Camera")
-        self._native.camera = cam.native
+        breakpoint()
+        self._native.camera = cam.backend_adaptor()._viz_get_native()
         cam.native.set_range(margin=0)  # TODO: put this elsewhere
 
     def _viz_set_scene(self, scene: core.Scene) -> None:
-        if not isinstance(scene.native, subscene.SubScene):
-            raise TypeError("Scene must be a Vispy SubScene")
-
         self._native._scene = scene.native
         scene.native.parent = self._native
 

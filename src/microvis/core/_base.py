@@ -100,10 +100,10 @@ class FrontEndFor(ModelBase, Generic[T]):
             self._backend = self._create_backend(backend_cls)  # type: ignore [misc]
         return cast("T", self._backend)
 
-    @property
-    def native(self) -> Any:
-        """Return the native object of the backend."""
-        return self.backend_adaptor()._viz_get_native()
+    # @property
+    # def native(self) -> Any:
+    #     """Return the native object of the backend."""
+    #     return self.backend_adaptor()._viz_get_native()
 
     def _get_backend_type(
         self,

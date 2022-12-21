@@ -56,5 +56,5 @@ def test_canvas(mock_backend: CanvasBackend) -> None:
     mock_backend._viz_close.assert_called_once()
 
     # these should get passed to the backend object.
-    canvas._repr_mimebundle_(1, 2)
-    assert canvas.native._repr_mimebundle_.called_once_with(1, 2)
+    canvas._repr_mimebundle_(1, 2, x=1)  # random args, kwargs
+    assert mock_backend._viz_get_ipython_mimebundle.called_once_with(1, 2, x=1)

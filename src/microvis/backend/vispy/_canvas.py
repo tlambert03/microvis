@@ -71,3 +71,8 @@ class Canvas(core.canvas.CanvasBackend):
             region=region, size=size, bgcolor=bgcolor, crop=crop, alpha=alpha
         )
         return cast("np.ndarray", data)
+
+    def _viz_get_ipython_mimebundle(
+        self, *args: Any, **kwargs: Any
+    ) -> dict | tuple[dict, dict]:
+        return self._native._repr_mimebundle_(*args, **kwargs)
