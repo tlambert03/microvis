@@ -50,8 +50,8 @@ class CustomNode(DataNode):
     BACKEND_ADAPTORS = {"vispy": CustomVispyAdaptor}
 
     # this is a pydantic-style model.  all attributes will trigger a
-    # _vis_set_* method on the backend object. (So `CustomVispyAdaptor` must have
-    # a `_vis_set_size` method.)
+    # _vis_set_* method on the backend object. (So `CustomVispyAdaptor` must
+    # have a `_vis_set_size` method.)
     size: int = 10
 
 
