@@ -156,9 +156,9 @@ class View(Node, FrontEndFor[ViewBackend]):
             )
         return super().add(node)
 
-    def _create_backend(self, cls: type[ViewBackend], kwargs: dict) -> ViewBackend:
+    def _create_backend(self, cls: type[ViewBackend]) -> ViewBackend:
         # FIXME: this cast *should* be redundant, but mypy doesn't seem to think so.
-        backend = cast(ViewBackend, super()._create_backend(cls, kwargs))
+        backend = cast(ViewBackend, super()._create_backend(cls))
         backend._viz_set_scene(self.scene)
         backend._viz_set_camera(self.camera)
         return backend

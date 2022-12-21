@@ -17,22 +17,18 @@ def test_view(mock_backend: ViewBackend) -> None:
 
     # once show() is called, the backend should be created and visible called
     view.show()
-
-    # This is a bummer...
-    # we'd *like* for `view.show()` to spin up a backend, and it will when vispy is
-    # the chosen backend... but that's because of the logic in the vispy backend.
-    # see FIXME note at ~L#30 in src/microvis/backend/vispy/_canvas.py
-    assert not view.has_backend  # if this fails in the future, you win!
-
+    assert view.has_backend
     assert view.backend_adaptor() is mock_backend
     mock_backend._viz_set_visible.assert_called_once_with(True)
+    mock_backend._viz_set_camera.assert_called_once()
+    mock_backend._viz_set_scene.assert_called_once()
 
     new_cam = Camera()
     view.camera = new_cam
-    mock_backend._viz_set_camera.assert_called_once_with(new_cam)
+    mock_backend._viz_set_camera.assert_called_with(new_cam)
     new_scene = Scene()
     view.scene = new_scene
-    mock_backend._viz_set_scene.assert_called_once_with(new_scene)
+    mock_backend._viz_set_scene.assert_called_with(new_scene)
     view.size = (720, 770)
     mock_backend._viz_set_size.assert_called_with((720, 770))
     view.background_color = "blue"

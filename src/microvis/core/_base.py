@@ -94,9 +94,10 @@ class FrontEndFor(ModelBase, Generic[T]):
         # if we make this a property, it will be cause the side effect of
         # spinning up a backend on tab auto-complete in ipython/jupyter
         if self._backend is None:
+            backend_cls = self._get_backend_type()
             # The type error is that we can't assign to a Class Variable.
             # However, if we don't mark `_backend` as a Class
-            self._backend = self._get_backend_obj()  # type: ignore [misc]
+            self._backend = self._create_backend(backend_cls)  # type: ignore [misc]
         return cast("T", self._backend)
 
     @property
@@ -104,12 +105,11 @@ class FrontEndFor(ModelBase, Generic[T]):
         """Return the native object of the backend."""
         return self.backend_adaptor()._viz_get_native()
 
-    def _get_backend_obj(
+    def _get_backend_type(
         self,
-        backend_kwargs: dict | None = None,
         backend: str = "",
         class_name: str = "",
-    ) -> T:
+    ) -> Type[T]:
         """Retrieves the backend class with the same name as the object class name."""
         # TODO: we're mostly just falling back on vispy here all the time for
         # early development, but it needs to be clearer how one would pick
@@ -126,18 +126,16 @@ class FrontEndFor(ModelBase, Generic[T]):
             backend_module = import_module(f"...backend.{backend}", __name__)
             backend_class = getattr(backend_module, class_name)
 
-        # TODO: fix TypeGuard
-        cls = cast("Type[T]", validate_backend_class(type(self), backend_class))
-        return self._create_backend(cls, (backend_kwargs or {}))
+        return cast(Type[T], validate_backend_class(type(self), backend_class))
 
-    def _create_backend(self, cls: Type[T], kwargs: dict) -> T:
+    def _create_backend(self, cls: Type[T]) -> T:
         """Instantiate the backend object.
 
         The purpose of this method is to allow subclasses to override the creation of
         the backend object. Or do something before/after.
         """
         logger.debug(f"Attaching {type(self)} to backend {cls}")
-        return cls(self, **kwargs)
+        return cls(self)
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
