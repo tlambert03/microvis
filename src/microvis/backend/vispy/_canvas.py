@@ -27,8 +27,13 @@ class Canvas(core.canvas.CanvasBackend):
             **backend_kwargs,
         )
 
-        # TODO: it would be nice if the responsibility of recursing through
+        # FIXME: it would be nice if the responsibility of recursing through
         # the view tree was handled by the FrontEndFor logic...
+        # The issue here is that we need to "lazily" rehydrate the full backend
+        # graph, assigning backend objects to each of the model objects, when "show"
+        # is called.
+        # Having this logic here is problematic because it means that the backend
+        # adaptor is responsible "too much".
         for view in canvas.views:
             if not view.has_backend:
                 view._directly_set_backend_adaptor(View(view))
