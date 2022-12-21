@@ -39,7 +39,7 @@ class BackendAdaptor(Protocol[F]):
         ...
 
     @abstractmethod
-    def _viz_get_native(self) -> Any:
+    def _vis_get_native(self) -> Any:
         """Return the native widget for the backend."""
 
     # TODO: add a "detach" or "cleanup" method?
@@ -49,7 +49,7 @@ class SupportsVisibility(BackendAdaptor[F], Protocol):
     """Protocol for objects that support visibility (show/hide)."""
 
     @abstractmethod
-    def _viz_set_visible(self, arg: bool) -> None:
+    def _vis_set_visible(self, arg: bool) -> None:
         """Set the visibility of the object."""
 
 
@@ -92,7 +92,7 @@ class FrontEndFor(ModelBase, Generic[T]):
     @property
     def native(self) -> Any:
         """Return the native object of the backend."""
-        return self.backend_adaptor()._viz_get_native()
+        return self.backend_adaptor()._vis_get_native()
 
     def _get_backend_obj(
         self,

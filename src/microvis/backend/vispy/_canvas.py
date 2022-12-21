@@ -34,10 +34,10 @@ class Canvas(core.canvas.CanvasBackend):
                 view._backend = View(view)
             self._viz_add_view(view)
 
-    def _viz_get_native(self) -> scene.SceneCanvas:
+    def _vis_get_native(self) -> scene.SceneCanvas:
         return self._native
 
-    def _viz_set_visible(self, arg: bool) -> None:
+    def _vis_set_visible(self, arg: bool) -> None:
         self._native.show(visible=arg)
 
     def _viz_add_view(self, view: core.View) -> None:
