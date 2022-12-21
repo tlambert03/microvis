@@ -11,7 +11,7 @@ from ._node import Node
 
 
 class Camera(Node, camera.CameraBackend):
-    """Adaptor for vispy camera."""
+    """Adaptor for pygfx camera."""
 
     _native: pygfx.Camera
 

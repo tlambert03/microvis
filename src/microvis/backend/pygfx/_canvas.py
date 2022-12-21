@@ -56,7 +56,7 @@ def _is_qt_canvas_type(obj: type) -> TypeGuard[type[qt.WgpuCanvas]]:
 
 
 class Canvas(core.canvas.CanvasBackend):
-    """Canvas interface for Vispy Backend."""
+    """Canvas interface for pygfx Backend."""
 
     def __init__(self, canvas: core.Canvas, **backend_kwargs: Any) -> None:
         # wgpu.gui.auto.WgpuCanvas is a "magic" import that itself is context sensitive

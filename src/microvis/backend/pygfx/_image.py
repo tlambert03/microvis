@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 class Image(Node):
-    """Vispy backend adaptor for an Image node."""
+    """pygfx backend adaptor for an Image node."""
 
     _native: pygfx.Image
     _material: pygfx.ImageBasicMaterial

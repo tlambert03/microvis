@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 class View(Node, core.view.ViewBackend):
-    """View interface for Vispy Backend."""
+    """View interface for pygfx Backend."""
 
     # _native: scene.ViewBox
     # TODO: i think pygfx doesn't see a view as part of the scene like vispy does
