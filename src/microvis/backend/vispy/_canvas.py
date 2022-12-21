@@ -32,7 +32,7 @@ class Canvas(core.canvas.CanvasBackend):
         for view in canvas.views:
             if not view.has_backend:
                 view._backend = View(view)
-            self._viz_add_view(view)
+            self._vis_add_view(view)
 
     def _vis_get_native(self) -> scene.SceneCanvas:
         return self._native
@@ -40,33 +40,33 @@ class Canvas(core.canvas.CanvasBackend):
     def _vis_set_visible(self, arg: bool) -> None:
         self._native.show(visible=arg)
 
-    def _viz_add_view(self, view: core.View) -> None:
+    def _vis_add_view(self, view: core.View) -> None:
         if not isinstance(view.native, scene.ViewBox):
             raise TypeError("View must be a Vispy ViewBox")
         self._native.central_widget.add_widget(view.native)
 
-    def _viz_set_width(self, arg: int) -> None:
+    def _vis_set_width(self, arg: int) -> None:
         _height = self._native.size[1]
         self._native.size = (arg, _height)
 
-    def _viz_set_height(self, arg: int) -> None:
+    def _vis_set_height(self, arg: int) -> None:
         _width = self._native.size[0]
         self._native.size = (_width, arg)
 
-    def _viz_set_size(self, arg: tuple[int, int]) -> None:
+    def _vis_set_size(self, arg: tuple[int, int]) -> None:
         self._native.size = arg
 
-    def _viz_set_background_color(self, arg: _types.Color | None) -> None:
+    def _vis_set_background_color(self, arg: _types.Color | None) -> None:
         self._native.bgcolor = pyd_color_to_vispy(arg)
 
-    def _viz_set_title(self, arg: str) -> None:
+    def _vis_set_title(self, arg: str) -> None:
         self._native.title = arg
 
-    def _viz_close(self) -> None:
+    def _vis_close(self) -> None:
         """Close canvas."""
         self._native.close()
 
-    def _viz_render(
+    def _vis_render(
         self,
         region: tuple[int, int, int, int] | None = None,
         size: tuple[int, int] | None = None,
