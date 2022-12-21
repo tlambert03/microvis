@@ -30,17 +30,17 @@ class Image(Node):
         )
         self._native = scene.Image(image.data, **backend_kwargs)
 
-    def _viz_set_cmap(self, arg: str) -> None:
+    def _vis_set_cmap(self, arg: str) -> None:
         self._native.cmap = str(arg)
 
-    def _viz_set_clim(self, arg: tuple[float, float] | None) -> None:
+    def _vis_set_clim(self, arg: tuple[float, float] | None) -> None:
         self._native.clim = arg
 
-    def _viz_set_gamma(self, arg: float) -> None:
+    def _vis_set_gamma(self, arg: float) -> None:
         self._native.gamma = arg
 
-    def _viz_set_interpolation(self, arg: ImageInterpolation) -> None:
+    def _vis_set_interpolation(self, arg: ImageInterpolation) -> None:
         self._native.interpolation = arg.value
 
-    def _viz_set_data(self, arg: ArrayLike) -> None:
+    def _vis_set_data(self, arg: ArrayLike) -> None:
         self._native.set_data(arg)
