@@ -22,7 +22,7 @@ class Camera(Node, camera.CameraBackend):
         cam = scene.cameras.make_camera(str(camera.type), **backend_kwargs)
         self._native = cam
 
-    def _viz_set_zoom(self, zoom: float) -> None:
+    def _vis_set_zoom(self, zoom: float) -> None:
         if (view_size := self._view_size()) is None:
             return
         scale = np.array(view_size) / zoom
@@ -33,11 +33,11 @@ class Camera(Node, camera.CameraBackend):
             corner = np.subtract(self._native.center[:2], scale / 2)
             self._native.rect = tuple(corner) + tuple(scale)
 
-    def _viz_set_center(self, arg: tuple[float, ...]) -> None:
+    def _vis_set_center(self, arg: tuple[float, ...]) -> None:
         self._native.center = arg[::-1]  # TODO
         self._native.view_changed()
 
-    def _viz_set_type(self, arg: CameraType) -> None:
+    def _vis_set_type(self, arg: CameraType) -> None:
         if not isinstance(self._native.parent, scene.ViewBox):
             raise TypeError("Camera must be attached to a ViewBox")
         self._native.parent.camera = str(arg)
