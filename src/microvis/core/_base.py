@@ -191,7 +191,7 @@ def validate_backend_class(
             f"{backend_class} cannot be used as a backend object for {cls}: "
             f"it is missing the following setters: {missing}"
         )
-    return cast(type[BackendAdaptor], backend_class)
+    return cast("Type[BackendAdaptor]", backend_class)
 
 
 def _get_default_backend() -> str:
