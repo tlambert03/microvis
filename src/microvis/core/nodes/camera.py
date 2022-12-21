@@ -26,7 +26,7 @@ class Camera(Node, FrontEndFor["CameraBackend"]):
 
 # fmt: off
 class CameraBackend(NodeBackend[Camera], Protocol):
-    """Protocol for a backend camera adapter object."""
+    """Protocol for a backend camera adaptor object."""
 
     @abstractmethod
     def _viz_set_type(self, arg: CameraType) -> None: ...

@@ -14,7 +14,7 @@ from ._data import DataField, DataNode, DataNodeBackend
 
 # fmt: off
 class ImageBackend(DataNodeBackend['Image'], Protocol):
-    """Protocol for a backend Image adapter object."""
+    """Protocol for a backend Image adaptor object."""
 
     @abstractmethod
     def _viz_set_cmap(self, arg: str) -> None: ...
