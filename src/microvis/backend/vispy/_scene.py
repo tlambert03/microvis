@@ -14,7 +14,6 @@ class Scene(Node):
         self._native._clipper = Clipper()
         self._native.clip_children = True
 
-        breakpoint()
         for node in scene.children:
             node.backend_adaptor()  # create backend adaptor if it doesn't exist
             self._viz_add_node(node)
