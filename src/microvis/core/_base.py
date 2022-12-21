@@ -3,18 +3,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from functools import lru_cache
 from importlib import import_module
-from typing import (
-    Any,
-    ClassVar,
-    Dict,
-    Generic,
-    Hashable,
-    Optional,
-    Protocol,
-    Type,
-    TypeVar,
-    cast,
-)
+from typing import Any, ClassVar, Dict, Generic, Optional, Protocol, Type, TypeVar, cast
 
 import numpy as np
 from psygnal import EmissionInfo, EventedModel
@@ -105,34 +94,22 @@ class FrontEndFor(ModelBase, Generic[T]):
         # if we make this a property, it will be cause the side effect of
         # spinning up a backend on tab auto-complete in ipython/jupyter
         if self._backend is None:
+            backend_cls = self._get_backend_type()
             # The type error is that we can't assign to a Class Variable.
             # However, if we don't mark `_backend` as a Class
-            self._backend = self._get_backend_obj()  # type: ignore [misc]
+            self._backend = self._create_backend(backend_cls)  # type: ignore [misc]
         return cast("T", self._backend)
-
-    def _directly_set_backend_adaptor(self, backend_object: Hashable) -> None:
-        """Set the backend adaptor for this object.
-
-        This method is here for use by the backend adaptor itself to provide a
-        new version of itself. It is not intended to be used by users (and should
-        probably be used sparingly by backend adaptors.).  It checks that the
-        backend adaptor
-        """
-        validate_backend_class(type(self), type(backend_object))
-        # same type ignore reason as mentioned in backend_adaptor()
-        self._backend = backend_object  # type: ignore [misc]
 
     @property
     def native(self) -> Any:
         """Return the native object of the backend."""
         return self.backend_adaptor()._viz_get_native()
 
-    def _get_backend_obj(
+    def _get_backend_type(
         self,
-        backend_kwargs: dict | None = None,
         backend: str = "",
         class_name: str = "",
-    ) -> T:
+    ) -> Type[T]:
         """Retrieves the backend class with the same name as the object class name."""
         # TODO: we're mostly just falling back on vispy here all the time for
         # early development, but it needs to be clearer how one would pick
@@ -149,10 +126,16 @@ class FrontEndFor(ModelBase, Generic[T]):
             backend_module = import_module(f"...backend.{backend}", __name__)
             backend_class = getattr(backend_module, class_name)
 
-        # TODO: fix TypeGuard
-        backend_class = validate_backend_class(type(self), backend_class)
-        logger.debug(f"Attaching {type(self)} to backend {backend_class}")
-        return cast("T", backend_class(self, **(backend_kwargs or {})))
+        return cast(Type[T], validate_backend_class(type(self), backend_class))
+
+    def _create_backend(self, cls: Type[T]) -> T:
+        """Instantiate the backend object.
+
+        The purpose of this method is to allow subclasses to override the creation of
+        the backend object. Or do something before/after.
+        """
+        logger.debug(f"Attaching {type(self)} to backend {cls}")
+        return cls(self)
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
@@ -191,8 +174,12 @@ class FrontEndFor(ModelBase, Generic[T]):
 # NOTE: if the hashability of either cls or backend_class is ever an issue,
 # this might not need to be cached, or `cls` could be replaced with a frozenset
 # of signal names.
+# XXX: also ... this might make more sense as a method on the FrontEndFor class
+# where we have access to the bound "T" type variable (could remove some casts)
 @lru_cache
-def validate_backend_class(cls: type[FrontEndFor], backend_class: type[T]) -> type[T]:
+def validate_backend_class(
+    cls: type[FrontEndFor], backend_class: Any
+) -> type[BackendAdaptor]:
     """Validate that the backend class is appropriate for the object."""
     logger.debug(f"Validating backend class {backend_class} for {cls}")
     if missing := {
@@ -204,7 +191,7 @@ def validate_backend_class(cls: type[FrontEndFor], backend_class: type[T]) -> ty
             f"{backend_class} cannot be used as a backend object for {cls}: "
             f"it is missing the following setters: {missing}"
         )
-    return backend_class
+    return cast("Type[BackendAdaptor]", backend_class)
 
 
 def _get_default_backend() -> str:

@@ -87,7 +87,20 @@ class Canvas(FrontEndFor[CanvasBackend]):
 
     def show(self) -> None:
         """Show the canvas."""
-        self.backend_adaptor()  # make sure backend is connected
+        # Note: the canvas.show() method is THE primary place where we create a tree
+        # of backend objects. (None of the lower level Node objects actually *need*
+        # any backend representation until they need to be shown visually)
+        # So, this method really bootstraps the entire "hydration" of the backend tree.
+        # Here, we make sure that all of the views have a backend adaptor.
+
+        # If you need to add any additional logic to handle the moment of backend
+        # creation in a specific Node subtype, you can override the `_create_backend`
+        # method (see, for example, the View._create_backend method)
+        for view in self.views:
+            if not view.has_backend:
+                # make sure all of the views have a backend adaptor
+                view.backend_adaptor()
+        self.backend_adaptor()  # make sure we also have a backend adaptor
         self.visible = True
 
     def hide(self) -> None:

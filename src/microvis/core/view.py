@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, Optional, Protocol, Tuple, TypeVar
+from typing import TYPE_CHECKING, Any, Optional, Protocol, Tuple, TypeVar, cast
 
 from microvis._types import ArrayLike, Color
 
@@ -155,3 +155,10 @@ class View(Node, FrontEndFor[ViewBackend]):
                 f"View can only contain a Camera and a Scene, not {type(node)}"
             )
         return super().add(node)
+
+    def _create_backend(self, cls: type[ViewBackend]) -> ViewBackend:
+        # FIXME: this cast *should* be redundant, but mypy doesn't seem to think so.
+        backend = cast(ViewBackend, super()._create_backend(cls))
+        backend._viz_set_scene(self.scene)
+        backend._viz_set_camera(self.camera)
+        return backend
