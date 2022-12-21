@@ -41,7 +41,6 @@ class View(Node, core.view.ViewBackend):
         self._native.camera = cam.native
         cam.native.set_range(margin=0)  # TODO: put this elsewhere
 
-
     def _vis_set_scene(self, scene: core.Scene) -> None:
         if not isinstance(scene.native, subscene.SubScene):
             raise TypeError("Scene must be a Vispy SubScene")
