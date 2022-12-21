@@ -39,10 +39,10 @@ class View(Node, core.view.ViewBackend):
 
         # TODO: it would be nice if the responsibility of recursing through
         # the view tree was handled by the FrontEndFor logic...
-        self._viz_set_scene(view.scene)
-        self._viz_set_camera(view.camera)
+        self._vis_set_scene(view.scene)
+        self._vis_set_camera(view.camera)
 
-    def _viz_set_camera(self, cam: core.Camera) -> None:
+    def _vis_set_camera(self, cam: core.Camera) -> None:
         if not cam.has_backend:
             cam._backend = Camera(cam)
         if not isinstance(cam.native, scene.cameras.BaseCamera):
@@ -50,7 +50,7 @@ class View(Node, core.view.ViewBackend):
         self._native.camera = cam.native
         cam.native.set_range(margin=0)  # TODO: put this elsewhere
 
-    def _viz_set_scene(self, scene: core.Scene) -> None:
+    def _vis_set_scene(self, scene: core.Scene) -> None:
         if not scene.has_backend:
             scene._backend = Scene(scene)
 
@@ -59,25 +59,25 @@ class View(Node, core.view.ViewBackend):
         self._native._scene = scene.native
         scene.native.parent = self._native
 
-    def _viz_set_position(self, arg: tuple[float, float]) -> None:
+    def _vis_set_position(self, arg: tuple[float, float]) -> None:
         self._native.pos = arg
 
-    def _viz_set_size(self, arg: tuple[float, float] | None) -> None:
+    def _vis_set_size(self, arg: tuple[float, float] | None) -> None:
         self._native.size = arg
 
-    def _viz_set_background_color(self, arg: _types.Color | None) -> None:
+    def _vis_set_background_color(self, arg: _types.Color | None) -> None:
         self._native.bgcolor = pyd_color_to_vispy(arg)
 
-    def _viz_set_border_width(self, arg: float) -> None:
+    def _vis_set_border_width(self, arg: float) -> None:
         self._native._border_width = arg
         self._native._update_line()
         self._native.update()
 
-    def _viz_set_border_color(self, arg: _types.Color | None) -> None:
+    def _vis_set_border_color(self, arg: _types.Color | None) -> None:
         self._native.border_color = pyd_color_to_vispy(arg)
 
-    def _viz_set_padding(self, arg: int) -> None:
+    def _vis_set_padding(self, arg: int) -> None:
         self._native.padding = arg
 
-    def _viz_set_margin(self, arg: int) -> None:
+    def _vis_set_margin(self, arg: int) -> None:
         self._native.margin = arg
