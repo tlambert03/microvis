@@ -140,7 +140,8 @@ class View(Node, FrontEndFor[ViewBackend]):
         if self.camera.has_backend:
             # FIXME!: put this vispy specific API elsewhere
             # i guess we need a reset_range type API
-            self.camera.native.set_range(margin=0)
+            if hasattr(self.camera.native, "set_range"):
+                self.camera.native.set_range(margin=0)
         return node
 
     def add_image(self, data: ArrayLike, **kwargs: Any) -> Image:

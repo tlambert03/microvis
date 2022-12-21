@@ -199,4 +199,5 @@ def _get_default_backend() -> str:
 
     This will likely be context dependent.
     """
-    return "vispy"
+    return "pygfx"
+    # return "vispy"

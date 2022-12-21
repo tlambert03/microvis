@@ -32,6 +32,7 @@ dependencies = [
     "loguru",
     "imageio",
     "magicgui",
+    "typing_extensions",
 ]
 
 # extras
