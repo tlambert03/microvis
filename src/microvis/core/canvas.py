@@ -111,7 +111,7 @@ class Canvas(FrontEndFor[CanvasBackend]):
         # TODO: do we need to set visible=True temporarily here?
         return self.backend_adaptor()._viz_render()
 
-    # consider using canavs.views.append?
+    # consider using canvas.views.append?
     def add_view(self, view: View | None = None, **kwargs: Any) -> View:
         """Add a new view to the canvas."""
         # TODO: change kwargs to params

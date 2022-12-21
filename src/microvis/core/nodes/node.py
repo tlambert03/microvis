@@ -89,6 +89,12 @@ class Node(FrontEndFor[NodeBackendTypeCoV]):  # type: ignore  # FIXME
         # avoid recursion in repr
         return [a for a in args if a[0] != "parent"]
 
+    # FIXME: the presence of this `__init__` method breaks the very nice static
+    # hints provided in VScode. but currently need it in order to add _owner to
+    # children.  maybe there's a better way?
+    # One possibility is to make _children a private (immutable) property that
+    # can only be modified using `add()` method, then modify it as needed only on
+    # first access.
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.children._owner = self
