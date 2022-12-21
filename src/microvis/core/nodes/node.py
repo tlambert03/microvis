@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Iterator, Protocol, Sequence, TypeVar
+from typing import Any, Iterator, Optional, Protocol, Sequence, TypeVar
 
 from psygnal.containers import EventedList
 from pydantic import validator
@@ -41,7 +41,7 @@ class NodeBackend(SupportsVisibility[NodeTypeCoV], Protocol):
 
 
 class NodeList(EventedList[NodeType]):
-    _owner: Node | None = None
+    _owner: Optional[Node] = None
 
     def _pre_insert(self, value: NodeType) -> NodeType:
         if not isinstance(value, Node):
@@ -57,8 +57,8 @@ class NodeList(EventedList[NodeType]):
 class Node(FrontEndFor[NodeBackendTypeCoV]):  # type: ignore  # FIXME
     """Base class for all nodes."""
 
-    name: str | None = Field(None, description="Name of the node.")
-    parent: Node | None = Field(
+    name: Optional[str] = Field(None, description="Name of the node.")
+    parent: Optional[Node] = Field(
         None,
         description="Parent node. If None, this node is a root node.",
         exclude=True,  # prevents recursion in serialization.
@@ -89,6 +89,12 @@ class Node(FrontEndFor[NodeBackendTypeCoV]):  # type: ignore  # FIXME
         # avoid recursion in repr
         return [a for a in args if a[0] != "parent"]
 
+    # FIXME: the presence of this `__init__` method breaks the very nice static
+    # hints provided in VScode. but currently need it in order to add _owner to
+    # children.  maybe there's a better way?
+    # One possibility is to make _children a private (immutable) property that
+    # can only be modified using `add()` method, then modify it as needed only on
+    # first access.
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.children._owner = self

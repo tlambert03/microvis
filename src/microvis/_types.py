@@ -2,7 +2,17 @@ from enum import Enum
 from typing import Literal, Tuple, Union
 
 import numpy as np
-from pydantic.color import Color as Color
+import pydantic.color
+
+
+class Color(pydantic.color.Color):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Color):
+            try:
+                other = Color(other)  # type: ignore [arg-type]
+            except Exception:
+                return NotImplemented
+        return self.as_rgb_tuple() == other.as_rgb_tuple()
 
 
 class CameraType(str, Enum):
@@ -45,7 +55,6 @@ class UndefinedType:
 Undefined = UndefinedType()
 
 
-Color = Color
 RGBTuple = Tuple[float, float, float]
 RGBATuple = Tuple[float, float, float, float]
 ClimString = Literal["auto"]

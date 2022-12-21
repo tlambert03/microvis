@@ -14,7 +14,7 @@ from .node import Node, NodeBackend, NodeTypeCoV
 
 
 class DataNodeBackend(NodeBackend[NodeTypeCoV], Protocol):
-    """Protocol for a backend DataNode adapter object."""
+    """Protocol for a backend DataNode adaptor object."""
 
     @abstractmethod
     def _vis_set_data(self, arg: ArrayLike) -> None:

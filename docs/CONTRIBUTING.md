@@ -154,6 +154,18 @@ a few considerations and principles in mind:
   test suite. Slow development of stable, well-tested code is
   better than fast development of untested code.
 
+- **User extendability**
+
+  Extending the builtin layer models of napari has proven a bit difficult due to
+  a lot of internal interdependencies.  As an example, the awesome particle
+  layer in <https://github.com/napari-storm/napari-storm> was very challenging
+  to implement as a plugin, and remains difficult to add to napari core.
+  microvis should make it easy to extend the builtin nodes and models, *and*
+  clear how to extend one or more backends to support their new object. For GUI
+  controls here, if we stick to magicgui for dynamically creating the GUI from
+  the models, extensions will get GUI controls for free. (See
+  `examples/custom_node.py` for an example of how this could work.)
+
 - **Non-goals**
 
   Until the above goals are met, microvis should not focus on

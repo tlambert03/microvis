@@ -10,7 +10,7 @@ from microvis.core.nodes import node as core_node
 
 
 class Node(core_node.NodeBackend):
-    """Node adapter for Vispy Backend."""
+    """Node adaptor for Vispy Backend."""
 
     _native: scene.VisualNode
 

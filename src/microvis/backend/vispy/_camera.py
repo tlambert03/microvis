@@ -12,7 +12,7 @@ from ._node import Node
 
 
 class Camera(Node, camera.CameraBackend):
-    """Adapter for vispy camera."""
+    """Adaptor for vispy camera."""
 
     _native: scene.cameras.BaseCamera
 

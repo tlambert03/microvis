@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import warnings
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Protocol, cast
+from typing import TYPE_CHECKING, Any, Optional, Protocol, TypeVar, cast
 
 from psygnal.containers import EventedList
 
@@ -12,10 +12,9 @@ from ._base import Field, FrontEndFor, SupportsVisibility
 from .view import View
 
 if TYPE_CHECKING:
-    from typing import Any
-
     import numpy as np
 
+ViewType = TypeVar("ViewType", bound=View)
 
 # fmt: off
 class CanvasBackend(SupportsVisibility['Canvas'], Protocol):
@@ -40,9 +39,9 @@ class CanvasBackend(SupportsVisibility['Canvas'], Protocol):
 # fmt: on
 
 
-class ViewList(EventedList[View]):
-    def _pre_insert(self, value: View) -> View:
-        if not isinstance(value, View):
+class ViewList(EventedList[ViewType]):
+    def _pre_insert(self, value: ViewType) -> ViewType:
+        if not isinstance(value, View):  # pragma: no cover
             raise TypeError("Canvas views must be View objects")
         return super()._pre_insert(value)
 
@@ -57,14 +56,14 @@ class Canvas(FrontEndFor[CanvasBackend]):
 
     width: float = Field(500, description="The width of the canvas in pixels.")
     height: float = Field(500, description="The height of the canvas in pixels.")
-    background_color: Color | None = Field(
+    background_color: Optional[Color] = Field(
         None,
         description="The background color. None implies transparent "
         "(which is usually black)",
     )
     visible: bool = Field(False, description="Whether the canvas is visible.")
     title: str = Field("", description="The title of the canvas.")
-    views: EventedList[View] = Field(default_factory=EventedList, allow_mutation=False)
+    views: ViewList[View] = Field(default_factory=ViewList, allow_mutation=False)
 
     @property
     def size(self) -> tuple[float, float]:
@@ -88,7 +87,20 @@ class Canvas(FrontEndFor[CanvasBackend]):
 
     def show(self) -> None:
         """Show the canvas."""
-        self.backend_adaptor()  # make sure backend is connected
+        # Note: the canvas.show() method is THE primary place where we create a tree
+        # of backend objects. (None of the lower level Node objects actually *need*
+        # any backend representation until they need to be shown visually)
+        # So, this method really bootstraps the entire "hydration" of the backend tree.
+        # Here, we make sure that all of the views have a backend adaptor.
+
+        # If you need to add any additional logic to handle the moment of backend
+        # creation in a specific Node subtype, you can override the `_create_backend`
+        # method (see, for example, the View._create_backend method)
+        for view in self.views:
+            if not view.has_backend:
+                # make sure all of the views have a backend adaptor
+                view.backend_adaptor()
+        self.backend_adaptor()  # make sure we also have a backend adaptor
         self.visible = True
 
     def hide(self) -> None:
@@ -100,15 +112,15 @@ class Canvas(FrontEndFor[CanvasBackend]):
         # TODO: do we need to set visible=True temporarily here?
         return self.backend_adaptor()._vis_render()
 
-    # consider using canavs.views.append?
+    # consider using canvas.views.append?
     def add_view(self, view: View | None = None, **kwargs: Any) -> View:
         """Add a new view to the canvas."""
         # TODO: change kwargs to params
         if view is None:
             view = View(**kwargs)
-        elif kwargs:
+        elif kwargs:  # pragma: no cover
             warnings.warn("kwargs ignored when view is provided")
-        elif not isinstance(view, View):
+        elif not isinstance(view, View):  # pragma: no cover
             raise TypeError("view must be an instance of View")
 
         self.views.append(view)

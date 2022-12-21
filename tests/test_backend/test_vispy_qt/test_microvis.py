@@ -30,7 +30,7 @@ def test_canvas(qtbot: "QtBot") -> None:
     assert not view.has_backend
     assert not camera.has_backend
 
-    # canvas.show()
+    canvas.show()
     qtbot.addWidget(canvas.native.native)
 
     assert canvas.has_backend
