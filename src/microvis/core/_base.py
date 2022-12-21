@@ -3,18 +3,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from functools import lru_cache
 from importlib import import_module
-from typing import (
-    Any,
-    ClassVar,
-    Dict,
-    Generic,
-    Hashable,
-    Optional,
-    Protocol,
-    Type,
-    TypeVar,
-    cast,
-)
+from typing import Any, ClassVar, Dict, Generic, Optional, Protocol, Type, TypeVar, cast
 
 import numpy as np
 from psygnal import EmissionInfo, EventedModel
@@ -110,18 +99,6 @@ class FrontEndFor(ModelBase, Generic[T]):
             self._backend = self._get_backend_obj()  # type: ignore [misc]
         return cast("T", self._backend)
 
-    def _directly_set_backend_adaptor(self, backend_object: Hashable) -> None:
-        """Set the backend adaptor for this object.
-
-        This method is here for use by the backend adaptor itself to provide a
-        new version of itself. It is not intended to be used by users (and should
-        probably be used sparingly by backend adaptors.).  It checks that the
-        backend adaptor
-        """
-        validate_backend_class(type(self), type(backend_object))
-        # same type ignore reason as mentioned in backend_adaptor()
-        self._backend = backend_object  # type: ignore [misc]
-
     @property
     def native(self) -> Any:
         """Return the native object of the backend."""
@@ -150,9 +127,17 @@ class FrontEndFor(ModelBase, Generic[T]):
             backend_class = getattr(backend_module, class_name)
 
         # TODO: fix TypeGuard
-        backend_class = validate_backend_class(type(self), backend_class)
-        logger.debug(f"Attaching {type(self)} to backend {backend_class}")
-        return cast("T", backend_class(self, **(backend_kwargs or {})))
+        cls = cast("Type[T]", validate_backend_class(type(self), backend_class))
+        return self._create_backend(cls, (backend_kwargs or {}))
+
+    def _create_backend(self, cls: Type[T], kwargs: dict) -> T:
+        """Instantiate the backend object.
+
+        The purpose of this method is to allow subclasses to override the creation of
+        the backend object. Or do something before/after.
+        """
+        logger.debug(f"Attaching {type(self)} to backend {cls}")
+        return cls(self, **kwargs)
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
@@ -191,8 +176,12 @@ class FrontEndFor(ModelBase, Generic[T]):
 # NOTE: if the hashability of either cls or backend_class is ever an issue,
 # this might not need to be cached, or `cls` could be replaced with a frozenset
 # of signal names.
+# XXX: also ... this might make more sense as a method on the FrontEndFor class
+# where we have access to the bound "T" type variable (could remove some casts)
 @lru_cache
-def validate_backend_class(cls: type[FrontEndFor], backend_class: type[T]) -> type[T]:
+def validate_backend_class(
+    cls: type[FrontEndFor], backend_class: Any
+) -> type[BackendAdaptor]:
     """Validate that the backend class is appropriate for the object."""
     logger.debug(f"Validating backend class {backend_class} for {cls}")
     if missing := {
@@ -204,7 +193,7 @@ def validate_backend_class(cls: type[FrontEndFor], backend_class: type[T]) -> ty
             f"{backend_class} cannot be used as a backend object for {cls}: "
             f"it is missing the following setters: {missing}"
         )
-    return backend_class
+    return cast(type[BackendAdaptor], backend_class)
 
 
 def _get_default_backend() -> str:

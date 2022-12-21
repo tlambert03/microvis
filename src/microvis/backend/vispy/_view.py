@@ -7,9 +7,7 @@ from vispy.scene import subscene
 
 from microvis import core
 
-from ._camera import Camera
 from ._node import Node
-from ._scene import Scene
 from ._util import pyd_color_to_vispy
 
 if TYPE_CHECKING:
@@ -34,28 +32,19 @@ class View(Node, core.view.ViewBackend):
         )
         if view.size is not None:
             backend_kwargs["size"] = view.size
-
         self._native = scene.ViewBox(**backend_kwargs)
 
-        # TODO: it would be nice if the responsibility of recursing through
-        # the view tree was handled by the FrontEndFor logic...
-        self._viz_set_scene(view.scene)
-        self._viz_set_camera(view.camera)
-
     def _viz_set_camera(self, cam: core.Camera) -> None:
-        if not cam.has_backend:
-            cam._directly_set_backend_adaptor(Camera(cam))
+        # cam._directly_set_backend_adaptor(Camera(cam))
         if not isinstance(cam.native, scene.cameras.BaseCamera):
             raise TypeError("Camera must be a Vispy Camera")
         self._native.camera = cam.native
         cam.native.set_range(margin=0)  # TODO: put this elsewhere
 
     def _viz_set_scene(self, scene: core.Scene) -> None:
-        if not scene.has_backend:
-            scene._directly_set_backend_adaptor(Scene(scene))
-
         if not isinstance(scene.native, subscene.SubScene):
             raise TypeError("Scene must be a Vispy SubScene")
+
         self._native._scene = scene.native
         scene.native.parent = self._native
 

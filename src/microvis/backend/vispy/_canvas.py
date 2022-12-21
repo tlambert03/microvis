@@ -8,7 +8,6 @@ from vispy import scene
 from microvis import core
 
 from ._util import pyd_color_to_vispy
-from ._view import View
 
 if TYPE_CHECKING:
     from microvis import _types
@@ -26,13 +25,6 @@ class Canvas(core.canvas.CanvasBackend):
             bgcolor=pyd_color_to_vispy(canvas.background_color),
             **backend_kwargs,
         )
-
-        # TODO: it would be nice if the responsibility of recursing through
-        # the view tree was handled by the FrontEndFor logic...
-        for view in canvas.views:
-            if not view.has_backend:
-                view._directly_set_backend_adaptor(View(view))
-            self._viz_add_view(view)
 
     def _viz_get_native(self) -> scene.SceneCanvas:
         return self._native

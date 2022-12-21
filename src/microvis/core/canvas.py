@@ -90,6 +90,18 @@ class Canvas(FrontEndFor[CanvasBackend]):
         self.backend_adaptor()  # make sure backend is connected
         self.visible = True
 
+    def _create_backend(self, cls: type[CanvasBackend], kwargs: dict) -> CanvasBackend:
+        """Create the backend object from a dict of values.
+
+        The purpose of this method is to allow subclasses to override the creation of
+        the backend object. Or do something before/after.
+        """
+        for view in self.views:
+            if not view.has_backend:
+                # make sure all of the views also have a backend adaptor
+                view.backend_adaptor()
+        return super()._create_backend(cls, kwargs)
+
     def hide(self) -> None:
         """Hide the canvas."""
         self.visible = False
