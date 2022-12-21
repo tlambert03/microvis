@@ -141,7 +141,8 @@ class FrontEndFor(ModelBase, Generic[T]):
 
         try:
             name = SETTER_METHOD.format(name=signal_name)
-            setter = getattr(self._backends, name)
+            for backend in self._backends:
+                setter = getattr(backend, name)
         except AttributeError as e:
             logger.exception(e)
             return

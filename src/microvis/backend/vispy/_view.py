@@ -52,11 +52,13 @@ class View(Node, core.view.ViewBackend):
 
     def _viz_set_scene(self, scene: core.Scene) -> None:
         if not scene.has_backend:
-            scene._backends = Scene(scene)
-
-        if not isinstance(scene.native_objects, subscene.SubScene):
-            raise TypeError("Scene must be a Vispy SubScene")
+            scene._backends.append(Scene(scene))
+        for obj in scene.native_objects.values():
+            if not isinstance(obj, subscene.SubScene):
+                raise TypeError("Scene must be a Vispy SubScene")
         self._native._scene = scene.native_objects
+        # TODO: fixme: need an easy way to get at the native object for a
+        #  specific backend from the backend, probably a constant string per backend
         scene.native_objects.parent = self._native
 
     def _viz_set_position(self, arg: tuple[float, float]) -> None:
