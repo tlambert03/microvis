@@ -9,16 +9,13 @@ from microvis.core import _base
 from microvis.core.nodes._data import DataNode
 
 
-def test_custom_node() -> None:
+def test_custom_node(qapp) -> None:
     """Test the BACKEND_ADAPTORS class attribute API for DataNode."""
     mock = Mock()
 
     class CustomVispyAdaptor(vispy.Node):
         def __init__(self, obj: "CustomNode", **backend_kwargs: Any) -> None:
             mock(obj, **backend_kwargs)
-
-        def _viz_set_data(self, data: Any) -> None:
-            mock(data=data)
 
         def _viz_set_size(self, size: int) -> None:
             mock(size=size)
