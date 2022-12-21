@@ -85,8 +85,8 @@ Most objects in the backend modules will be subclasses (or at least
 implementations for) various Protocols defined in `core`.
 
 For example, all `core.Node` objects require a backend object that
-implements the `NodeBackend` protocol (with methods like `_viz_set_name`,
-`_viz_add_node`, etc...).
+implements the `NodeBackend` protocol (with methods like `_vis_set_name`,
+`_vis_add_node`, etc...).
 
 ### The `FrontEndFor` pattern
 
@@ -111,9 +111,9 @@ must implement to be able to render a `Canvas`:
 from typing import Protocol
 
 class CanvasBackend(Protocol):
-    def _viz_set_width(self, arg: int) -> None: ...
-    def _viz_set_height(self, arg: int) -> None: ...
-    def _viz_set_visibile(self, arg: bool) -> None: ...
+    def _vis_set_width(self, arg: int) -> None: ...
+    def _vis_set_height(self, arg: int) -> None: ...
+    def _vis_set_visibile(self, arg: bool) -> None: ...
 ```
 
 `FrontEndFor` then, is a base class (it's a `Generic` parametrized by
@@ -126,7 +126,7 @@ a certain backend protocol) that:
 
 ```python
 canvas = Canvas()
-canvas.width = 1000 # calls canvas._backend._viz_set_width(1000)
+canvas.width = 1000 # calls canvas._backend._vis_set_width(1000)
 ```
 
 The logic for this is defined in `FrontEndFor._on_any_event` ...

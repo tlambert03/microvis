@@ -15,10 +15,10 @@ class CustomBackend(vispy.Node):
     def __init__(self, obj: "CustomNode", **backend_kwargs: Any) -> None:
         self._native = scene.Markers(pos=obj.data_raw, size=obj.size, **backend_kwargs)
 
-    def _viz_set_data(self, data: Any) -> None:
+    def _vis_set_data(self, data: Any) -> None:
         self._native.set_data(pos=data)
 
-    def _viz_set_size(self, size: int) -> None:
+    def _vis_set_size(self, size: int) -> None:
         self._native.set_data(pos=self._native._data["a_position"], size=size)
 
 
@@ -29,7 +29,7 @@ class CustomNode(DataNode):
     _backend_lookup = {"vispy": CustomBackend}
 
     # this is a pydantic-style model.  all attributes will trigger a
-    # _viz_set_* method on the backend object (which must be implemented)
+    # _vis_set_* method on the backend object (which must be implemented)
     size: int = 10
 
 
