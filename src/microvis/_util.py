@@ -63,6 +63,15 @@ _CONTEXT: Context | None = None
 
 
 def get_context() -> Context:
+    """Get the context in which the application is running.
+
+    Returns
+    -------
+    Context
+        A dataclass containing information about the context.  Includes attributes:
+        shell, sys_version, platform_system, vispy_available, pygfx_available,
+        qt_available.
+    """
     global _CONTEXT
     if _CONTEXT is None:
         IPython = sys.modules.get("IPython")
