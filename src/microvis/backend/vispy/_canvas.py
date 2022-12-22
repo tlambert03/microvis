@@ -38,8 +38,13 @@ class Canvas(core.canvas.CanvasAdaptorProtocol):
             raise TypeError("View must be a Vispy ViewBox")
         self._vispy_canvas.central_widget.add_widget(view.native)
 
-    def _vis_set_size(self, arg: tuple[int, int]) -> None:
-        self._vispy_canvas.size = arg
+    def _vis_set_width(self, arg: int) -> None:
+        _height = self._native.size[1]
+        self._vispy_canvas.size = (arg, _height)
+
+    def _vis_set_height(self, arg: int) -> None:
+        _width = self._native.size[0]
+        self._vispy_canvas.size = (_width, arg)
 
     def _vis_set_background_color(self, arg: _types.Color | None) -> None:
         self._vispy_canvas.bgcolor = pyd_color_to_vispy(arg)
