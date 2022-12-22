@@ -20,3 +20,13 @@ this folder is temporary
       arbitrary callable... if present, an arbitrary callable on
       the data object - this feels nice!
     - this callable *could* be parametrised by some kind of nD world position
+
+### mini proposal
+- raw data in the `Image` model is nD
+- from raw data `Image` *must* be able to yield stacked 3D `... c d h w`,
+  similar to pytorch data model but nD
+e.g.
+  - single 2D RGBA image `h w c -> 1 c 1 h w`
+  - 2D intensity image `h w -> 1 1 1 h w`
+  - batched multichannel volume `b c d h w` remains unchanged
+n.b. when viewed in 3D, an arbitrary reduction is performed over the channel dim
