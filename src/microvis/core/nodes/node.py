@@ -7,7 +7,7 @@ from psygnal.containers import EventedList
 from pydantic import validator
 
 from microvis._logger import logger
-from microvis.core._base import Field, FrontEndFor, SupportsVisibility
+from microvis.core._base import Field, SupportsVisibility, VisModel
 from microvis.core._transform import Transform
 
 NodeTypeCoV = TypeVar("NodeTypeCoV", bound="Node", covariant=True)
@@ -54,7 +54,7 @@ class NodeList(EventedList[NodeType]):
         super()._post_insert(new_item)
 
 
-class Node(FrontEndFor[NodeBackendTypeCoV]):  # type: ignore  # FIXME
+class Node(VisModel[NodeBackendTypeCoV]):  # type: ignore  # FIXME
     """Base class for all nodes."""
 
     name: Optional[str] = Field(None, description="Name of the node.")

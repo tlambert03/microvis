@@ -88,9 +88,9 @@ For example, all `core.Node` objects require a backend object that
 implements the `NodeBackend` protocol (with methods like `_viz_set_name`,
 `_viz_add_node`, etc...).
 
-### The `FrontEndFor` pattern
+### The `VisModel` pattern
 
-You'll note that most of the `core` objects are subclasses of `FrontEndFor`.
+You'll note that most of the `core` objects are subclasses of `VisModel`.
 
 This is an important pattern (which should be critically re-evaluated often)
 that mediates the relationship between the `core` and `backend` objects.  Let's
@@ -98,7 +98,7 @@ take a look at the `microvis.core.Canvas` class as an example.  It is defined
 as:
 
 ```python
-class Canvas(FrontEndFor[CanvasBackend]):
+class Canvas(VisModel[CanvasBackend]):
   width: float = 500
   height: float = 500
   visible: bool = False
@@ -116,7 +116,7 @@ class CanvasBackend(Protocol):
     def _viz_set_visibile(self, arg: bool) -> None: ...
 ```
 
-`FrontEndFor` then, is a base class (it's a `Generic` parametrized by
+`VisModel` then, is a base class (it's a `Generic` parametrized by
 a certain backend protocol) that:
 
 1. Handles the fetching and creation of a backend adaptor object implementing
@@ -129,7 +129,7 @@ canvas = Canvas()
 canvas.width = 1000 # calls canvas._backend._viz_set_width(1000)
 ```
 
-The logic for this is defined in `FrontEndFor._on_any_event` ...
+The logic for this is defined in `VisModel._on_any_event` ...
 another method that should be critically re-evaluated often.
 
 ### `controller`
