@@ -145,8 +145,8 @@ classDiagram
     VisModel <-- Canvas : inherits
     Canvas --* CanvasAdaptorProtocol
     BackendAdaptorProtocol <-- CanvasAdaptorProtocol : inherits
-    CanvasAdaptorProtocol <-- VispyCameraAdaptor : implements
-    CanvasAdaptorProtocol <-- PygfxCameraAdaptor : implements
+    CanvasAdaptorProtocol <-- VispyCanvasAdaptor : implements
+    CanvasAdaptorProtocol <-- PygfxCanvasAdaptor : implements
     <<Interface>> CanvasAdaptorProtocol
     class Canvas {
         width: int
