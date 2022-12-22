@@ -8,7 +8,7 @@ from typing import Any, Callable, Generator, Iterable, Sequence, Sized, cast
 import numpy as np
 from numpy.typing import ArrayLike, DTypeLike, NDArray
 
-from ._base import Field, ModelBase
+from ._vis_model import Field, ModelBase
 
 
 def _arg_to_vec4(
