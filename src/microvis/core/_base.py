@@ -14,7 +14,7 @@ from microvis._logger import logger
 
 __all__ = ["Field", "FrontEndFor", "ModelBase", "SupportsVisibility"]
 
-SETTER_METHOD = "_viz_set_{name}"
+SETTER_METHOD = "_vis_set_{name}"
 
 
 class ModelBase(EventedModel):
@@ -39,7 +39,7 @@ class BackendAdaptor(Protocol[F]):
         ...
 
     @abstractmethod
-    def _viz_get_native(self) -> Any:
+    def _vis_get_native(self) -> Any:
         """Return the native widget for the backend."""
 
     # TODO: add a "detach" or "cleanup" method?
@@ -49,7 +49,7 @@ class SupportsVisibility(BackendAdaptor[F], Protocol):
     """Protocol for objects that support visibility (show/hide)."""
 
     @abstractmethod
-    def _viz_set_visible(self, arg: bool) -> None:
+    def _vis_set_visible(self, arg: bool) -> None:
         """Set the visibility of the object."""
 
 
@@ -65,7 +65,7 @@ class FrontEndFor(ModelBase, Generic[T]):
     A backend adaptor is a class that implements the BackendAdaptor protocol (of type
     `T`... for which this class is a generic). The backend adaptor is an object
     responsible for converting all of the microvis protocol methods (stuff like
-    "_viz_set_width", "_viz_set_visible", etc...) into the appropriate calls for
+    "_vis_set_width", "_vis_set_visible", etc...) into the appropriate calls for
     the given backend.
 
     TODO: looks like we assume a single backend adaptor per object.
@@ -103,7 +103,7 @@ class FrontEndFor(ModelBase, Generic[T]):
     @property
     def native(self) -> Any:
         """Return the native object of the backend."""
-        return self.backend_adaptor()._viz_get_native()
+        return self.backend_adaptor()._vis_get_native()
 
     def _get_backend_type(
         self,

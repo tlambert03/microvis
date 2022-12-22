@@ -21,21 +21,21 @@ class CanvasBackend(SupportsVisibility['Canvas'], Protocol):
     """Backend interface for Canvas."""
 
     @abstractmethod
-    def _viz_set_width(self, arg: int) -> None: ...
+    def _vis_set_width(self, arg: int) -> None: ...
     @abstractmethod
-    def _viz_set_height(self, arg: int) -> None: ...
+    def _vis_set_height(self, arg: int) -> None: ...
     @abstractmethod
-    def _viz_set_size(self, arg: tuple[int, int]) -> None: ...
+    def _vis_set_size(self, arg: tuple[int, int]) -> None: ...
     @abstractmethod
-    def _viz_set_background_color(self, arg: Color | None) -> None: ...
+    def _vis_set_background_color(self, arg: Color | None) -> None: ...
     @abstractmethod
-    def _viz_set_title(self, arg: str) -> None: ...
+    def _vis_set_title(self, arg: str) -> None: ...
     @abstractmethod
-    def _viz_close(self) -> None: ...
+    def _vis_close(self) -> None: ...
     @abstractmethod
-    def _viz_render(self) -> np.ndarray: ...
+    def _vis_render(self) -> np.ndarray: ...
     @abstractmethod
-    def _viz_add_view(self, view: View) -> None: ...
+    def _vis_add_view(self, view: View) -> None: ...
 # fmt: on
 
 
@@ -81,7 +81,7 @@ class Canvas(FrontEndFor[CanvasBackend]):
     def close(self) -> None:
         """Close the canvas."""
         if self.has_backend:
-            self.backend_adaptor()._viz_close()
+            self.backend_adaptor()._vis_close()
 
     # show and render will trigger a backend connection
 
@@ -110,7 +110,7 @@ class Canvas(FrontEndFor[CanvasBackend]):
     def render(self) -> np.ndarray:
         """Render canvas to offscren buffer and return as numpy array."""
         # TODO: do we need to set visible=True temporarily here?
-        return self.backend_adaptor()._viz_render()
+        return self.backend_adaptor()._vis_render()
 
     # consider using canvas.views.append?
     def add_view(self, view: View | None = None, **kwargs: Any) -> View:
@@ -125,7 +125,7 @@ class Canvas(FrontEndFor[CanvasBackend]):
 
         self.views.append(view)
         if self.has_backend:
-            self.backend_adaptor()._viz_add_view(view)
+            self.backend_adaptor()._vis_add_view(view)
 
         return view
 

@@ -17,7 +17,7 @@ def test_custom_node(qapp) -> None:
         def __init__(self, obj: "CustomNode", **backend_kwargs: Any) -> None:
             mock(obj, **backend_kwargs)
 
-        def _viz_set_size(self, size: int) -> None:
+        def _vis_set_size(self, size: int) -> None:
             mock(size=size)
 
     class CustomNode(DataNode):

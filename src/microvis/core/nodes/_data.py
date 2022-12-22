@@ -17,7 +17,7 @@ class DataNodeBackend(NodeBackend[NodeTypeCoV], Protocol):
     """Protocol for a backend DataNode adaptor object."""
 
     @abstractmethod
-    def _viz_set_data(self, arg: ArrayLike) -> None:
+    def _vis_set_data(self, arg: ArrayLike) -> None:
         ...
 
 
@@ -65,7 +65,7 @@ class DataNode(Node[DataNodeBackendT]):
         # Note: could accept an EmissionInfo argument here and gate the
         # update on event types.
         if self.has_backend:
-            self.backend_adaptor()._viz_set_data(cast(ArrayLike, self.data_raw))
+            self.backend_adaptor()._vis_set_data(cast(ArrayLike, self.data_raw))
 
     @property
     def data_raw(self) -> ArrayLike | None:
