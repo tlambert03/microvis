@@ -9,11 +9,11 @@ from pydantic import Field, validator
 
 from microvis._types import ArrayLike, ImageInterpolation
 
-from ._data import DataField, DataNode, DataNodeBackend
+from ._data import DataField, DataNode, DataNodeAdaptorProtocol
 
 
 # fmt: off
-class ImageBackend(DataNodeBackend['Image'], Protocol):
+class ImageBackend(DataNodeAdaptorProtocol['Image'], Protocol):
     """Protocol for a backend Image adaptor object."""
 
     @abstractmethod

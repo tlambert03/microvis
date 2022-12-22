@@ -1,10 +1,10 @@
 import json
 
 from microvis._types import Color
-from microvis.core.canvas import Canvas, CanvasBackend
+from microvis.core.canvas import Canvas, CanvasAdaptorProtocol
 
 
-def test_canvas(mock_backend: CanvasBackend) -> None:
+def test_canvas(mock_backend: CanvasAdaptorProtocol) -> None:
     canvas = Canvas(width=600, height=650, title="MicroVis", background_color="red")
     assert canvas.size == (600.0, 650.0)
     assert canvas.width == 600.0

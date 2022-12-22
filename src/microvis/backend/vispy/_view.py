@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from microvis import _types
 
 
-class View(Node, core.view.ViewBackend):
+class View(Node, core.view.ViewAdaptorProtocol):
     """View interface for Vispy Backend."""
 
     _vispy_node: scene.ViewBox

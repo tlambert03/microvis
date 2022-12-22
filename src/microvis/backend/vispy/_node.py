@@ -9,7 +9,7 @@ from microvis.core import Transform
 from microvis.core.nodes import node as core_node
 
 
-class Node(core_node.NodeBackend):
+class Node(core_node.NodeAdaptorProtocol):
     """Node adaptor for Vispy Backend."""
 
     _vispy_node: scene.VisualNode

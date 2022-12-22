@@ -3,10 +3,10 @@ import json
 from microvis._types import Color
 from microvis.core.nodes.camera import Camera
 from microvis.core.nodes.scene import Scene
-from microvis.core.view import View, ViewBackend
+from microvis.core.view import View, ViewAdaptorProtocol
 
 
-def test_view(mock_backend: ViewBackend) -> None:
+def test_view(mock_backend: ViewAdaptorProtocol) -> None:
     view = View(position=(100, 120), size=(600, 650), background_color="red")
     assert view.size == (600.0, 650.0)
     assert view.background_color and view.background_color.as_named() == "red"

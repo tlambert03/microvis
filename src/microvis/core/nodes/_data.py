@@ -10,10 +10,10 @@ from pydantic.generics import GenericModel
 
 from microvis._types import ArrayLike
 
-from .node import Node, NodeBackend, NodeTypeCoV
+from .node import Node, NodeAdaptorProtocol, NodeTypeCoV
 
 
-class DataNodeBackend(NodeBackend[NodeTypeCoV], Protocol):
+class DataNodeAdaptorProtocol(NodeAdaptorProtocol[NodeTypeCoV], Protocol):
     """Protocol for a backend DataNode adaptor object."""
 
     @abstractmethod
@@ -21,7 +21,7 @@ class DataNodeBackend(NodeBackend[NodeTypeCoV], Protocol):
         ...
 
 
-DataNodeBackendT = TypeVar("DataNodeBackendT", bound=DataNodeBackend, covariant=True)
+DataNodeBackendT = TypeVar("DataNodeBackendT", bound=DataNodeAdaptorProtocol, covariant=True)
 
 
 class DataField(GenericModel):

@@ -7,7 +7,7 @@ from microvis._types import ArrayLike, Color
 
 from ._vis_model import Field, VisModel
 from .nodes import Camera, Image, Scene
-from .nodes.node import Node, NodeBackend
+from .nodes.node import Node, NodeAdaptorProtocol
 
 if TYPE_CHECKING:
     from .canvas import Canvas
@@ -16,8 +16,8 @@ NodeType = TypeVar("NodeType", bound=Node)
 
 
 # fmt: off
-class ViewBackend(NodeBackend['View'], Protocol):
-    """Protocol for the backend of a View."""
+class ViewAdaptorProtocol(NodeAdaptorProtocol['View'], Protocol):
+    """Protocol defining the interface for a View adaptor."""
 
     @abstractmethod
     def _vis_set_camera(self, arg: Camera) -> None: ...
@@ -40,7 +40,7 @@ class ViewBackend(NodeBackend['View'], Protocol):
 # fmt: on
 
 
-class View(Node, VisModel[ViewBackend]):
+class View(Node, VisModel[ViewAdaptorProtocol]):
     """A rectangular area on a canvas that displays a scene, with a camera.
 
     A canvas can have one or more views. Each view has a single scene (i.e. a
@@ -156,9 +156,9 @@ class View(Node, VisModel[ViewBackend]):
             )
         return super().add(node)
 
-    def _create_backend(self, cls: type[ViewBackend]) -> ViewBackend:
+    def _create_backend(self, cls: type[ViewAdaptorProtocol]) -> ViewAdaptorProtocol:
         # FIXME: this cast *should* be redundant, but mypy doesn't seem to think so.
-        backend = cast(ViewBackend, super()._create_backend(cls))
+        backend = cast(ViewAdaptorProtocol, super()._create_backend(cls))
         backend._vis_set_scene(self.scene)
         backend._vis_set_camera(self.camera)
         return backend

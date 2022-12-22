@@ -17,8 +17,8 @@ if TYPE_CHECKING:
 ViewType = TypeVar("ViewType", bound=View)
 
 # fmt: off
-class CanvasBackend(SupportsVisibility['Canvas'], Protocol):
-    """Backend interface for Canvas."""
+class CanvasAdaptorProtocol(SupportsVisibility['Canvas'], Protocol):
+    """Protocol defining the interface for a Canvas adaptor."""
 
     @abstractmethod
     def _vis_set_width(self, arg: int) -> None: ...
@@ -46,7 +46,7 @@ class ViewList(EventedList[ViewType]):
         return super()._pre_insert(value)
 
 
-class Canvas(VisModel[CanvasBackend]):
+class Canvas(VisModel[CanvasAdaptorProtocol]):
     """Canvas onto which views are rendered.
 
     In desktop applications, this will be a window. In web applications, this will be a

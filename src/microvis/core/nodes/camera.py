@@ -6,10 +6,10 @@ from typing import Protocol, Tuple, Union
 from microvis._types import CameraType
 from microvis.core._vis_model import Field, VisModel
 
-from .node import Node, NodeBackend
+from .node import Node, NodeAdaptorProtocol
 
 
-class Camera(Node, VisModel["CameraBackend"]):
+class Camera(Node, VisModel["CameraAdaptorProtocol"]):
     """A camera that defines the view of a scene."""
 
     type: CameraType = Field(CameraType.PANZOOM, description="Camera type.")
@@ -25,7 +25,7 @@ class Camera(Node, VisModel["CameraBackend"]):
 
 
 # fmt: off
-class CameraBackend(NodeBackend[Camera], Protocol):
+class CameraAdaptorProtocol(NodeAdaptorProtocol[Camera], Protocol):
     """Protocol for a backend camera adaptor object."""
 
     @abstractmethod
