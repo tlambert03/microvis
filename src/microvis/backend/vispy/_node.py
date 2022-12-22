@@ -12,19 +12,19 @@ from microvis.core.nodes import node as core_node
 class Node(core_node.NodeBackend):
     """Node adaptor for Vispy Backend."""
 
-    _vispy_camera: scene.VisualNode
+    _vispy_node: scene.VisualNode
 
     def _viz_get_native(self) -> Any:
-        return self._vispy_camera
+        return self._vispy_node
 
     def _viz_set_name(self, arg: str) -> None:
-        self._vispy_camera.name = arg
+        self._vispy_node.name = arg
 
     def _viz_set_parent(self, arg: core_node.Node | None) -> None:
         if arg is None:
-            self._vispy_camera.parent = None
+            self._vispy_node.parent = None
         elif isinstance(arg.native, scene.Node):
-            self._vispy_camera.parent = arg.native
+            self._vispy_node.parent = arg.native
         else:
             raise TypeError("Parent must be a Node")
 
@@ -32,22 +32,22 @@ class Node(core_node.NodeBackend):
         raise NotImplementedError
 
     def _viz_set_visible(self, arg: bool) -> None:
-        self._vispy_camera.visible = arg
+        self._vispy_node.visible = arg
 
     def _viz_set_opacity(self, arg: float) -> None:
-        self._vispy_camera.opacity = arg
+        self._vispy_node.opacity = arg
 
     def _viz_set_order(self, arg: int) -> None:
-        self._vispy_camera.order = arg
+        self._vispy_node.order = arg
 
     def _viz_set_interactive(self, arg: bool) -> None:
-        self._vispy_camera.interactive = arg
+        self._vispy_node.interactive = arg
 
     def _viz_set_transform(self, arg: Transform) -> None:
         T = NullTransform() if arg.is_null() else MatrixTransform(arg.matrix)
-        self._vispy_camera.transform = T
+        self._vispy_node.transform = T
 
     def _viz_add_node(self, node: core_node.Node) -> None:
         if not isinstance(node.native, scene.Node):
             raise TypeError("Node must be a Vispy Node")
-        node.native.parent = self._vispy_camera
+        node.native.parent = self._vispy_node
