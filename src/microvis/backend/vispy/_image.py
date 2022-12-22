@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class Image(Node):
     """Vispy backend adaptor for an Image node."""
 
-    _native: scene.Image
+    _vispy_image: scene.Image
 
     def __init__(self, image: core.Image, **backend_kwargs: Any) -> None:
 
@@ -28,19 +28,19 @@ class Image(Node):
                 "interpolation": image.interpolation.value,
             }
         )
-        self._native = scene.Image(image.data, **backend_kwargs)
+        self._vispy_image = scene.Image(image.data, **backend_kwargs)
 
     def _viz_set_cmap(self, arg: str) -> None:
-        self._native.cmap = str(arg)
+        self._vispy_image.cmap = str(arg)
 
     def _viz_set_clim(self, arg: tuple[float, float] | None) -> None:
-        self._native.clim = arg
+        self._vispy_image.clim = arg
 
     def _viz_set_gamma(self, arg: float) -> None:
-        self._native.gamma = arg
+        self._vispy_image.gamma = arg
 
     def _viz_set_interpolation(self, arg: ImageInterpolation) -> None:
-        self._native.interpolation = arg.value
+        self._vispy_image.interpolation = arg.value
 
     def _viz_set_data(self, arg: ArrayLike) -> None:
-        self._native.set_data(arg)
+        self._vispy_image.set_data(arg)
