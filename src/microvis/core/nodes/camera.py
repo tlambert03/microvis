@@ -4,12 +4,12 @@ from abc import abstractmethod
 from typing import Protocol, Tuple, Union
 
 from microvis._types import CameraType
-from microvis.core._base import Field, FrontEndFor
+from microvis.core._base import Field, VisModel
 
 from .node import Node, NodeBackend
 
 
-class Camera(Node, FrontEndFor["CameraBackend"]):
+class Camera(Node, VisModel["CameraBackend"]):
     """A camera that defines the view of a scene."""
 
     type: CameraType = Field(CameraType.PANZOOM, description="Camera type.")

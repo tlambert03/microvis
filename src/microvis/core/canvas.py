@@ -8,7 +8,7 @@ from psygnal.containers import EventedList
 
 from microvis._types import Color
 
-from ._base import Field, FrontEndFor, SupportsVisibility
+from ._base import Field, SupportsVisibility, VisModel
 from .view import View
 
 if TYPE_CHECKING:
@@ -46,7 +46,7 @@ class ViewList(EventedList[ViewType]):
         return super()._pre_insert(value)
 
 
-class Canvas(FrontEndFor[CanvasBackend]):
+class Canvas(VisModel[CanvasBackend]):
     """Canvas onto which views are rendered.
 
     In desktop applications, this will be a window. In web applications, this will be a
@@ -72,7 +72,7 @@ class Canvas(FrontEndFor[CanvasBackend]):
 
     # FIXME: this @size.setter convenience is triggering a double event to the backend
     # and requires an extended protocol above
-    # perhaps modify FrontEndFor event handler to skip derived fields?
+    # perhaps modify VisModel event handler to skip derived fields?
     @size.setter
     def size(self, value: tuple[float, float]) -> None:
         """Set the size of the canvas."""
