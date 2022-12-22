@@ -18,7 +18,7 @@ class Canvas(core.canvas.CanvasBackend):
 
     def __init__(self, canvas: core.Canvas, **backend_kwargs: Any) -> None:
         backend_kwargs.setdefault("keys", "interactive")
-        self._native = scene.SceneCanvas(
+        self._vispy_canvas = scene.SceneCanvas(
             size=canvas.size,
             title=canvas.title,
             show=canvas.visible,
@@ -27,36 +27,36 @@ class Canvas(core.canvas.CanvasBackend):
         )
 
     def _viz_get_native(self) -> scene.SceneCanvas:
-        return self._native
+        return self._vispy_canvas
 
     def _viz_set_visible(self, arg: bool) -> None:
-        self._native.show(visible=arg)
+        self._vispy_canvas.show(visible=arg)
 
     def _viz_add_view(self, view: core.View) -> None:
         if not isinstance(view.native, scene.ViewBox):
             raise TypeError("View must be a Vispy ViewBox")
-        self._native.central_widget.add_widget(view.native)
+        self._vispy_canvas.central_widget.add_widget(view.native)
 
     def _viz_set_width(self, arg: int) -> None:
-        _height = self._native.size[1]
-        self._native.size = (arg, _height)
+        _height = self._vispy_canvas.size[1]
+        self._vispy_canvas.size = (arg, _height)
 
     def _viz_set_height(self, arg: int) -> None:
-        _width = self._native.size[0]
-        self._native.size = (_width, arg)
+        _width = self._vispy_canvas.size[0]
+        self._vispy_canvas.size = (_width, arg)
 
     def _viz_set_size(self, arg: tuple[int, int]) -> None:
-        self._native.size = arg
+        self._vispy_canvas.size = arg
 
     def _viz_set_background_color(self, arg: _types.Color | None) -> None:
-        self._native.bgcolor = pyd_color_to_vispy(arg)
+        self._vispy_canvas.bgcolor = pyd_color_to_vispy(arg)
 
     def _viz_set_title(self, arg: str) -> None:
-        self._native.title = arg
+        self._vispy_canvas.title = arg
 
     def _viz_close(self) -> None:
         """Close canvas."""
-        self._native.close()
+        self._vispy_canvas.close()
 
     def _viz_render(
         self,
@@ -67,7 +67,7 @@ class Canvas(core.canvas.CanvasBackend):
         alpha: bool = True,
     ) -> np.ndarray:
         """Render to screenshot."""
-        data = self._native.render(
+        data = self._vispy_canvas.render(
             region=region, size=size, bgcolor=bgcolor, crop=crop, alpha=alpha
         )
         return cast("np.ndarray", data)
