@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 class View(Node, core.view.ViewBackend):
     """View interface for Vispy Backend."""
 
-    _native: scene.ViewBox
+    _vispy_node: scene.ViewBox
 
     def __init__(self, view: core.View, **backend_kwargs: Any) -> None:
         backend_kwargs.update(
@@ -32,41 +32,41 @@ class View(Node, core.view.ViewBackend):
         )
         if view.size is not None:
             backend_kwargs["size"] = view.size
-        self._native = scene.ViewBox(**backend_kwargs)
+        self._vispy_node = scene.ViewBox(**backend_kwargs)
 
     def _vis_set_camera(self, cam: core.Camera) -> None:
         # cam._directly_set_backend_adaptor(Camera(cam))
         if not isinstance(cam.native, scene.cameras.BaseCamera):
             raise TypeError("Camera must be a Vispy Camera")
-        self._native.camera = cam.native
+        self._vispy_node.camera = cam.native
         cam.native.set_range(margin=0)  # TODO: put this elsewhere
 
     def _vis_set_scene(self, scene: core.Scene) -> None:
         if not isinstance(scene.native, subscene.SubScene):
             raise TypeError("Scene must be a Vispy SubScene")
 
-        self._native._scene = scene.native
-        scene.native.parent = self._native
+        self._vispy_node._scene = scene.native
+        scene.native.parent = self._vispy_node
 
     def _vis_set_position(self, arg: tuple[float, float]) -> None:
-        self._native.pos = arg
+        self._vispy_node.pos = arg
 
     def _vis_set_size(self, arg: tuple[float, float] | None) -> None:
-        self._native.size = arg
+        self._vispy_node.size = arg
 
     def _vis_set_background_color(self, arg: _types.Color | None) -> None:
-        self._native.bgcolor = pyd_color_to_vispy(arg)
+        self._vispy_node.bgcolor = pyd_color_to_vispy(arg)
 
     def _vis_set_border_width(self, arg: float) -> None:
-        self._native._border_width = arg
-        self._native._update_line()
-        self._native.update()
+        self._vispy_node._border_width = arg
+        self._vispy_node._update_line()
+        self._vispy_node.update()
 
     def _vis_set_border_color(self, arg: _types.Color | None) -> None:
-        self._native.border_color = pyd_color_to_vispy(arg)
+        self._vispy_node.border_color = pyd_color_to_vispy(arg)
 
     def _vis_set_padding(self, arg: int) -> None:
-        self._native.padding = arg
+        self._vispy_node.padding = arg
 
     def _vis_set_margin(self, arg: int) -> None:
-        self._native.margin = arg
+        self._vispy_node.margin = arg
