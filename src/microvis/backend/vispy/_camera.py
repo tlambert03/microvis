@@ -11,7 +11,7 @@ from microvis.core.nodes import camera
 from ._node import Node
 
 
-class Camera(Node, camera.CameraBackend):
+class Camera(Node, camera.CameraAdaptorProtocol):
     """Adaptor for vispy camera."""
 
     _vispy_node: scene.cameras.BaseCamera

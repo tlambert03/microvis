@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from microvis import _types
 
 
-class Canvas(core.canvas.CanvasBackend):
+class Canvas(core.canvas.CanvasAdaptorProtocol):
     """Canvas interface for Vispy Backend."""
 
     def __init__(self, canvas: core.Canvas, **backend_kwargs: Any) -> None:
