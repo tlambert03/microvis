@@ -132,6 +132,41 @@ canvas.width = 1000 # calls canvas._backend._vis_set_width(1000)
 The logic for this is defined in `VisModel._on_any_event` ...
 another method that should be critically re-evaluated often.
 
+In diagram form, the above looks like this:
+
+```mermaid
+classDiagram
+    EventedModel <-- VisModel : is a 
+    VisModel --* BackendAdaptorProtocol : controls a
+    BackendAdaptorProtocol <-- Backend1Adaptor : implements
+    BackendAdaptorProtocol <-- Backend2Adaptor : implements
+    <<Interface>> BackendAdaptorProtocol
+
+    VisModel <-- Canvas : inherits
+    Canvas --* CanvasAdaptorProtocol
+    BackendAdaptorProtocol <-- CanvasAdaptorProtocol : inherits
+    CanvasAdaptorProtocol <-- VispyCameraAdaptor : implements
+    CanvasAdaptorProtocol <-- PygfxCameraAdaptor : implements
+    <<Interface>> CanvasAdaptorProtocol
+    class Canvas {
+        width: int
+        height: int
+    }
+    class CanvasAdaptorProtocol {
+        _vis_set_width()
+        _vis_set_height()
+    }
+    class VispyCameraAdaptor {
+        _vis_set_width()
+        _vis_set_height()
+    }
+    class PygfxCameraAdaptor {
+        _vis_set_width()
+        _vis_set_height()
+    }
+
+```
+
 ### `controller`
 
 GUI elements that control the state of the model (e.g. sliders, buttons, etc...)
