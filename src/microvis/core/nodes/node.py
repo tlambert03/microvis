@@ -7,36 +7,38 @@ from psygnal.containers import EventedList
 from pydantic import validator
 
 from microvis._logger import logger
-from microvis.core._base import Field, FrontEndFor, SupportsVisibility
 from microvis.core._transform import Transform
+from microvis.core._vis_model import Field, SupportsVisibility, VisModel
 
 NodeTypeCoV = TypeVar("NodeTypeCoV", bound="Node", covariant=True)
 NodeType = TypeVar("NodeType", bound="Node")
-NodeBackendTypeCoV = TypeVar("NodeBackendTypeCoV", bound="NodeBackend", covariant=True)
+NodeAdaptorProtocolTypeCoV = TypeVar(
+    "NodeAdaptorProtocolTypeCoV", bound="NodeBackend", covariant=True
+)
 
 
 # fmt: off
-class NodeBackend(SupportsVisibility[NodeTypeCoV], Protocol):
+class NodeAdaptorProtocol(SupportsVisibility[NodeTypeCoV], Protocol):
     """Backend interface for a Node."""
 
     @abstractmethod
-    def _viz_set_name(self, arg: str) -> None: ...
+    def _vis_set_name(self, arg: str) -> None: ...
     @abstractmethod
-    def _viz_set_parent(self, arg: Node | None) -> None: ...
+    def _vis_set_parent(self, arg: Node | None) -> None: ...
     @abstractmethod
-    def _viz_set_children(self, arg: list[Node]) -> None: ...
+    def _vis_set_children(self, arg: list[Node]) -> None: ...
     @abstractmethod
-    def _viz_set_visible(self, arg: bool) -> None: ...
+    def _vis_set_visible(self, arg: bool) -> None: ...
     @abstractmethod
-    def _viz_set_opacity(self, arg: float) -> None: ...
+    def _vis_set_opacity(self, arg: float) -> None: ...
     @abstractmethod
-    def _viz_set_order(self, arg: int) -> None: ...
+    def _vis_set_order(self, arg: int) -> None: ...
     @abstractmethod
-    def _viz_set_interactive(self, arg: bool) -> None: ...
+    def _vis_set_interactive(self, arg: bool) -> None: ...
     @abstractmethod
-    def _viz_set_transform(self, arg: Transform) -> None: ...
+    def _vis_set_transform(self, arg: Transform) -> None: ...
     @abstractmethod
-    def _viz_add_node(self, node: Node) -> None: ...
+    def _vis_add_node(self, node: Node) -> None: ...
 # fmt: on
 
 
@@ -54,7 +56,7 @@ class NodeList(EventedList[NodeType]):
         super()._post_insert(new_item)
 
 
-class Node(FrontEndFor[NodeBackendTypeCoV]):  # type: ignore  # FIXME
+class Node(VisModel[NodeAdaptorProtocolTypeCoV]):  # type: ignore  # FIXME
     """Base class for all nodes."""
 
     name: Optional[str] = Field(None, description="Name of the node.")
@@ -113,7 +115,7 @@ class Node(FrontEndFor[NodeBackendTypeCoV]):  # type: ignore  # FIXME
             logger.debug(f"Adding node {nd} to {slf}")
             self.children.append(node)
             if self.has_backend:
-                self.backend_adaptor()._viz_add_node(node)
+                self.backend_adaptor()._vis_add_node(node)
 
     @classmethod
     def validate(cls, value: Any) -> Node:

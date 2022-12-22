@@ -9,21 +9,21 @@ from pydantic import Field, validator
 
 from microvis._types import ArrayLike, ImageInterpolation
 
-from ._data import DataField, DataNode, DataNodeBackend
+from ._data import DataField, DataNode, DataNodeAdaptorProtocol
 
 
 # fmt: off
-class ImageBackend(DataNodeBackend['Image'], Protocol):
+class ImageBackend(DataNodeAdaptorProtocol['Image'], Protocol):
     """Protocol for a backend Image adaptor object."""
 
     @abstractmethod
-    def _viz_set_cmap(self, arg: str) -> None: ...
+    def _vis_set_cmap(self, arg: str) -> None: ...
     @abstractmethod
-    def _viz_set_clim(self, arg: tuple[float, float] | None) -> None: ...
+    def _vis_set_clim(self, arg: tuple[float, float] | None) -> None: ...
     @abstractmethod
-    def _viz_set_gamma(self, arg: float) -> None: ...
+    def _vis_set_gamma(self, arg: float) -> None: ...
     @abstractmethod
-    def _viz_set_interpolation(self, arg: ImageInterpolation) -> None: ...
+    def _vis_set_interpolation(self, arg: ImageInterpolation) -> None: ...
 # fmt: on
 
 

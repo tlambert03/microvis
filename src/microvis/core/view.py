@@ -5,9 +5,9 @@ from typing import TYPE_CHECKING, Any, Optional, Protocol, Tuple, TypeVar, cast
 
 from microvis._types import ArrayLike, Color
 
-from ._base import Field, FrontEndFor
+from ._vis_model import Field, VisModel
 from .nodes import Camera, Image, Scene
-from .nodes.node import Node, NodeBackend
+from .nodes.node import Node, NodeAdaptorProtocol
 
 if TYPE_CHECKING:
     from .canvas import Canvas
@@ -16,31 +16,31 @@ NodeType = TypeVar("NodeType", bound=Node)
 
 
 # fmt: off
-class ViewBackend(NodeBackend['View'], Protocol):
-    """Protocol for the backend of a View."""
+class ViewAdaptorProtocol(NodeAdaptorProtocol['View'], Protocol):
+    """Protocol defining the interface for a View adaptor."""
 
     @abstractmethod
-    def _viz_set_camera(self, arg: Camera) -> None: ...
+    def _vis_set_camera(self, arg: Camera) -> None: ...
     @abstractmethod
-    def _viz_set_scene(self, arg: Scene) -> None: ...
+    def _vis_set_scene(self, arg: Scene) -> None: ...
     @abstractmethod
-    def _viz_set_position(self, arg: tuple[float, float]) -> None: ...
+    def _vis_set_position(self, arg: tuple[float, float]) -> None: ...
     @abstractmethod
-    def _viz_set_size(self, arg: tuple[float, float] | None) -> None: ...
+    def _vis_set_size(self, arg: tuple[float, float] | None) -> None: ...
     @abstractmethod
-    def _viz_set_background_color(self, arg: Color | None) -> None: ...
+    def _vis_set_background_color(self, arg: Color | None) -> None: ...
     @abstractmethod
-    def _viz_set_border_width(self, arg: float) -> None: ...
+    def _vis_set_border_width(self, arg: float) -> None: ...
     @abstractmethod
-    def _viz_set_border_color(self, arg: Color | None) -> None: ...
+    def _vis_set_border_color(self, arg: Color | None) -> None: ...
     @abstractmethod
-    def _viz_set_padding(self, arg: int) -> None: ...
+    def _vis_set_padding(self, arg: int) -> None: ...
     @abstractmethod
-    def _viz_set_margin(self, arg: int) -> None: ...
+    def _vis_set_margin(self, arg: int) -> None: ...
 # fmt: on
 
 
-class View(Node, FrontEndFor[ViewBackend]):
+class View(Node, VisModel[ViewAdaptorProtocol]):
     """A rectangular area on a canvas that displays a scene, with a camera.
 
     A canvas can have one or more views. Each view has a single scene (i.e. a
@@ -156,9 +156,9 @@ class View(Node, FrontEndFor[ViewBackend]):
             )
         return super().add(node)
 
-    def _create_backend(self, cls: type[ViewBackend]) -> ViewBackend:
+    def _create_backend(self, cls: type[ViewAdaptorProtocol]) -> ViewAdaptorProtocol:
         # FIXME: this cast *should* be redundant, but mypy doesn't seem to think so.
-        backend = cast(ViewBackend, super()._create_backend(cls))
-        backend._viz_set_scene(self.scene)
-        backend._viz_set_camera(self.camera)
+        backend = cast(ViewAdaptorProtocol, super()._create_backend(cls))
+        backend._vis_set_scene(self.scene)
+        backend._vis_set_camera(self.camera)
         return backend

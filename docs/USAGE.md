@@ -85,12 +85,12 @@ Most objects in the backend modules will be subclasses (or at least
 implementations for) various Protocols defined in `core`.
 
 For example, all `core.Node` objects require a backend object that
-implements the `NodeBackend` protocol (with methods like `_viz_set_name`,
-`_viz_add_node`, etc...).
+implements the `NodeBackend` protocol (with methods like `_vis_set_name`,
+`_vis_add_node`, etc...).
 
-### The `FrontEndFor` pattern
+### The `VisModel` pattern
 
-You'll note that most of the `core` objects are subclasses of `FrontEndFor`.
+You'll note that most of the `core` objects are subclasses of `VisModel`.
 
 This is an important pattern (which should be critically re-evaluated often)
 that mediates the relationship between the `core` and `backend` objects.  Let's
@@ -98,7 +98,7 @@ take a look at the `microvis.core.Canvas` class as an example.  It is defined
 as:
 
 ```python
-class Canvas(FrontEndFor[CanvasBackend]):
+class Canvas(VisModel[CanvasBackend]):
   width: float = 500
   height: float = 500
   visible: bool = False
@@ -111,12 +111,12 @@ must implement to be able to render a `Canvas`:
 from typing import Protocol
 
 class CanvasBackend(Protocol):
-    def _viz_set_width(self, arg: int) -> None: ...
-    def _viz_set_height(self, arg: int) -> None: ...
-    def _viz_set_visibile(self, arg: bool) -> None: ...
+    def _vis_set_width(self, arg: int) -> None: ...
+    def _vis_set_height(self, arg: int) -> None: ...
+    def _vis_set_visibile(self, arg: bool) -> None: ...
 ```
 
-`FrontEndFor` then, is a base class (it's a `Generic` parametrized by
+`VisModel` then, is a base class (it's a `Generic` parametrized by
 a certain backend protocol) that:
 
 1. Handles the fetching and creation of a backend adaptor object implementing
@@ -126,11 +126,46 @@ a certain backend protocol) that:
 
 ```python
 canvas = Canvas()
-canvas.width = 1000 # calls canvas._backend._viz_set_width(1000)
+canvas.width = 1000 # calls canvas._backend._vis_set_width(1000)
 ```
 
-The logic for this is defined in `FrontEndFor._on_any_event` ...
+The logic for this is defined in `VisModel._on_any_event` ...
 another method that should be critically re-evaluated often.
+
+In diagram form, the above looks like this:
+
+```mermaid
+classDiagram
+    EventedModel <-- VisModel : is a 
+    VisModel --* BackendAdaptorProtocol : controls a
+    BackendAdaptorProtocol <-- Backend1Adaptor : implements
+    BackendAdaptorProtocol <-- Backend2Adaptor : implements
+    <<Interface>> BackendAdaptorProtocol
+
+    VisModel <-- Canvas : inherits
+    Canvas --* CanvasAdaptorProtocol
+    BackendAdaptorProtocol <-- CanvasAdaptorProtocol : inherits
+    CanvasAdaptorProtocol <-- VispyCanvasAdaptor : implements
+    CanvasAdaptorProtocol <-- PygfxCanvasAdaptor : implements
+    <<Interface>> CanvasAdaptorProtocol
+    class Canvas {
+        width: int
+        height: int
+    }
+    class CanvasAdaptorProtocol {
+        _vis_set_width()
+        _vis_set_height()
+    }
+    class VispyCameraAdaptor {
+        _vis_set_width()
+        _vis_set_height()
+    }
+    class PygfxCameraAdaptor {
+        _vis_set_width()
+        _vis_set_height()
+    }
+
+```
 
 ### `controller`
 
