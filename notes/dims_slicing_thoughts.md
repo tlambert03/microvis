@@ -9,7 +9,7 @@ reshuffling dims and computing dynamic projections then we're onto a winner
 
 ## Data Model
 We need to be explicit about different kinds of data, our full nD data and 
-the visualisable 2D/3D data which will be rendered
+the visualisable 2D/3D data which will be rendered at any given moment
 
 ### nD Data
 this is arbitrary nD array data
@@ -79,26 +79,39 @@ maybe we have multichannelimage as a separate thing to make this easy for people
 
 #### Coordinate Data
 
+Coordinate data should be able to be nD and arbitrarily stacked.
+
 note: at the minute we don't have any 'projection' dimension for coordinate 
-data but we definitely could, not 100% on the use cases though.
+data but we definitely could...
 
 ##### 2D coordinates
-- data shape: `(n d)` `d=2`
+- data shape: `(n coord)` `coord=2`
 - navigable dimensions in 2D: `()`
 - navigable dimensions in 3D: `()`
-- renderable data shape: `(n 2)`
+- renderable data shape: `(n coord)`
 
 Simple. 
 When viewing in 3D, 2D coordinates are (optionally) broadcast over the third 
 dim.
 
+These index into our 3D space following broadcasting rules:
+`(d h w) == (1 coord[0] coord[1])`
+
+two coordinate dimensions are aligned with `d h w` to the right then 
+prepended with ones.
+
 ##### 3D coordinates
-- data shape: `(n d)` `d=3`
-- navigable dimensions in 2D: `(d=0)`
+- data shape: `(n coord)` `coord=3`
+- navigable dimensions in 2D: `(coord=0)`
 - navigable dimensions in 3D: `()`
 - renderable data shape 2D: `(n 3)`
 
 Same as napari.
+
+These index into our 3D space following broadcasting rules:
+`(d h w) == (coord[0] coord[1] coord[2])`
+
+three coordinate dimensions are already aligned with `d h w`.
 
 ##### nD coordinates
 - data shape: `(n d)` `d=5`
@@ -112,13 +125,26 @@ Same as napari.
 ##### nD coordinate time series (stacked)
 stacked nd coordinates
 
-- data shape: `(t n d)` `(d=5)
+- data shape: `(n t d)` `(d=5)
 - navigable dimensions in 2D: `(t d=0 d=1 d=2)` (`t d[:-2]`)
 - navigable dimensions in 3D: `(t d=0 d=1)` (`t d[:-3]`)
 
 not possible in napari
 
 replace `t` with `...` to generalise from simple stack to nD stack of nD coords.
+
+#### Unified example
+
+Let's say we have a 2D image stack and a stack of 2D coordinates
+- image: `t h w`
+- per-image coordinates: `n t yx` (`yx=2`)
+
+We map them both into the (navigable world) and (rendered scene) spaces
+- `t h w -> (t) (1 1 1 h w)`
+- `n t yx -> (t) n*(1 1 1 y x)`
+
+This is cool! and hard to do with the napari dims model because of the `(n, 
+d)` requirement.
 
 ### World models
 
