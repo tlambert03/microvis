@@ -19,20 +19,20 @@ def test_canvas(mock_backend: CanvasBackend) -> None:
     # once show() is called, the backend should be created and visible called
     canvas.show()
     assert canvas.has_backend
-    mock_backend._viz_set_visible.assert_called_once_with(True)
+    mock_backend._vis_set_visible.assert_called_once_with(True)
     assert canvas.backend_adaptor() is mock_backend
 
     canvas.width = 700
-    mock_backend._viz_set_width.assert_called_once_with(700)
+    mock_backend._vis_set_width.assert_called_once_with(700)
     canvas.height = 750
-    mock_backend._viz_set_height.assert_called_once_with(750)
+    mock_backend._vis_set_height.assert_called_once_with(750)
     canvas.size = (720, 770)
-    mock_backend._viz_set_width.assert_called_with(720)
-    mock_backend._viz_set_height.assert_called_with(770)
+    mock_backend._vis_set_width.assert_called_with(720)
+    mock_backend._vis_set_height.assert_called_with(770)
     canvas.title = "MicroVis2"
-    mock_backend._viz_set_title.assert_called_once_with("MicroVis2")
+    mock_backend._vis_set_title.assert_called_once_with("MicroVis2")
     canvas.background_color = "blue"
-    mock_backend._viz_set_background_color.assert_called_once_with(Color("blue"))
+    mock_backend._vis_set_background_color.assert_called_once_with(Color("blue"))
 
     assert json.loads(canvas.json()) == {
         "width": 720.0,
@@ -47,13 +47,13 @@ def test_canvas(mock_backend: CanvasBackend) -> None:
     assert canvas.json()  # smoke test to make sure we can still serialize everything.
 
     canvas.render()
-    mock_backend._viz_render.assert_called_once()
+    mock_backend._vis_render.assert_called_once()
 
     canvas.hide()
-    mock_backend._viz_set_visible.assert_called_with(False)
+    mock_backend._vis_set_visible.assert_called_with(False)
 
     canvas.close()
-    mock_backend._viz_close.assert_called_once()
+    mock_backend._vis_close.assert_called_once()
 
     # these should get passed to the backend object.
     canvas._repr_mimebundle_(1, 2)

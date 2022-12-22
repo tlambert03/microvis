@@ -9,8 +9,8 @@ scene.  It boils down to two steps:
 2. Add a class attribute `BACKEND_ADAPTORS` that is a mapping of backend names to
    a backend adaptor classes (see next step for an explanation of what that is).
 3. Implement one or more backend adaptor classes that implement the backend
-   protocol for your new node.  Specifically, this means implementing `_viz_set_<name>`
-   methods for each attribute in your model.
+   protocol for your new node.  Specifically, this means implementing
+   `_vis_set_<name>` methods for each attribute in your model.
 
 In the example below, a very simple "points" layer is created.  It has a single
 attribute, `size`, that controls the size of the points. It is only implemented for
