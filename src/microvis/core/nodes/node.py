@@ -7,8 +7,8 @@ from psygnal.containers import EventedList
 from pydantic import validator
 
 from microvis._logger import logger
-from microvis.core._base import Field, SupportsVisibility, VisModel
 from microvis.core._transform import Transform
+from microvis.core._vis_model import Field, SupportsVisibility, VisModel
 
 NodeTypeCoV = TypeVar("NodeTypeCoV", bound="Node", covariant=True)
 NodeType = TypeVar("NodeType", bound="Node")

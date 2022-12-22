@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Optional, Protocol, Tuple, TypeVar, cast
 
 from microvis._types import ArrayLike, Color
 
-from ._base import Field, VisModel
+from ._vis_model import Field, VisModel
 from .nodes import Camera, Image, Scene
 from .nodes.node import Node, NodeBackend
 

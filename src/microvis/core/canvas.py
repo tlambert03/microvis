@@ -8,7 +8,7 @@ from psygnal.containers import EventedList
 
 from microvis._types import Color
 
-from ._base import Field, SupportsVisibility, VisModel
+from ._vis_model import Field, SupportsVisibility, VisModel
 from .view import View
 
 if TYPE_CHECKING:

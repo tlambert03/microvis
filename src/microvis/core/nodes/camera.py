@@ -4,7 +4,7 @@ from abc import abstractmethod
 from typing import Protocol, Tuple, Union
 
 from microvis._types import CameraType
-from microvis.core._base import Field, VisModel
+from microvis.core._vis_model import Field, VisModel
 
 from .node import Node, NodeBackend
 

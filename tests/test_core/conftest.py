@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from microvis.core._base import VisModel
+from microvis.core._vis_model import VisModel
 
 if TYPE_CHECKING:
     from _pytest.monkeypatch import MonkeyPatch
