@@ -34,39 +34,39 @@ class View(Node, core.view.ViewBackend):
             backend_kwargs["size"] = view.size
         self._native = scene.ViewBox(**backend_kwargs)
 
-    def _viz_set_camera(self, cam: core.Camera) -> None:
+    def _vis_set_camera(self, cam: core.Camera) -> None:
         # cam._directly_set_backend_adaptor(Camera(cam))
         if not isinstance(cam.native, scene.cameras.BaseCamera):
             raise TypeError("Camera must be a Vispy Camera")
         self._native.camera = cam.native
         cam.native.set_range(margin=0)  # TODO: put this elsewhere
 
-    def _viz_set_scene(self, scene: core.Scene) -> None:
+    def _vis_set_scene(self, scene: core.Scene) -> None:
         if not isinstance(scene.native, subscene.SubScene):
             raise TypeError("Scene must be a Vispy SubScene")
 
         self._native._scene = scene.native
         scene.native.parent = self._native
 
-    def _viz_set_position(self, arg: tuple[float, float]) -> None:
+    def _vis_set_position(self, arg: tuple[float, float]) -> None:
         self._native.pos = arg
 
-    def _viz_set_size(self, arg: tuple[float, float] | None) -> None:
+    def _vis_set_size(self, arg: tuple[float, float] | None) -> None:
         self._native.size = arg
 
-    def _viz_set_background_color(self, arg: _types.Color | None) -> None:
+    def _vis_set_background_color(self, arg: _types.Color | None) -> None:
         self._native.bgcolor = pyd_color_to_vispy(arg)
 
-    def _viz_set_border_width(self, arg: float) -> None:
+    def _vis_set_border_width(self, arg: float) -> None:
         self._native._border_width = arg
         self._native._update_line()
         self._native.update()
 
-    def _viz_set_border_color(self, arg: _types.Color | None) -> None:
+    def _vis_set_border_color(self, arg: _types.Color | None) -> None:
         self._native.border_color = pyd_color_to_vispy(arg)
 
-    def _viz_set_padding(self, arg: int) -> None:
+    def _vis_set_padding(self, arg: int) -> None:
         self._native.padding = arg
 
-    def _viz_set_margin(self, arg: int) -> None:
+    def _vis_set_margin(self, arg: int) -> None:
         self._native.margin = arg

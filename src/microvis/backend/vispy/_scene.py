@@ -16,4 +16,4 @@ class Scene(Node):
 
         for node in scene.children:
             node.backend_adaptor()  # create backend adaptor if it doesn't exist
-            self._viz_add_node(node)
+            self._vis_add_node(node)

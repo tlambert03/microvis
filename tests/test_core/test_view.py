@@ -19,28 +19,28 @@ def test_view(mock_backend: ViewBackend) -> None:
     view.show()
     assert view.has_backend
     assert view.backend_adaptor() is mock_backend
-    mock_backend._viz_set_visible.assert_called_once_with(True)
-    mock_backend._viz_set_camera.assert_called_once()
-    mock_backend._viz_set_scene.assert_called_once()
+    mock_backend._vis_set_visible.assert_called_once_with(True)
+    mock_backend._vis_set_camera.assert_called_once()
+    mock_backend._vis_set_scene.assert_called_once()
 
     new_cam = Camera()
     view.camera = new_cam
-    mock_backend._viz_set_camera.assert_called_with(new_cam)
+    mock_backend._vis_set_camera.assert_called_with(new_cam)
     new_scene = Scene()
     view.scene = new_scene
-    mock_backend._viz_set_scene.assert_called_with(new_scene)
+    mock_backend._vis_set_scene.assert_called_with(new_scene)
     view.size = (720, 770)
-    mock_backend._viz_set_size.assert_called_with((720, 770))
+    mock_backend._vis_set_size.assert_called_with((720, 770))
     view.background_color = "blue"
-    mock_backend._viz_set_background_color.assert_called_once_with(Color("blue"))
+    mock_backend._vis_set_background_color.assert_called_once_with(Color("blue"))
     view.border_width = 10
-    mock_backend._viz_set_border_width.assert_called_once_with(10)
+    mock_backend._vis_set_border_width.assert_called_once_with(10)
     view.border_color = "green"
-    mock_backend._viz_set_border_color.assert_called_once_with(Color("green"))
+    mock_backend._vis_set_border_color.assert_called_once_with(Color("green"))
     view.padding = 20
-    mock_backend._viz_set_padding.assert_called_once_with(20)
+    mock_backend._vis_set_padding.assert_called_once_with(20)
     view.margin = 30
-    mock_backend._viz_set_margin.assert_called_once_with(30)
+    mock_backend._vis_set_margin.assert_called_once_with(30)
 
     # Test serialization
     # If this becomes annoying to maintain (because of changing defaults, eg.)

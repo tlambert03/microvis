@@ -9,8 +9,8 @@ scene.  It boils down to two steps:
 2. Add a class attribute `BACKEND_ADAPTORS` that is a mapping of backend names to
    a backend adaptor classes (see next step for an explanation of what that is).
 3. Implement one or more backend adaptor classes that implement the backend
-   protocol for your new node.  Specifically, this means implementing `_viz_set_<name>`
-   methods for each attribute in your model.
+   protocol for your new node.  Specifically, this means implementing
+   `_vis_set_<name>` methods for each attribute in your model.
 
 In the example below, a very simple "points" layer is created.  It has a single
 attribute, `size`, that controls the size of the points. It is only implemented for
@@ -35,10 +35,10 @@ class CustomVispyAdaptor(vispy.Node):
     def __init__(self, obj: "CustomNode", **backend_kwargs: Any) -> None:
         self._native = scene.Markers(pos=obj.data_raw, size=obj.size, **backend_kwargs)
 
-    def _viz_set_data(self, data: Any) -> None:
+    def _vis_set_data(self, data: Any) -> None:
         self._native.set_data(pos=data)
 
-    def _viz_set_size(self, size: int) -> None:
+    def _vis_set_size(self, size: int) -> None:
         self._native.set_data(pos=self._native._data["a_position"], size=size)
 
 
@@ -50,8 +50,8 @@ class CustomNode(DataNode):
     BACKEND_ADAPTORS = {"vispy": CustomVispyAdaptor}
 
     # this is a pydantic-style model.  all attributes will trigger a
-    # _viz_set_* method on the backend object. (So `CustomVispyAdaptor` must have
-    # a `_viz_set_size` method.)
+    # _vis_set_* method on the backend object. (So `CustomVispyAdaptor` must
+    # have a `_vis_set_size` method.)
     size: int = 10
 
 
