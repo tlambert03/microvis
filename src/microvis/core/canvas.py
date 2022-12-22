@@ -16,14 +16,11 @@ if TYPE_CHECKING:
 
 ViewType = TypeVar("ViewType", bound=View)
 
+
 # fmt: off
 class CanvasAdaptorProtocol(SupportsVisibility['Canvas'], Protocol):
     """Protocol defining the interface for a Canvas adaptor."""
 
-    @abstractmethod
-    def _vis_set_width(self, arg: int) -> None: ...
-    @abstractmethod
-    def _vis_set_height(self, arg: int) -> None: ...
     @abstractmethod
     def _vis_set_size(self, arg: tuple[int, int]) -> None: ...
     @abstractmethod
