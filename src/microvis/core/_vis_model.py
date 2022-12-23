@@ -3,7 +3,8 @@ from __future__ import annotations
 from abc import abstractmethod
 from functools import lru_cache
 from importlib import import_module
-from typing import Any, ClassVar, Dict, Generic, Optional, Protocol, Type, TypeVar, cast
+from typing import Any, ClassVar, Dict, Generic, Optional, Protocol, Type, \
+    TypeVar, cast
 
 import numpy as np
 from psygnal import EmissionInfo, EventedModel
@@ -24,7 +25,8 @@ class ModelBase(EventedModel):
         extra = "ignore"
         validate_assignment = True
         allow_property_setters = True
-        json_encoders = {EventedList: lambda x: list(x), np.ndarray: np.ndarray.tolist}
+        json_encoders = {EventedList: lambda x: list(x),
+                         np.ndarray: np.ndarray.tolist}
 
 
 F = TypeVar("F", covariant=True, bound="VisModel")
@@ -97,7 +99,8 @@ class VisModel(ModelBase, Generic[T]):
             backend_cls = self._get_adaptor_type()
             # The type error is that we can't assign to a Class Variable.
             # However, if we don't mark `_backend` as a Class
-            self._backend = self._create_adaptor(backend_cls)  # type: ignore [misc]
+            self._backend = self._create_adaptor(
+                backend_cls)  # type: ignore [misc]
         return cast("T", self._backend)
 
     @property
@@ -118,7 +121,8 @@ class VisModel(ModelBase, Generic[T]):
         # should work with no configuration in both jupyter and ipython desktop.)
         backend = backend or _get_default_backend()
 
-        if hasattr(self, "BACKEND_ADAPTORS") and backend in self.BACKEND_ADAPTORS:
+        if hasattr(self,
+                   "BACKEND_ADAPTORS") and backend in self.BACKEND_ADAPTORS:
             adaptor_class = self.BACKEND_ADAPTORS[backend]
             logger.debug(f"Using class-provided adaptor class: {adaptor_class}")
         else:
@@ -126,7 +130,30 @@ class VisModel(ModelBase, Generic[T]):
             backend_module = import_module(f"...backend.{backend}", __name__)
             adaptor_class = getattr(backend_module, class_name)
 
-        return cast(Type[T], validate_adaptor_class(type(self), adaptor_class))
+        return cast(Type[T], self.validate_adaptor_class(adaptor_class))
+
+    @classmethod
+    def validate_adaptor_class(
+        cls, adaptor_class: Any
+    ) -> type[BackendAdaptor]:
+        """Validate that the adaptor class is appropriate for the core object."""
+        # NOTE: if the hashability of either cls or backend_class is ever an issue,
+        # this might not need to be cached, or `cls` could be replaced with a frozenset
+        # of signal names.
+        model_class = cls
+        logger.debug(
+            f"Validating adaptor class {adaptor_class} for {model_class}")
+        if missing := {
+            SETTER_METHOD.format(name=signal._name)
+            for signal in model_class.__signal_group__._signals_.values()
+            if
+            not hasattr(adaptor_class, SETTER_METHOD.format(name=signal._name))
+        }:
+            raise ValueError(
+                f"{adaptor_class} cannot be used as a backend object for "
+                f"{model_class}: it is missing the following setters: {missing}"
+            )
+        return cast("Type[BackendAdaptor]", adaptor_class)
 
     def _create_adaptor(self, cls: Type[T]) -> T:
         """Instantiate the backend adaptor object.
@@ -169,30 +196,6 @@ class VisModel(ModelBase, Generic[T]):
     # def detach(self) -> None:
     #     """Disconnect and destroy the backend adaptor from the object."""
     #     self._backend = None
-
-
-# NOTE: if the hashability of either cls or backend_class is ever an issue,
-# this might not need to be cached, or `cls` could be replaced with a frozenset
-# of signal names.
-# XXX: also ... this might make more sense as a method on the VisModel class
-# where we have access to the bound "T" type variable (could remove some casts)
-@lru_cache
-def validate_adaptor_class(
-    model_class: Type[VisModel], adaptor_class: Any
-) -> type[BackendAdaptor]:
-    """Validate that the adaptor class is appropriate for the core object."""
-    logger.debug(f"Validating adaptor class {adaptor_class} for {model_class}")
-    if missing := {
-        SETTER_METHOD.format(name=signal._name)
-        for signal in model_class.__signal_group__._signals_.values()
-        if
-        not hasattr(adaptor_class, SETTER_METHOD.format(name=signal._name))
-    }:
-        raise ValueError(
-            f"{adaptor_class} cannot be used as a backend object for "
-            f"{model_class}: it is missing the following setters: {missing}"
-        )
-    return cast("Type[BackendAdaptor]", adaptor_class)
 
 
 def _get_default_backend() -> str:
