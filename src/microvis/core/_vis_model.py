@@ -140,6 +140,7 @@ class VisModel(ModelBase, Generic[T]):
         # NOTE: if the hashability of either cls or backend_class is ever an issue,
         # this might not need to be cached, or `cls` could be replaced with a frozenset
         # of signal names.
+        # todo: readd cache in pydantic friendly manner
         model_class = cls
         logger.debug(
             f"Validating adaptor class {adaptor_class} for {model_class}")
