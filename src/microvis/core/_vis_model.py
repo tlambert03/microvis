@@ -78,7 +78,7 @@ class VisModel(ModelBase, Generic[T]):
     # PEP 526 states that ClassVar cannot include any type variables...
     # but there is discussion that this might be too limiting.
     # dicsussion: https://github.com/python/mypy/issues/5144
-    _backend: ClassVar[Optional[Any]] = PrivateAttr(None)
+    _backend_adaptor: ClassVar[Optional[Any]] = PrivateAttr(None)
 
     # This is an optional class variable that can be set by subclasses to
     # provide a mapping of backend names to backend adaptor classes.
@@ -88,19 +88,19 @@ class VisModel(ModelBase, Generic[T]):
     @property
     def has_adaptor(self) -> bool:
         """Return True if the object has a backend adaptor."""
-        return self._backend is not None
+        return self._backend_adaptor is not None
 
     def backend_adaptor(self) -> T:
         """Get the backend adaptor for this object. Creates one if it doesn't exist."""
         # if we make this a property, it will be cause the side effect of
         # spinning up a backend on tab auto-complete in ipython/jupyter
-        if self._backend is None:
+        if self._backend_adaptor is None:
             backend_cls = self._get_adaptor_type()
             # The type error is that we can't assign to a Class Variable.
             # However, if we don't mark `_backend` as a Class
-            self._backend = self._create_adaptor(
+            self._backend_adaptor = self._create_adaptor(
                 backend_cls)  # type: ignore [misc]
-        return cast("T", self._backend)
+        return cast("T", self._backend_adaptor)
 
     @property
     def native(self) -> Any:
@@ -179,7 +179,7 @@ class VisModel(ModelBase, Generic[T]):
 
         try:
             name = SETTER_METHOD.format(name=signal_name)
-            setter = getattr(self._backend, name)
+            setter = getattr(self._backend_adaptor, name)
         except AttributeError as e:
             logger.exception(e)
             return
