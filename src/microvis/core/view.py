@@ -137,7 +137,7 @@ class View(Node, VisModel[ViewAdaptorProtocol]):
     def add_node(self, node: NodeType) -> NodeType:
         """Add any node to the scene."""
         self.scene.add(node)
-        if self.camera.has_backend:
+        if self.camera.has_adaptor:
             # FIXME!: put this vispy specific API elsewhere
             # i guess we need a reset_range type API
             self.camera.native.set_range(margin=0)
@@ -156,9 +156,9 @@ class View(Node, VisModel[ViewAdaptorProtocol]):
             )
         return super().add(node)
 
-    def _create_backend(self, cls: type[ViewAdaptorProtocol]) -> ViewAdaptorProtocol:
+    def _create_adaptor(self, cls: type[ViewAdaptorProtocol]) -> ViewAdaptorProtocol:
         # FIXME: this cast *should* be redundant, but mypy doesn't seem to think so.
-        backend = cast(ViewAdaptorProtocol, super()._create_backend(cls))
+        backend = cast(ViewAdaptorProtocol, super()._create_adaptor(cls))
         backend._vis_set_scene(self.scene)
         backend._vis_set_camera(self.camera)
         return backend
