@@ -144,10 +144,10 @@ class VisModel(ModelBase, Generic[T]):
         logger.debug(
             f"Validating adaptor class {adaptor_class} for {model_class}")
         if missing := {
-            SETTER_METHOD.format(name=signal._name)
-            for signal in model_class.__signal_group__._signals_.values()
+            SETTER_METHOD.format(name=field.name)
+            for field in model_class.__fields__.values()
             if
-            not hasattr(adaptor_class, SETTER_METHOD.format(name=signal._name))
+            not hasattr(adaptor_class, SETTER_METHOD.format(name=field.name))
         }:
             raise ValueError(
                 f"{adaptor_class} cannot be used as a backend object for "
