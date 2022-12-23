@@ -19,7 +19,7 @@ class Canvas(core.canvas.CanvasAdaptorProtocol):
     def __init__(self, canvas: core.Canvas, **backend_kwargs: Any) -> None:
         backend_kwargs.setdefault("keys", "interactive")
         self._vispy_canvas = scene.SceneCanvas(
-            size=canvas.size,
+            size=(canvas.width, canvas.height),
             title=canvas.title,
             show=canvas.visible,
             bgcolor=pyd_color_to_vispy(canvas.background_color),

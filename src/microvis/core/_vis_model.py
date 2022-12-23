@@ -126,7 +126,24 @@ class VisModel(ModelBase, Generic[T]):
             backend_module = import_module(f"...backend.{backend}", __name__)
             backend_class = getattr(backend_module, class_name)
 
-        return cast(Type[T], validate_backend_class(type(self), backend_class))
+        return cast(Type[T], self.validate_adaptor_class(backend_class))
+
+    # @lru_cache
+    def validate_adaptor_class(self, adaptor_class: Any) -> type[BackendAdaptor]:
+        """Validate that the adaptor class is appropriate for the object."""
+        core_cls = type(self)
+        logger.debug(f"Validating adaptor class {adaptor_class} for {core_cls}")
+        if missing := {
+            SETTER_METHOD.format(name=signal._name)
+            for signal in core_cls.__signal_group__._signals_.values()
+            if
+            not hasattr(adaptor_class, SETTER_METHOD.format(name=signal._name))
+        }:
+            raise ValueError(
+                f"{adaptor_class} cannot be used as a backend object for {core_cls}: "
+                f"it is missing the following setters: {missing}"
+            )
+        return cast("Type[BackendAdaptor]", adaptor_class)
 
     def _create_backend(self, cls: Type[T]) -> T:
         """Instantiate the backend object.
@@ -176,22 +193,7 @@ class VisModel(ModelBase, Generic[T]):
 # of signal names.
 # XXX: also ... this might make more sense as a method on the VisModel class
 # where we have access to the bound "T" type variable (could remove some casts)
-@lru_cache
-def validate_backend_class(
-    cls: type[VisModel], backend_class: Any
-) -> type[BackendAdaptor]:
-    """Validate that the backend class is appropriate for the object."""
-    logger.debug(f"Validating backend class {backend_class} for {cls}")
-    if missing := {
-        SETTER_METHOD.format(name=signal._name)
-        for signal in cls.__signal_group__._signals_.values()
-        if not hasattr(backend_class, SETTER_METHOD.format(name=signal._name))
-    }:
-        raise ValueError(
-            f"{backend_class} cannot be used as a backend object for {cls}: "
-            f"it is missing the following setters: {missing}"
-        )
-    return cast("Type[BackendAdaptor]", backend_class)
+
 
 
 def _get_default_backend() -> str:
