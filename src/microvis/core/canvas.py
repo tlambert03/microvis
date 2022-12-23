@@ -64,18 +64,15 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
     title: str = Field("", description="The title of the canvas.")
     views: ViewList[View] = Field(default_factory=ViewList, allow_mutation=False)
 
-    # @property
-    # def size(self) -> tuple[float, float]:
-    #     """Return the size of the canvas."""
-    #     return self.width, self.height
-    #
-    # # FIXME: this @size.setter convenience is triggering a double event to the backend
-    # # and requires an extended protocol above
-    # # perhaps modify VisModel event handler to skip derived fields?
-    # @size.setter
-    # def size(self, value: tuple[float, float]) -> None:
-    #     """Set the size of the canvas."""
-    #     self.width, self.height = value
+    @property
+    def size(self) -> tuple[float, float]:
+        """Return the size of the canvas."""
+        return self.width, self.height
+    
+    @size.setter
+    def size(self, value: tuple[float, float]) -> None:
+        """Set the size of the canvas."""
+        self.width, self.height = value
 
     def close(self) -> None:
         """Close the canvas."""
