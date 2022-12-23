@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from functools import lru_cache
 from importlib import import_module
 from typing import Any, ClassVar, Dict, Generic, Optional, Protocol, Type, \
     TypeVar, cast
