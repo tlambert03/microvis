@@ -2,8 +2,18 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from importlib import import_module
-from typing import Any, ClassVar, Dict, Generic, Optional, Protocol, Type, \
-    TypeVar, cast
+from typing import (
+    Any,
+    ClassVar,
+    Dict,
+    Generic,
+    Optional,
+    Protocol,
+    Set,
+    Type,
+    TypeVar,
+    cast,
+)
 
 import numpy as np
 from psygnal import EmissionInfo, EventedModel
@@ -79,6 +89,7 @@ class VisModel(ModelBase, Generic[T]):
     # but there is discussion that this might be too limiting.
     # dicsussion: https://github.com/python/mypy/issues/5144
     _backend_adaptor: ClassVar[Optional[Any]] = PrivateAttr(None)
+    _evented_fields: ClassVar[Set[str]] = PrivateAttr(set())
 
     # This is an optional class variable that can be set by subclasses to
     # provide a mapping of backend names to backend adaptor classes.
@@ -128,32 +139,8 @@ class VisModel(ModelBase, Generic[T]):
             class_name = class_name or type(self).__name__
             backend_module = import_module(f"...backend.{backend}", __name__)
             adaptor_class = getattr(backend_module, class_name)
+        return self.validate_adaptor_class(adaptor_class)
 
-        return cast(Type[T], self.validate_adaptor_class(adaptor_class))
-
-    @classmethod
-    def validate_adaptor_class(
-        cls, adaptor_class: Any
-    ) -> type[BackendAdaptor]:
-        """Validate that the adaptor class is appropriate for the core object."""
-        # NOTE: if the hashability of either cls or backend_class is ever an issue,
-        # this might not need to be cached, or `cls` could be replaced with a frozenset
-        # of signal names.
-        # todo: readd cache in pydantic friendly manner
-        model_class = cls
-        logger.debug(
-            f"Validating adaptor class {adaptor_class} for {model_class}")
-        if missing := {
-            SETTER_METHOD.format(name=field.name)
-            for field in model_class.__fields__.values()
-            if
-            not hasattr(adaptor_class, SETTER_METHOD.format(name=field.name))
-        }:
-            raise ValueError(
-                f"{adaptor_class} cannot be used as a backend object for "
-                f"{model_class}: it is missing the following setters: {missing}"
-            )
-        return cast("Type[BackendAdaptor]", adaptor_class)
 
     def _create_adaptor(self, cls: Type[T]) -> T:
         """Instantiate the backend adaptor object.
@@ -169,13 +156,20 @@ class VisModel(ModelBase, Generic[T]):
         # if using this in an EventedModel, connect to the events
         if hasattr(self, "events"):
             self.events.connect(self._on_any_event)
+        
+        # TODO:
+        # cls._evented_fields DOES need to be set on the class (and not the instance)
+        # but ... it really shouldn't be in the init.  `__init_subclass__` would be
+        # better, but that unfortunately gets called after EventedModel.__new__.
+        # need to look into it.
+        signals = set(self.__signal_group__._signals_)
+        type(self)._evented_fields = set(self.__fields__).intersection(signals)
+
 
     def _on_any_event(self, info: EmissionInfo) -> None:
-        if not self.has_adaptor:
-            return
-
-        args = info.args
         signal_name = info.signal.name
+        if not self.has_adaptor or signal_name not in self._evented_fields:
+            return
 
         try:
             name = SETTER_METHOD.format(name=signal_name)
@@ -185,10 +179,10 @@ class VisModel(ModelBase, Generic[T]):
             return
 
         event_name = f"{type(self).__name__}.{signal_name}"
-        logger.debug(f"{event_name}={args} emitting to backend")
+        logger.debug(f"{event_name}={info.args} emitting to backend")
 
         try:
-            setter(*args)
+            setter(*info.args)
         except Exception as e:
             logger.exception(e)
 
@@ -196,6 +190,21 @@ class VisModel(ModelBase, Generic[T]):
     # def detach(self) -> None:
     #     """Disconnect and destroy the backend adaptor from the object."""
     #     self._backend = None
+
+    @classmethod
+    def validate_adaptor_class(cls, adaptor_class: Any) -> type[T]:
+        """Validate that the adaptor class is appropriate for the core object."""
+        logger.debug(f"Validating adaptor class {adaptor_class} for {cls}")
+        if missing := {
+            SETTER_METHOD.format(name=field)
+            for field in cls._evented_fields
+            if not hasattr(adaptor_class, SETTER_METHOD.format(name=field))
+        }:
+            raise ValueError(
+                f"{adaptor_class} cannot be used as a backend object for "
+                f"{cls}: it is missing the following methods: {missing}"
+            )
+        return cast("Type[T]", adaptor_class)
 
 
 def _get_default_backend() -> str:
