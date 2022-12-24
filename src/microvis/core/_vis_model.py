@@ -1,9 +1,19 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from functools import lru_cache
 from importlib import import_module
-from typing import Any, ClassVar, Dict, Generic, Optional, Protocol, Type, TypeVar, cast
+from typing import (
+    Any,
+    ClassVar,
+    Dict,
+    Generic,
+    Optional,
+    Protocol,
+    Set,
+    Type,
+    TypeVar,
+    cast,
+)
 
 import numpy as np
 from psygnal import EmissionInfo, EventedModel
@@ -24,7 +34,7 @@ class ModelBase(EventedModel):
         extra = "ignore"
         validate_assignment = True
         allow_property_setters = True
-        json_encoders = {EventedList: lambda x: list(x), np.ndarray: np.ndarray.tolist}
+        json_encoders = {EventedList: list, np.ndarray: np.ndarray.tolist}
 
 
 F = TypeVar("F", covariant=True, bound="VisModel")
@@ -53,10 +63,10 @@ class SupportsVisibility(BackendAdaptor[F], Protocol):
         """Set the visibility of the object."""
 
 
-T = TypeVar("T", bound=BackendAdaptor)
+AdaptorType = TypeVar("AdaptorType", bound=BackendAdaptor, covariant=True)
 
 
-class VisModel(ModelBase, Generic[T]):
+class VisModel(ModelBase, Generic[AdaptorType]):
     """Front end object driving a backend interface.
 
     This is an important class.  Most things subclass this.  It provides the event
@@ -77,7 +87,13 @@ class VisModel(ModelBase, Generic[T]):
     # PEP 526 states that ClassVar cannot include any type variables...
     # but there is discussion that this might be too limiting.
     # dicsussion: https://github.com/python/mypy/issues/5144
-    _backend: ClassVar[Optional[Any]] = PrivateAttr(None)
+    _backend_adaptor: ClassVar[Optional[BackendAdaptor]] = PrivateAttr(None)
+    # This is the set of all field names that must have setters in the backend adaptor.
+    # set during the init
+    _evented_fields: ClassVar[Set[str]] = PrivateAttr(set())
+    # this is a cache of all adaptor classes that have been validated to implement
+    # the correct methods (via validate_adaptor_class).
+    _validated_adaptor_classes: ClassVar[Set[Type]] = PrivateAttr(set())
 
     # This is an optional class variable that can be set by subclasses to
     # provide a mapping of backend names to backend adaptor classes.
@@ -85,31 +101,32 @@ class VisModel(ModelBase, Generic[T]):
     BACKEND_ADAPTORS: ClassVar[Dict[str, Type[BackendAdaptor]]]
 
     @property
-    def has_backend(self) -> bool:
+    def has_adaptor(self) -> bool:
         """Return True if the object has a backend adaptor."""
-        return self._backend is not None
+        return self._backend_adaptor is not None
 
-    def backend_adaptor(self) -> T:
+    def backend_adaptor(self) -> AdaptorType:
         """Get the backend adaptor for this object. Creates one if it doesn't exist."""
         # if we make this a property, it will be cause the side effect of
         # spinning up a backend on tab auto-complete in ipython/jupyter
-        if self._backend is None:
-            backend_cls = self._get_backend_type()
+        if self._backend_adaptor is None:
+            cls = self._get_adaptor_class()
             # The type error is that we can't assign to a Class Variable.
-            # However, if we don't mark `_backend` as a Class
-            self._backend = self._create_backend(backend_cls)  # type: ignore [misc]
-        return cast("T", self._backend)
+            # However, if we don't mark `_backend` as a Class Variable, then
+            # it will show up in IDE signatures, (ugly)
+            self._backend_adaptor = self._create_adaptor(cls)  # type: ignore [misc]
+        return cast("AdaptorType", self._backend_adaptor)
 
     @property
     def native(self) -> Any:
         """Return the native object of the backend."""
         return self.backend_adaptor()._vis_get_native()
 
-    def _get_backend_type(
+    def _get_adaptor_class(
         self,
         backend: str = "",
         class_name: str = "",
-    ) -> Type[T]:
+    ) -> Type[AdaptorType]:
         """Retrieves the backend class with the same name as the object class name."""
         # TODO: we're mostly just falling back on vispy here all the time for
         # early development, but it needs to be clearer how one would pick
@@ -119,20 +136,19 @@ class VisModel(ModelBase, Generic[T]):
         backend = backend or _get_default_backend()
 
         if hasattr(self, "BACKEND_ADAPTORS") and backend in self.BACKEND_ADAPTORS:
-            backend_class = self.BACKEND_ADAPTORS[backend]
-            logger.debug(f"Using class-provided backend class: {backend_class}")
+            adaptor_class = self.BACKEND_ADAPTORS[backend]
+            logger.debug(f"Using class-provided adaptor class: {adaptor_class}")
         else:
             class_name = class_name or type(self).__name__
-            backend_module = import_module(f"...backend.{backend}", __name__)
-            backend_class = getattr(backend_module, class_name)
+            backend_module = import_module(f"microvis.backend.{backend}")
+            adaptor_class = getattr(backend_module, class_name)
+        return self.validate_adaptor_class(adaptor_class)
 
-        return cast(Type[T], validate_backend_class(type(self), backend_class))
+    def _create_adaptor(self, cls: Type[AdaptorType]) -> AdaptorType:
+        """Instantiate the backend adaptor object.
 
-    def _create_backend(self, cls: Type[T]) -> T:
-        """Instantiate the backend object.
-
-        The purpose of this method is to allow subclasses to override the creation of
-        the backend object. Or do something before/after.
+        The purpose of this method is to allow subclasses to override the
+        creation of the backend object. Or do something before/after.
         """
         logger.debug(f"Attaching {type(self)} to backend {cls}")
         return cls(self)
@@ -143,25 +159,31 @@ class VisModel(ModelBase, Generic[T]):
         if hasattr(self, "events"):
             self.events.connect(self._on_any_event)
 
-    def _on_any_event(self, info: EmissionInfo) -> None:
-        if not self.has_backend:
-            return
+        # determine fields that need setter methods in the backend adaptor
+        # TODO:
+        # this really shouldn't need to be in the init.  `__init_subclass__` would be
+        # better, but that unfortunately gets called after EventedModel.__new__.
+        # need to look into it
+        signals = set(self.__signal_group__._signals_)
+        self._evented_fields.update(set(self.__fields__).intersection(signals))
 
-        args = info.args
+    def _on_any_event(self, info: EmissionInfo) -> None:
         signal_name = info.signal.name
+        if not self.has_adaptor or signal_name not in self._evented_fields:
+            return
 
         try:
             name = SETTER_METHOD.format(name=signal_name)
-            setter = getattr(self._backend, name)
+            setter = getattr(self._backend_adaptor, name)
         except AttributeError as e:
             logger.exception(e)
             return
 
         event_name = f"{type(self).__name__}.{signal_name}"
-        logger.debug(f"{event_name}={args} emitting to backend")
+        logger.debug(f"{event_name}={info.args} emitting to backend")
 
         try:
-            setter(*args)
+            setter(*info.args)
         except Exception as e:
             logger.exception(e)
 
@@ -170,28 +192,27 @@ class VisModel(ModelBase, Generic[T]):
     #     """Disconnect and destroy the backend adaptor from the object."""
     #     self._backend = None
 
+    def validate_adaptor_class(self, adaptor_class: Any) -> type[AdaptorType]:
+        """Validate that the adaptor class is appropriate for the core object."""
+        # XXX: this could be a classmethod, but it's turning out to be difficult to
+        # set _evented_fields on that class (see note in __init__)
 
-# NOTE: if the hashability of either cls or backend_class is ever an issue,
-# this might not need to be cached, or `cls` could be replaced with a frozenset
-# of signal names.
-# XXX: also ... this might make more sense as a method on the VisModel class
-# where we have access to the bound "T" type variable (could remove some casts)
-@lru_cache
-def validate_backend_class(
-    cls: type[VisModel], backend_class: Any
-) -> type[BackendAdaptor]:
-    """Validate that the backend class is appropriate for the object."""
-    logger.debug(f"Validating backend class {backend_class} for {cls}")
-    if missing := {
-        SETTER_METHOD.format(name=signal._name)
-        for signal in cls.__signal_group__._signals_.values()
-        if not hasattr(backend_class, SETTER_METHOD.format(name=signal._name))
-    }:
-        raise ValueError(
-            f"{backend_class} cannot be used as a backend object for {cls}: "
-            f"it is missing the following setters: {missing}"
-        )
-    return cast("Type[BackendAdaptor]", backend_class)
+        if adaptor_class in self._validated_adaptor_classes:
+            return cast("Type[AdaptorType]", adaptor_class)
+
+        cls = type(self)
+        logger.debug(f"Validating adaptor class {adaptor_class} for {cls}")
+        if missing := {
+            SETTER_METHOD.format(name=field)
+            for field in self._evented_fields
+            if not hasattr(adaptor_class, SETTER_METHOD.format(name=field))
+        }:
+            raise ValueError(
+                f"{adaptor_class} cannot be used as a backend object for "
+                f"{cls}: it is missing the following methods: {missing}"
+            )
+        self._validated_adaptor_classes.add(adaptor_class)
+        return cast("Type[AdaptorType]", adaptor_class)
 
 
 def _get_default_backend() -> str:

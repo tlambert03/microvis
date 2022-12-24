@@ -19,35 +19,31 @@ class Canvas(core.canvas.CanvasAdaptorProtocol):
     def __init__(self, canvas: core.Canvas, **backend_kwargs: Any) -> None:
         backend_kwargs.setdefault("keys", "interactive")
         self._vispy_canvas = scene.SceneCanvas(
-            size=canvas.size,
+            size=(canvas.width, canvas.height),
             title=canvas.title,
             show=canvas.visible,
             bgcolor=pyd_color_to_vispy(canvas.background_color),
             **backend_kwargs,
         )
 
-
     def _vis_get_native(self) -> scene.SceneCanvas:
         return self._vispy_canvas
 
     def _vis_set_visible(self, arg: bool) -> None:
         self._vispy_canvas.show(visible=arg)
-        
+
     def _vis_add_view(self, view: core.View) -> None:
         if not isinstance(view.native, scene.ViewBox):
             raise TypeError("View must be a Vispy ViewBox")
         self._vispy_canvas.central_widget.add_widget(view.native)
 
     def _vis_set_width(self, arg: int) -> None:
-        _height = self._native.size[1]
-        self._vispy_canvas.size = (arg, _height)
+        _height = self._vispy_canvas.size[1]
+        self._vispy_canvas.size = (int(arg), int(_height))
 
     def _vis_set_height(self, arg: int) -> None:
-        _width = self._native.size[0]
-        self._vispy_canvas.size = (_width, arg)
-
-    def _vis_set_size(self, arg: tuple[int, int]) -> None:
-        self._vispy_canvas.size = arg
+        _width = self._vispy_canvas.size[0]
+        self._vispy_canvas.size = (int(_width), int(arg))
 
     def _vis_set_background_color(self, arg: _types.Color | None) -> None:
         self._vispy_canvas.bgcolor = pyd_color_to_vispy(arg)
