@@ -34,7 +34,8 @@ class ModelBase(EventedModel):
         extra = "ignore"
         validate_assignment = True
         allow_property_setters = True
-        json_encoders = {EventedList: lambda x: list(x), np.ndarray: np.ndarray.tolist}
+        json_encoders = {EventedList: lambda x: list(x),
+                         np.ndarray: np.ndarray.tolist}
 
 
 F = TypeVar("F", covariant=True, bound="VisModel")
@@ -87,8 +88,9 @@ class VisModel(ModelBase, Generic[T]):
     # PEP 526 states that ClassVar cannot include any type variables...
     # but there is discussion that this might be too limiting.
     # dicsussion: https://github.com/python/mypy/issues/5144
-    _backend: ClassVar[Optional[Any]] = PrivateAttr(None)
+    _backend_adaptor: ClassVar[Optional[Any]] = PrivateAttr(None)
     _evented_fields: ClassVar[Set[str]] = PrivateAttr(set())
+
     # This is an optional class variable that can be set by subclasses to
     # provide a mapping of backend names to backend adaptor classes.
     # see `examples/custom_node.py` for an example of how this is used.
@@ -97,18 +99,19 @@ class VisModel(ModelBase, Generic[T]):
     @property
     def has_adaptor(self) -> bool:
         """Return True if the object has a backend adaptor."""
-        return self._backend is not None
+        return self._backend_adaptor is not None
 
     def backend_adaptor(self) -> T:
         """Get the backend adaptor for this object. Creates one if it doesn't exist."""
         # if we make this a property, it will be cause the side effect of
         # spinning up a backend on tab auto-complete in ipython/jupyter
-        if self._backend is None:
+        if self._backend_adaptor is None:
             backend_cls = self._get_adaptor_type()
             # The type error is that we can't assign to a Class Variable.
             # However, if we don't mark `_backend` as a Class
-            self._backend = self._create_adaptor(backend_cls)  # type: ignore [misc]
-        return cast("T", self._backend)
+            self._backend_adaptor = self._create_adaptor(
+                backend_cls)  # type: ignore [misc]
+        return cast("T", self._backend_adaptor)
 
     @property
     def native(self) -> Any:
@@ -128,15 +131,16 @@ class VisModel(ModelBase, Generic[T]):
         # should work with no configuration in both jupyter and ipython desktop.)
         backend = backend or _get_default_backend()
 
-        if hasattr(self, "BACKEND_ADAPTORS") and backend in self.BACKEND_ADAPTORS:
+        if hasattr(self,
+                   "BACKEND_ADAPTORS") and backend in self.BACKEND_ADAPTORS:
             adaptor_class = self.BACKEND_ADAPTORS[backend]
             logger.debug(f"Using class-provided adaptor class: {adaptor_class}")
         else:
             class_name = class_name or type(self).__name__
             backend_module = import_module(f"...backend.{backend}", __name__)
             adaptor_class = getattr(backend_module, class_name)
-
         return self.validate_adaptor_class(adaptor_class)
+
 
     def _create_adaptor(self, cls: Type[T]) -> T:
         """Instantiate the backend adaptor object.
@@ -169,7 +173,7 @@ class VisModel(ModelBase, Generic[T]):
 
         try:
             name = SETTER_METHOD.format(name=signal_name)
-            setter = getattr(self._backend, name)
+            setter = getattr(self._backend_adaptor, name)
         except AttributeError as e:
             logger.exception(e)
             return
