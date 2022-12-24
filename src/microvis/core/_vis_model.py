@@ -63,10 +63,10 @@ class SupportsVisibility(BackendAdaptor[F], Protocol):
         """Set the visibility of the object."""
 
 
-T = TypeVar("T", bound=BackendAdaptor)
+AdaptorType = TypeVar("AdaptorType", bound=BackendAdaptor, covariant=True)
 
 
-class VisModel(ModelBase, Generic[T]):
+class VisModel(ModelBase, Generic[AdaptorType]):
     """Front end object driving a backend interface.
 
     This is an important class.  Most things subclass this.  It provides the event
@@ -87,7 +87,7 @@ class VisModel(ModelBase, Generic[T]):
     # PEP 526 states that ClassVar cannot include any type variables...
     # but there is discussion that this might be too limiting.
     # dicsussion: https://github.com/python/mypy/issues/5144
-    _backend_adaptor: ClassVar[Optional[Any]] = PrivateAttr(None)
+    _backend_adaptor: ClassVar[Optional[BackendAdaptor]] = PrivateAttr(None)
     # This is the set of all field names that must have setters in the backend adaptor.
     # set during the init
     _evented_fields: ClassVar[Set[str]] = PrivateAttr(set())
@@ -105,7 +105,7 @@ class VisModel(ModelBase, Generic[T]):
         """Return True if the object has a backend adaptor."""
         return self._backend_adaptor is not None
 
-    def backend_adaptor(self) -> T:
+    def backend_adaptor(self) -> AdaptorType:
         """Get the backend adaptor for this object. Creates one if it doesn't exist."""
         # if we make this a property, it will be cause the side effect of
         # spinning up a backend on tab auto-complete in ipython/jupyter
@@ -115,7 +115,7 @@ class VisModel(ModelBase, Generic[T]):
             # However, if we don't mark `_backend` as a Class Variable, then
             # it will show up in IDE signatures, (ugly)
             self._backend_adaptor = self._create_adaptor(cls)  # type: ignore [misc]
-        return cast("T", self._backend_adaptor)
+        return cast("AdaptorType", self._backend_adaptor)
 
     @property
     def native(self) -> Any:
@@ -126,7 +126,7 @@ class VisModel(ModelBase, Generic[T]):
         self,
         backend: str = "",
         class_name: str = "",
-    ) -> Type[T]:
+    ) -> Type[AdaptorType]:
         """Retrieves the backend class with the same name as the object class name."""
         # TODO: we're mostly just falling back on vispy here all the time for
         # early development, but it needs to be clearer how one would pick
@@ -144,7 +144,7 @@ class VisModel(ModelBase, Generic[T]):
             adaptor_class = getattr(backend_module, class_name)
         return self.validate_adaptor_class(adaptor_class)
 
-    def _create_adaptor(self, cls: Type[T]) -> T:
+    def _create_adaptor(self, cls: Type[AdaptorType]) -> AdaptorType:
         """Instantiate the backend adaptor object.
 
         The purpose of this method is to allow subclasses to override the
@@ -192,13 +192,13 @@ class VisModel(ModelBase, Generic[T]):
     #     """Disconnect and destroy the backend adaptor from the object."""
     #     self._backend = None
 
-    def validate_adaptor_class(self, adaptor_class: Any) -> type[T]:
+    def validate_adaptor_class(self, adaptor_class: Any) -> type[AdaptorType]:
         """Validate that the adaptor class is appropriate for the core object."""
         # XXX: this could be a classmethod, but it's turning out to be difficult to
         # set _evented_fields on that class (see note in __init__)
 
         if adaptor_class in self._validated_adaptor_classes:
-            return cast("Type[T]", adaptor_class)
+            return cast("Type[AdaptorType]", adaptor_class)
 
         cls = type(self)
         logger.debug(f"Validating adaptor class {adaptor_class} for {cls}")
@@ -212,7 +212,7 @@ class VisModel(ModelBase, Generic[T]):
                 f"{cls}: it is missing the following methods: {missing}"
             )
         self._validated_adaptor_classes.add(adaptor_class)
-        return cast("Type[T]", adaptor_class)
+        return cast("Type[AdaptorType]", adaptor_class)
 
 
 def _get_default_backend() -> str:

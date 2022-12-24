@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, Optional, Protocol, Tuple, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Optional, Protocol, Tuple, TypeVar
 
 from microvis._types import ArrayLike, Color
 
-from ._vis_model import Field, VisModel
+from ._vis_model import Field
 from .nodes import Camera, Image, Scene
 from .nodes.node import Node, NodeAdaptorProtocol
 

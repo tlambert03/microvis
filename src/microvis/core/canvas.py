@@ -68,7 +68,7 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
     def size(self) -> tuple[float, float]:
         """Return the size of the canvas."""
         return self.width, self.height
-    
+
     @size.setter
     def size(self, value: tuple[float, float]) -> None:
         """Set the size of the canvas."""

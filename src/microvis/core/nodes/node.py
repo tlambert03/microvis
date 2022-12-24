@@ -13,7 +13,7 @@ from microvis.core._vis_model import Field, SupportsVisibility, VisModel
 NodeTypeCoV = TypeVar("NodeTypeCoV", bound="Node", covariant=True)
 NodeType = TypeVar("NodeType", bound="Node")
 NodeAdaptorProtocolTypeCoV = TypeVar(
-    "NodeAdaptorProtocolTypeCoV", bound="NodeBackend", covariant=True
+    "NodeAdaptorProtocolTypeCoV", bound="NodeAdaptorProtocol", covariant=True
 )
 
 
@@ -56,7 +56,7 @@ class NodeList(EventedList[NodeType]):
         super()._post_insert(new_item)
 
 
-class Node(VisModel[NodeAdaptorProtocolTypeCoV]):  # type: ignore  # FIXME
+class Node(VisModel[NodeAdaptorProtocolTypeCoV]):
     """Base class for all nodes."""
 
     name: Optional[str] = Field(None, description="Name of the node.")

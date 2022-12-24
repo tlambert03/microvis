@@ -34,11 +34,11 @@ class Camera(Node, camera.CameraAdaptorProtocol):
             self._vispy_node.rect = tuple(corner) + tuple(scale)
 
     def _vis_set_center(self, arg: tuple[float, ...]) -> None:
-        self._native.center = arg[::-1]  # TODO
-        self._native.view_changed()
+        self._vispy_node.center = arg[::-1]  # TODO
+        self._vispy_node.view_changed()
 
     def _vis_set_type(self, arg: CameraType) -> None:
-        if not isinstance(self._native.parent, scene.ViewBox):
+        if not isinstance(self._vispy_node.parent, scene.ViewBox):
             raise TypeError("Camera must be attached to a ViewBox")
         self._vispy_node.parent.camera = str(arg)
 

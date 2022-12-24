@@ -21,7 +21,9 @@ class DataNodeAdaptorProtocol(NodeAdaptorProtocol[NodeTypeCoV], Protocol):
         ...
 
 
-DataNodeBackendT = TypeVar("DataNodeBackendT", bound=DataNodeAdaptorProtocol, covariant=True)
+DataNodeBackendT = TypeVar(
+    "DataNodeBackendT", bound=DataNodeAdaptorProtocol, covariant=True
+)
 
 
 class DataField(GenericModel):
