@@ -26,13 +26,13 @@ class Camera(Node, camera.CameraAdaptorProtocol):
         # FIXME: hardcoded
         self._native.scale.y = -1
 
-    def _viz_set_zoom(self, zoom: float) -> None:
+    def _vis_set_zoom(self, zoom: float) -> None:
         raise NotImplementedError
 
-    def _viz_set_center(self, arg: tuple[float, ...]) -> None:
+    def _vis_set_center(self, arg: tuple[float, ...]) -> None:
         raise NotImplementedError
 
-    def _viz_set_type(self, arg: CameraType) -> None:
+    def _vis_set_type(self, arg: CameraType) -> None:
         raise NotImplementedError
 
     def _view_size(self) -> tuple[float, float] | None:
