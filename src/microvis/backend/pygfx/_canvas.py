@@ -84,10 +84,10 @@ class Canvas(core.canvas.CanvasAdaptorProtocol):
         self._views: list[ViewAdaptor] = []
         # self._grid: dict[tuple[int, int], View] = {}
 
-    def _viz_get_native(self) -> WgpuCanvasType:
+    def _vis_get_native(self) -> WgpuCanvasType:
         return self._wgpu_canvas
 
-    def _viz_set_visible(self, arg: bool) -> None:
+    def _vis_set_visible(self, arg: bool) -> None:
         if hasattr(self._wgpu_canvas, "show"):
             self._wgpu_canvas.show()
         self._wgpu_canvas.request_draw(self._animate)
@@ -101,30 +101,30 @@ class Canvas(core.canvas.CanvasAdaptorProtocol):
         if viewport is None:
             self._wgpu_canvas.request_draw()
 
-    def _viz_add_view(self, view: core.View) -> None:
+    def _vis_add_view(self, view: core.View) -> None:
         adaptor = cast("ViewAdaptor", view.backend_adaptor())
         adaptor._camera.set_viewport(self._viewport)
         self._views.append(adaptor)
 
-    def _viz_set_width(self, arg: int) -> None:
+    def _vis_set_width(self, arg: int) -> None:
         _, height = self._wgpu_canvas.get_logical_size()
         self._wgpu_canvas.set_logical_size(arg, height)
 
-    def _viz_set_height(self, arg: int) -> None:
+    def _vis_set_height(self, arg: int) -> None:
         width, _ = self._wgpu_canvas.get_logical_size()
         self._wgpu_canvas.set_logical_size(width, arg)
 
-    def _viz_set_background_color(self, arg: _types.Color | None) -> None:
+    def _vis_set_background_color(self, arg: _types.Color | None) -> None:
         raise NotImplementedError()
 
-    def _viz_set_title(self, arg: str) -> None:
+    def _vis_set_title(self, arg: str) -> None:
         raise NotImplementedError()
 
-    def _viz_close(self) -> None:
+    def _vis_close(self) -> None:
         """Close canvas."""
         self._wgpu_canvas.close()
 
-    def _viz_render(
+    def _vis_render(
         self,
         region: tuple[int, int, int, int] | None = None,
         size: tuple[int, int] | None = None,
