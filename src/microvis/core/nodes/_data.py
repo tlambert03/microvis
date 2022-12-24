@@ -10,18 +10,20 @@ from pydantic.generics import GenericModel
 
 from microvis._types import ArrayLike
 
-from .node import Node, NodeBackend, NodeTypeCoV
+from .node import Node, NodeAdaptorProtocol, NodeTypeCoV
 
 
-class DataNodeBackend(NodeBackend[NodeTypeCoV], Protocol):
+class DataNodeAdaptorProtocol(NodeAdaptorProtocol[NodeTypeCoV], Protocol):
     """Protocol for a backend DataNode adaptor object."""
 
     @abstractmethod
-    def _viz_set_data(self, arg: ArrayLike) -> None:
+    def _vis_set_data(self, arg: ArrayLike) -> None:
         ...
 
 
-DataNodeBackendT = TypeVar("DataNodeBackendT", bound=DataNodeBackend, covariant=True)
+DataNodeBackendT = TypeVar(
+    "DataNodeBackendT", bound=DataNodeAdaptorProtocol, covariant=True
+)
 
 
 class DataField(GenericModel):
@@ -64,8 +66,8 @@ class DataNode(Node[DataNodeBackendT]):
     def _on_data_changed(self) -> None:
         # Note: could accept an EmissionInfo argument here and gate the
         # update on event types.
-        if self.has_backend:
-            self.backend_adaptor()._viz_set_data(cast(ArrayLike, self.data_raw))
+        if self.has_adaptor:
+            self.backend_adaptor()._vis_set_data(cast(ArrayLike, self.data_raw))
 
     @property
     def data_raw(self) -> ArrayLike | None:
@@ -75,7 +77,7 @@ class DataNode(Node[DataNodeBackendT]):
         return cast("ArrayLike", self._data.__wrapped__)
 
     def _on_any_event(self, info: EmissionInfo) -> None:
-        if not self.has_backend:
+        if not self.has_adaptor:
             return
 
         # if the event is coming from a DataField, make

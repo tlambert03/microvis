@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, Optional, Protocol, Tuple, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Optional, Protocol, Tuple, TypeVar
 
 from microvis._types import ArrayLike, Color
 
-from ._base import Field, FrontEndFor
+from ._vis_model import Field
 from .nodes import Camera, Image, Scene
-from .nodes.node import Node, NodeBackend
+from .nodes.node import Node, NodeAdaptorProtocol
 
 if TYPE_CHECKING:
     from .canvas import Canvas
@@ -16,31 +16,31 @@ NodeType = TypeVar("NodeType", bound=Node)
 
 
 # fmt: off
-class ViewBackend(NodeBackend['View'], Protocol):
-    """Protocol for the backend of a View."""
+class ViewAdaptorProtocol(NodeAdaptorProtocol['View'], Protocol):
+    """Protocol defining the interface for a View adaptor."""
 
     @abstractmethod
-    def _viz_set_camera(self, arg: Camera) -> None: ...
+    def _vis_set_camera(self, arg: Camera) -> None: ...
     @abstractmethod
-    def _viz_set_scene(self, arg: Scene) -> None: ...
+    def _vis_set_scene(self, arg: Scene) -> None: ...
     @abstractmethod
-    def _viz_set_position(self, arg: tuple[float, float]) -> None: ...
+    def _vis_set_position(self, arg: tuple[float, float]) -> None: ...
     @abstractmethod
-    def _viz_set_size(self, arg: tuple[float, float] | None) -> None: ...
+    def _vis_set_size(self, arg: tuple[float, float] | None) -> None: ...
     @abstractmethod
-    def _viz_set_background_color(self, arg: Color | None) -> None: ...
+    def _vis_set_background_color(self, arg: Color | None) -> None: ...
     @abstractmethod
-    def _viz_set_border_width(self, arg: float) -> None: ...
+    def _vis_set_border_width(self, arg: float) -> None: ...
     @abstractmethod
-    def _viz_set_border_color(self, arg: Color | None) -> None: ...
+    def _vis_set_border_color(self, arg: Color | None) -> None: ...
     @abstractmethod
-    def _viz_set_padding(self, arg: int) -> None: ...
+    def _vis_set_padding(self, arg: int) -> None: ...
     @abstractmethod
-    def _viz_set_margin(self, arg: int) -> None: ...
+    def _vis_set_margin(self, arg: int) -> None: ...
 # fmt: on
 
 
-class View(Node, FrontEndFor[ViewBackend]):
+class View(Node[ViewAdaptorProtocol]):
     """A rectangular area on a canvas that displays a scene, with a camera.
 
     A canvas can have one or more views. Each view has a single scene (i.e. a
@@ -73,16 +73,6 @@ class View(Node, FrontEndFor[ViewBackend]):
 
     camera: Camera = Field(default_factory=Camera)
     scene: Scene = Field(default_factory=Scene)  # necessary additional layer?
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-        self.add(self.camera)
-        self.add(self.scene)
-
-    def __setattr__(self, name: str, value: Any) -> None:
-        super().__setattr__(name, value)
-        if name in {"camera", "scene"}:
-            self.add(getattr(self, name))
 
     # TODO:
     # position and size are problematic...
@@ -120,6 +110,16 @@ class View(Node, FrontEndFor[ViewBackend]):
         description="The margin to keep outside the widget's border.",
     )
 
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.add(self.camera)
+        self.add(self.scene)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        super().__setattr__(name, value)
+        if name in {"camera", "scene"}:
+            self.add(getattr(self, name))
+
     def show(self) -> Canvas:
         """Show the view.
 
@@ -129,6 +129,7 @@ class View(Node, FrontEndFor[ViewBackend]):
         from .canvas import Canvas
 
         # TODO: we need to know/check somehow if the view is already on a canvas
+        # This just creates a new canvas every time
         canvas = Canvas()
         canvas.add_view(self)
         canvas.show()
@@ -137,7 +138,7 @@ class View(Node, FrontEndFor[ViewBackend]):
     def add_node(self, node: NodeType) -> NodeType:
         """Add any node to the scene."""
         self.scene.add(node)
-        if self.camera.has_backend:
+        if self.camera.has_adaptor:
             # FIXME!: put this vispy specific API elsewhere
             # i guess we need a reset_range type API
             if hasattr(self.camera.native, "set_range"):
@@ -157,9 +158,8 @@ class View(Node, FrontEndFor[ViewBackend]):
             )
         return super().add(node)
 
-    def _create_backend(self, cls: type[ViewBackend]) -> ViewBackend:
-        # FIXME: this cast *should* be redundant, but mypy doesn't seem to think so.
-        backend = cast(ViewBackend, super()._create_backend(cls))
-        backend._viz_set_scene(self.scene)
-        backend._viz_set_camera(self.camera)
+    def _create_adaptor(self, cls: type[ViewAdaptorProtocol]) -> ViewAdaptorProtocol:
+        backend = super()._create_adaptor(cls)
+        backend._vis_set_scene(self.scene)
+        backend._vis_set_camera(self.camera)
         return backend

@@ -8,7 +8,7 @@ from psygnal.containers import EventedList
 
 from microvis._types import Color
 
-from ._base import Field, FrontEndFor, SupportsVisibility
+from ._vis_model import Field, SupportsVisibility, VisModel
 from .view import View
 
 if TYPE_CHECKING:
@@ -16,26 +16,25 @@ if TYPE_CHECKING:
 
 ViewType = TypeVar("ViewType", bound=View)
 
+
 # fmt: off
-class CanvasBackend(SupportsVisibility['Canvas'], Protocol):
-    """Backend interface for Canvas."""
+class CanvasAdaptorProtocol(SupportsVisibility['Canvas'], Protocol):
+    """Protocol defining the interface for a Canvas adaptor."""
 
     @abstractmethod
-    def _viz_set_width(self, arg: int) -> None: ...
+    def _vis_set_width(self, arg: int) -> None: ...
     @abstractmethod
-    def _viz_set_height(self, arg: int) -> None: ...
+    def _vis_set_height(self, arg: int) -> None: ...
     @abstractmethod
-    def _viz_set_size(self, arg: tuple[int, int]) -> None: ...
+    def _vis_set_background_color(self, arg: Color | None) -> None: ...
     @abstractmethod
-    def _viz_set_background_color(self, arg: Color | None) -> None: ...
+    def _vis_set_title(self, arg: str) -> None: ...
     @abstractmethod
-    def _viz_set_title(self, arg: str) -> None: ...
+    def _vis_close(self) -> None: ...
     @abstractmethod
-    def _viz_close(self) -> None: ...
+    def _vis_render(self) -> np.ndarray: ...
     @abstractmethod
-    def _viz_render(self) -> np.ndarray: ...
-    @abstractmethod
-    def _viz_add_view(self, view: View) -> None: ...
+    def _vis_add_view(self, view: View) -> None: ...
 # fmt: on
 
 
@@ -46,7 +45,7 @@ class ViewList(EventedList[ViewType]):
         return super()._pre_insert(value)
 
 
-class Canvas(FrontEndFor[CanvasBackend]):
+class Canvas(VisModel[CanvasAdaptorProtocol]):
     """Canvas onto which views are rendered.
 
     In desktop applications, this will be a window. In web applications, this will be a
@@ -70,9 +69,6 @@ class Canvas(FrontEndFor[CanvasBackend]):
         """Return the size of the canvas."""
         return self.width, self.height
 
-    # FIXME: this @size.setter convenience is triggering a double event to the backend
-    # and requires an extended protocol above
-    # perhaps modify FrontEndFor event handler to skip derived fields?
     @size.setter
     def size(self, value: tuple[float, float]) -> None:
         """Set the size of the canvas."""
@@ -80,8 +76,8 @@ class Canvas(FrontEndFor[CanvasBackend]):
 
     def close(self) -> None:
         """Close the canvas."""
-        if self.has_backend:
-            self.backend_adaptor()._viz_close()
+        if self.has_adaptor:
+            self.backend_adaptor()._vis_close()
 
     # show and render will trigger a backend connection
 
@@ -97,7 +93,7 @@ class Canvas(FrontEndFor[CanvasBackend]):
         # creation in a specific Node subtype, you can override the `_create_backend`
         # method (see, for example, the View._create_backend method)
         for view in self.views:
-            if not view.has_backend:
+            if not view.has_adaptor:
                 # make sure all of the views have a backend adaptor
                 view.backend_adaptor()
         self.backend_adaptor()  # make sure we also have a backend adaptor
@@ -110,7 +106,7 @@ class Canvas(FrontEndFor[CanvasBackend]):
     def render(self) -> np.ndarray:
         """Render canvas to offscren buffer and return as numpy array."""
         # TODO: do we need to set visible=True temporarily here?
-        return self.backend_adaptor()._viz_render()
+        return self.backend_adaptor()._vis_render()
 
     # consider using canvas.views.append?
     def add_view(self, view: View | None = None, **kwargs: Any) -> View:
@@ -124,8 +120,8 @@ class Canvas(FrontEndFor[CanvasBackend]):
             raise TypeError("view must be an instance of View")
 
         self.views.append(view)
-        if self.has_backend:
-            self.backend_adaptor()._viz_add_view(view)
+        if self.has_adaptor:
+            self.backend_adaptor()._vis_add_view(view)
 
         return view
 

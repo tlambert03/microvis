@@ -18,7 +18,7 @@ from typing import (
 from psygnal import EventedModel
 from pydantic import validator
 
-from ._base import Field
+from ._vis_model import Field
 
 
 class Slice(EventedModel):

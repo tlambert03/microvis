@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from microvis.backend import vispy
-from microvis.core import _base
+from microvis.core import _vis_model
 from microvis.core.nodes._data import DataNode
 
 
@@ -17,7 +17,7 @@ def test_custom_node(qapp) -> None:
         def __init__(self, obj: "CustomNode", **backend_kwargs: Any) -> None:
             mock(obj, **backend_kwargs)
 
-        def _viz_set_size(self, size: int) -> None:
+        def _vis_set_size(self, size: int) -> None:
             mock(size=size)
 
     class CustomNode(DataNode):
@@ -46,6 +46,6 @@ def test_custom_node_bad_backend() -> None:
         size: int = 10
 
     custom_node = CustomNode(np.random.rand(20, 2))
-    with patch.object(_base, "_get_default_backend", return_value="__TEST__"):
+    with patch.object(_vis_model, "_get_default_backend", return_value="__TEST__"):
         with pytest.raises(ValueError, match="cannot be used as a backend object"):
             custom_node.backend_adaptor()
