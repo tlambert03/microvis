@@ -36,17 +36,17 @@ class Image(Node):
         # TODO: interpolation?
         self._native = pygfx.Image(self._geometry, self._material)
 
-    def _viz_set_cmap(self, arg: str) -> None:
+    def _vis_set_cmap(self, arg: str) -> None:
         self._material.map = arg
 
-    def _viz_set_clim(self, arg: tuple[float, float] | None) -> None:
+    def _vis_set_clim(self, arg: tuple[float, float] | None) -> None:
         self._material.clim = arg
 
-    def _viz_set_gamma(self, arg: float) -> None:
+    def _vis_set_gamma(self, arg: float) -> None:
         raise NotImplementedError
 
-    def _viz_set_interpolation(self, arg: ImageInterpolation) -> None:
+    def _vis_set_interpolation(self, arg: ImageInterpolation) -> None:
         raise NotImplementedError
 
-    def _viz_set_data(self, arg: ArrayLike) -> None:
+    def _vis_set_data(self, arg: ArrayLike) -> None:
         raise NotImplementedError
