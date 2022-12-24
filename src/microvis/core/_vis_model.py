@@ -88,7 +88,11 @@ class VisModel(ModelBase, Generic[T]):
     # but there is discussion that this might be too limiting.
     # dicsussion: https://github.com/python/mypy/issues/5144
     _backend_adaptor: ClassVar[Optional[Any]] = PrivateAttr(None)
+    # This is the set of all field names that must have setters in the backend adaptor.
+    # set during the init
     _evented_fields: ClassVar[Set[str]] = PrivateAttr(set())
+    # this is a cache of all adaptor classes that have been validated to implement
+    # the correct methods (via validate_adaptor_class).
     _validated_adaptor_classes: ClassVar[Set[Type]] = PrivateAttr(set())
 
     # This is an optional class variable that can be set by subclasses to
@@ -155,10 +159,11 @@ class VisModel(ModelBase, Generic[T]):
         if hasattr(self, "events"):
             self.events.connect(self._on_any_event)
 
+        # determine fields that need setter methods in the backend adaptor
         # TODO:
         # this really shouldn't need to be in the init.  `__init_subclass__` would be
         # better, but that unfortunately gets called after EventedModel.__new__.
-        # need to look into it.
+        # need to look into it
         signals = set(self.__signal_group__._signals_)
         self._evented_fields.update(set(self.__fields__).intersection(signals))
 
