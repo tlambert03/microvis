@@ -26,37 +26,37 @@ class View(Node, core.view.ViewAdaptorProtocol):
         self.scene = pygfx.Scene()
 
     # XXX: both of these methods deserve scrutiny, and fixing :)
-    def _viz_set_camera(self, cam: core.Camera) -> None:
+    def _vis_set_camera(self, cam: core.Camera) -> None:
         if not isinstance(cam.native, pygfx.Camera):
             raise TypeError(f"cam must be a pygfx.Camera, got {type(cam.native)}")
         self._camera = cam.backend_adaptor()
 
-    def _viz_set_scene(self, scene: core.Scene) -> None:
+    def _vis_set_scene(self, scene: core.Scene) -> None:
         # XXX: Tricky!  this call to scene.native actually has the side effect of
         # creating the backend adaptor for the scene!  That needs to be more explicit.
         if not isinstance(scene.native, pygfx.Scene):
             raise TypeError("Scene must be a pygfx.Scene")
         self.scene = scene.native
 
-    def _viz_set_position(self, arg: tuple[float, float]) -> None:
+    def _vis_set_position(self, arg: tuple[float, float]) -> None:
         raise NotImplementedError
 
-    def _viz_set_size(self, arg: tuple[float, float] | None) -> None:
+    def _vis_set_size(self, arg: tuple[float, float] | None) -> None:
         raise NotImplementedError
 
-    def _viz_set_background_color(self, arg: _types.Color | None) -> None:
+    def _vis_set_background_color(self, arg: _types.Color | None) -> None:
         raise NotImplementedError
 
-    def _viz_set_border_width(self, arg: float) -> None:
+    def _vis_set_border_width(self, arg: float) -> None:
         raise NotImplementedError
 
-    def _viz_set_border_color(self, arg: _types.Color | None) -> None:
+    def _vis_set_border_color(self, arg: _types.Color | None) -> None:
         raise NotImplementedError
 
-    def _viz_set_padding(self, arg: int) -> None:
+    def _vis_set_padding(self, arg: int) -> None:
         raise NotImplementedError
 
-    def _viz_set_margin(self, arg: int) -> None:
+    def _vis_set_margin(self, arg: int) -> None:
         raise NotImplementedError
 
     def _visit(self, viewport: pygfx.Viewport) -> None:
