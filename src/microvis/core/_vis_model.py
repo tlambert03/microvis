@@ -89,6 +89,7 @@ class VisModel(ModelBase, Generic[T]):
     # dicsussion: https://github.com/python/mypy/issues/5144
     _backend_adaptor: ClassVar[Optional[Any]] = PrivateAttr(None)
     _evented_fields: ClassVar[Set[str]] = PrivateAttr(set())
+    _validated_adaptor_classes: ClassVar[Set[Type]] = PrivateAttr(set())
 
     # This is an optional class variable that can be set by subclasses to
     # provide a mapping of backend names to backend adaptor classes.
@@ -159,9 +160,7 @@ class VisModel(ModelBase, Generic[T]):
         # better, but that unfortunately gets called after EventedModel.__new__.
         # need to look into it.
         signals = set(self.__signal_group__._signals_)
-        fields = set(self.__fields__)
-        # same type ignore reason as above ... "can't assign to a ClassVar"
-        self._evented_fields = fields.intersection(signals)  # type: ignore [misc]
+        self._evented_fields.update(set(self.__fields__).intersection(signals))
 
     def _on_any_event(self, info: EmissionInfo) -> None:
         signal_name = info.signal.name
@@ -188,9 +187,14 @@ class VisModel(ModelBase, Generic[T]):
     #     """Disconnect and destroy the backend adaptor from the object."""
     #     self._backend = None
 
-    # TODO: cache me
     def validate_adaptor_class(self, adaptor_class: Any) -> type[T]:
         """Validate that the adaptor class is appropriate for the core object."""
+        # XXX: this could be a classmethod, but it's turning out to be difficult to
+        # set _evented_fields on that class (see note in __init__)
+
+        if adaptor_class in self._validated_adaptor_classes:
+            return cast("Type[T]", adaptor_class)
+
         cls = type(self)
         logger.debug(f"Validating adaptor class {adaptor_class} for {cls}")
         if missing := {
@@ -202,6 +206,7 @@ class VisModel(ModelBase, Generic[T]):
                 f"{adaptor_class} cannot be used as a backend object for "
                 f"{cls}: it is missing the following methods: {missing}"
             )
+        self._validated_adaptor_classes.add(adaptor_class)
         return cast("Type[T]", adaptor_class)
 
 
