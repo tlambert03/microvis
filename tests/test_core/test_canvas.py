@@ -54,6 +54,6 @@ def test_canvas(mock_backend) -> None:
     canvas.close()
     adaptor._vis_close.assert_called_once()
 
-    # these should get passed to the backend object.
+    # these should get passed to the backend adaptor object.
     canvas._repr_mimebundle_(1, 2, x=1)  # random args, kwargs
-    assert mock_backend._viz_get_ipython_mimebundle.called_once_with(1, 2, x=1)
+    assert adaptor._vis_get_ipython_mimebundle.called_once_with(1, 2, x=1)
