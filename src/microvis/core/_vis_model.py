@@ -158,6 +158,10 @@ class VisModel(ModelBase, Generic[AdaptorType]):
         if not self.has_adaptor or signal_name not in self._evented_fields:
             return
 
+        # NOTE: this loop runs anytime any attribute on any model is changed...
+        # so it has the potential to be a performance bottleneck.
+        # It is the the apparent cost, however, for allowing a model object to have
+        # multiple simultaneous backend adaptors. This should be re-evaluated often.
         for adaptor in self._backend_adaptors.values():
             try:
                 name = SETTER_METHOD.format(name=signal_name)
