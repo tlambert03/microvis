@@ -136,7 +136,7 @@ In diagram form, the above looks like this:
 
 ```mermaid
 classDiagram
-    EventedModel <-- VisModel : is a 
+    EventedModel <-- VisModel : is a
     VisModel --* BackendAdaptorProtocol : controls a
     BackendAdaptorProtocol <-- Backend1Adaptor : implements
     BackendAdaptorProtocol <-- Backend2Adaptor : implements

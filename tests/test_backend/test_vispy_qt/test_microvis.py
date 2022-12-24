@@ -26,17 +26,17 @@ def test_canvas(qtbot: "QtBot") -> None:
     assert isinstance(image, Image)
     np.testing.assert_array_equal(image.data, data)
 
-    assert not canvas.has_backend
-    assert not view.has_backend
-    assert not camera.has_backend
+    assert not canvas.has_adaptor
+    assert not view.has_adaptor
+    assert not camera.has_adaptor
 
     canvas.show()
     # qtbot.addWidget(canvas.native.native)
 
-    assert canvas.has_backend
-    assert view.has_backend
-    assert camera.has_backend
-    assert image.has_backend
+    assert canvas.has_adaptor
+    assert view.has_adaptor
+    assert camera.has_adaptor
+    assert image.has_adaptor
 
     canvas.dict()
     view.dict()

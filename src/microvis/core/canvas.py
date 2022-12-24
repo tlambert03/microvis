@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
 ViewType = TypeVar("ViewType", bound=View)
 
+
 # fmt: off
 class CanvasAdaptorProtocol(SupportsVisibility['Canvas'], Protocol):
     """Protocol defining the interface for a Canvas adaptor."""
@@ -24,8 +25,6 @@ class CanvasAdaptorProtocol(SupportsVisibility['Canvas'], Protocol):
     def _vis_set_width(self, arg: int) -> None: ...
     @abstractmethod
     def _vis_set_height(self, arg: int) -> None: ...
-    @abstractmethod
-    def _vis_set_size(self, arg: tuple[int, int]) -> None: ...
     @abstractmethod
     def _vis_set_background_color(self, arg: Color | None) -> None: ...
     @abstractmethod
@@ -74,9 +73,6 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
         """Return the size of the canvas."""
         return self.width, self.height
 
-    # FIXME: this @size.setter convenience is triggering a double event to the backend
-    # and requires an extended protocol above
-    # perhaps modify VisModel event handler to skip derived fields?
     @size.setter
     def size(self, value: tuple[float, float]) -> None:
         """Set the size of the canvas."""
@@ -84,7 +80,7 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
 
     def close(self) -> None:
         """Close the canvas."""
-        if self.has_backend:
+        if self.has_adaptor:
             self.backend_adaptor()._vis_close()
 
     # show and render will trigger a backend connection
@@ -101,7 +97,7 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
         # creation in a specific Node subtype, you can override the `_create_backend`
         # method (see, for example, the View._create_backend method)
         for view in self.views:
-            if not view.has_backend:
+            if not view.has_adaptor:
                 # make sure all of the views have a backend adaptor
                 view.backend_adaptor()
         self.backend_adaptor()  # make sure we also have a backend adaptor
@@ -128,7 +124,7 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
             raise TypeError("view must be an instance of View")
 
         self.views.append(view)
-        if self.has_backend:
+        if self.has_adaptor:
             self.backend_adaptor()._vis_add_view(view)
 
         return view
