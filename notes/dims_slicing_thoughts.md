@@ -1,35 +1,69 @@
 # slicing data - thoughts
 
 ## Spaces
-- rendering space (2D/3D)
+- renderable space (2D/3D)
 - nagivable nD space (nD)
 
 If we can separate concerns over these things and still allow for 
 reshuffling dims and computing dynamic projections then we're onto a winner
 
+The renderable space is what we can actually see at any one time. The 
+navigable space is the rest of the full nD space of the data in the scene. 
+You can imagine having sliders to navigate the navigable space like in napari.
+
+The main difference between this model and napari is the explicit separation 
+of these two 'spaces', napari treats everything as one unified nD coordinate 
+system.
+
+## TL;DR
+
+- images: nD Data --[slicing]-->  Renderable Data  --[reduction]--> 2D/3D 
+- coordinates: nD data --[slicing]--> Renderable Data
+
 ## Data Model
-We need to be explicit about different kinds of data, our full nD data and 
-the visualisable 2D/3D data which will be rendered at any given moment
+We need to be explicit about different types of data we deal with
+- the full nD data we accept
+- the data we can actually render in given ways
+
 
 ### nD Data
 this is arbitrary nD array data
 `data: ArrayLike[...]`
 
-This data will be transformed into one of the following for slicing
-- `dense_data: ArrayLike['... rgb(a) proj d h w']`
+This data will be transformed into one of the following prior to 'slicing' 
+for visualisation.
+- `dense_data: ArrayLike['... rgb(a) 1 d h w']`
 - `coordinate_data: ArrayLike['... n coords']`
 
+Note: the dimension of length 1 in this data model is an axis over which an 
+arbitrary reduction will be performed before data is passed to the rendering 
+engine. This is a (useful) depature which allows us to model local projections 
+over windows of time/space during slicing. Slicing over a windowed region  
+will yield a dimension of the same length as the window whilst point 
+slicing will yield a dimension of length 1.
+
 ### Renderable Data
-- `renderable_dense_data: ArrayLike['rgb(a) proj d h w']`
-- `renderable_coordinate_data: ArrayLike['n (2|3)']'`
 
-### Separating nD into navigable + renderable 2/3D
+This is the data we get by slicing promise to eventually render in both 2D 
+and 3D.
 
-Let's take a look at how we would map nD data into renderable data through 
-some examples for both dense data and coordinate data
+- dense gridded data: `ArrayLike['rgb(a) proj d h w']`
+- coordinate data: `ArrayLike['n (2|3)']'`
 
-We won't look at the mechanics/how to generalise/implement this yet, just 
-specify the mapping
+
+
+### Slicing: Separating nD into navigable dims + renderable dims
+
+Let's take a look at how we would think about doing slicing for various types 
+of nD data through some examples.
+
+To do this, we need to separate the data dimensions into our two spaces, the 
+navigable nD space (over which we might have sliders defining a point/region 
+a la napari) and the rendered space, which dimensions are we actually 
+visualising at any one time.
+
+We won't look at the mechanics/how to implement this yet, just 
+specify the mapping from nD to our two spaces.
 
 #### Dense Data
 
@@ -43,6 +77,7 @@ specify the mapping
 - data shape: `(t h w c)`
 - navigable dimensions in 2D: `(t)`
 - navigable dimensions in 3D: `(t)`
+- renderable data shape: `(c 1 1 h w)`
 
 ##### time series of 2D intensity images with local projections
 - data shape: `(t h w)`
@@ -118,7 +153,7 @@ three coordinate dimensions are already aligned with `d h w`.
 - navigable dimensions in 2D: `(d=0 d=1 d=2)` (`d[:-2]`)
 - navigable dimensions in 3D: `(d=0 d=1)` (`d[:-3]`)
 - renderable data shape 2D: `(n 2)` (2 = d[-2:] = d[3], d[4])
-- renderable data shape 3D: `(n, 3)` (3 = d[-3:] = d[2], d[3], d[4])
+- renderable data shape 3D: `(n 3)` (3 = d[-3:] = d[2], d[3], d[4])
 
 Same as napari.
 
@@ -131,7 +166,8 @@ stacked nd coordinates
 
 not possible in napari
 
-replace `t` with `...` to generalise from simple stack to nD stack of nD coords.
+replace `t` with `...` to generalise from simple 1D stack to nD stack of nD 
+coords.
 
 #### Unified example
 
