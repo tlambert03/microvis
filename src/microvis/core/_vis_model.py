@@ -2,18 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from importlib import import_module
-from typing import (
-    Any,
-    ClassVar,
-    Dict,
-    Generic,
-    Optional,
-    Protocol,
-    Set,
-    Type,
-    TypeVar,
-    cast,
-)
+from typing import Any, ClassVar, Dict, Generic, Protocol, Set, Type, TypeVar, cast
 
 import numpy as np
 from psygnal import EmissionInfo, EventedModel
@@ -83,11 +72,11 @@ class VisModel(ModelBase, Generic[AdaptorType]):
     backend adaptors per object.
     """
 
-    # Really, this should be `_backend: ClassVar[Optional[T]]``, but that a type error
+    # Really, this should be `_backend: ClassVar[dict[str, T]]``, but thats a type error
     # PEP 526 states that ClassVar cannot include any type variables...
     # but there is discussion that this might be too limiting.
     # dicsussion: https://github.com/python/mypy/issues/5144
-    _backend_adaptor: ClassVar[Optional[BackendAdaptor]] = PrivateAttr(None)
+    _backend_adaptors: ClassVar[dict[str, BackendAdaptor]] = PrivateAttr({})
     # This is the set of all field names that must have setters in the backend adaptor.
     # set during the init
     _evented_fields: ClassVar[Set[str]] = PrivateAttr(set())
@@ -103,19 +92,23 @@ class VisModel(ModelBase, Generic[AdaptorType]):
     @property
     def has_adaptor(self) -> bool:
         """Return True if the object has a backend adaptor."""
-        return self._backend_adaptor is not None
+        # TODO: this might need to turn into a method that accepts a backend name
+        return bool(self._backend_adaptors)
 
-    def backend_adaptor(self) -> AdaptorType:
-        """Get the backend adaptor for this object. Creates one if it doesn't exist."""
-        # if we make this a property, it will be cause the side effect of
-        # spinning up a backend on tab auto-complete in ipython/jupyter
-        if self._backend_adaptor is None:
-            cls = self._get_adaptor_class()
-            # The type error is that we can't assign to a Class Variable.
-            # However, if we don't mark `_backend` as a Class Variable, then
-            # it will show up in IDE signatures, (ugly)
-            self._backend_adaptor = self._create_adaptor(cls)  # type: ignore [misc]
-        return cast("AdaptorType", self._backend_adaptor)
+    def backend_adaptor(self, backend: str | None = None) -> AdaptorType:
+        """Get the backend adaptor for this object. Creates one if it doesn't exist.
+
+        Parameters
+        ----------
+        backend : str, optional
+            The name of the backend to use, by default None.  If None, the default
+            backend will be used.
+        """
+        backend = backend or _get_default_backend()
+        if backend not in self._backend_adaptors:
+            cls = self._get_adaptor_class(backend)
+            self._backend_adaptors[backend] = self._create_adaptor(cls)
+        return cast("AdaptorType", self._backend_adaptors[backend])
 
     @property
     def native(self) -> Any:
@@ -124,17 +117,10 @@ class VisModel(ModelBase, Generic[AdaptorType]):
 
     def _get_adaptor_class(
         self,
-        backend: str = "",
-        class_name: str = "",
+        backend: str,
+        class_name: str | None = None,
     ) -> Type[AdaptorType]:
         """Retrieves the backend class with the same name as the object class name."""
-        # TODO: we're mostly just falling back on vispy here all the time for
-        # early development, but it needs to be clearer how one would pick
-        # a different backend.  (though... the default behavior should be to
-        # pick the "right" backend for the current environment.  i.e. microvis
-        # should work with no configuration in both jupyter and ipython desktop.)
-        backend = backend or _get_default_backend()
-
         if hasattr(self, "BACKEND_ADAPTORS") and backend in self.BACKEND_ADAPTORS:
             adaptor_class = self.BACKEND_ADAPTORS[backend]
             logger.debug(f"Using class-provided adaptor class: {adaptor_class}")
@@ -172,20 +158,21 @@ class VisModel(ModelBase, Generic[AdaptorType]):
         if not self.has_adaptor or signal_name not in self._evented_fields:
             return
 
-        try:
-            name = SETTER_METHOD.format(name=signal_name)
-            setter = getattr(self._backend_adaptor, name)
-        except AttributeError as e:
-            logger.exception(e)
-            return
+        for adaptor in self._backend_adaptors.values():
+            try:
+                name = SETTER_METHOD.format(name=signal_name)
+                setter = getattr(adaptor, name)
+            except AttributeError as e:
+                logger.exception(e)
+                return
 
-        event_name = f"{type(self).__name__}.{signal_name}"
-        logger.debug(f"{event_name}={info.args} emitting to backend")
+            event_name = f"{type(self).__name__}.{signal_name}"
+            logger.debug(f"{event_name}={info.args} emitting to backend")
 
-        try:
-            setter(*info.args)
-        except Exception as e:
-            logger.exception(e)
+            try:
+                setter(*info.args)
+            except Exception as e:
+                logger.exception(e)
 
     # TODO:
     # def detach(self) -> None:
@@ -215,6 +202,9 @@ class VisModel(ModelBase, Generic[AdaptorType]):
         return cast("Type[AdaptorType]", adaptor_class)
 
 
+# XXX: the default behavior should be to
+# pick the "right" backend for the current environment.  i.e. microvis
+# should work with no configuration in both jupyter and ipython desktop.)
 def _get_default_backend() -> str:
     """Stub function for the concept of picking a backend when none is specified.
 

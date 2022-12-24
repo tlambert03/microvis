@@ -35,18 +35,19 @@ class View(Node, core.view.ViewAdaptorProtocol):
         self._vispy_node = scene.ViewBox(**backend_kwargs)
 
     def _vis_set_camera(self, cam: core.Camera) -> None:
-        # cam._directly_set_backend_adaptor(Camera(cam))
-        if not isinstance(cam.native, scene.cameras.BaseCamera):
+        vispy_cam = cam.backend_adaptor("vispy")._vis_get_native()
+        if not isinstance(vispy_cam, scene.cameras.BaseCamera):
             raise TypeError("Camera must be a Vispy Camera")
-        self._vispy_node.camera = cam.native
-        cam.native.set_range(margin=0)  # TODO: put this elsewhere
+        self._vispy_node.camera = vispy_cam
+        vispy_cam.set_range(margin=0)  # TODO: put this elsewhere
 
     def _vis_set_scene(self, scene: core.Scene) -> None:
-        if not isinstance(scene.native, subscene.SubScene):
+        vispy_scene = scene.backend_adaptor("vispy")._vis_get_native()
+        if not isinstance(vispy_scene, subscene.SubScene):
             raise TypeError("Scene must be a Vispy SubScene")
 
-        self._vispy_node._scene = scene.native
-        scene.native.parent = self._vispy_node
+        self._vispy_node._scene = vispy_scene
+        vispy_scene.parent = self._vispy_node
 
     def _vis_set_position(self, arg: tuple[float, float]) -> None:
         self._vispy_node.pos = arg
