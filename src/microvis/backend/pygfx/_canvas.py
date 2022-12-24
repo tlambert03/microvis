@@ -55,7 +55,7 @@ def _is_qt_canvas_type(obj: type) -> TypeGuard[type[qt.WgpuCanvas]]:
     return False
 
 
-class Canvas(core.canvas.CanvasBackend):
+class Canvas(core.canvas.CanvasAdaptorProtocol):
     """Canvas interface for pygfx Backend."""
 
     def __init__(self, canvas: core.Canvas, **backend_kwargs: Any) -> None:
@@ -102,7 +102,7 @@ class Canvas(core.canvas.CanvasBackend):
             self._wgpu_canvas.request_draw()
 
     def _viz_add_view(self, view: core.View) -> None:
-        adaptor: ViewAdaptor = view.backend_adaptor()
+        adaptor = cast("ViewAdaptor", view.backend_adaptor())
         adaptor._camera.set_viewport(self._viewport)
         self._views.append(adaptor)
 
@@ -113,9 +113,6 @@ class Canvas(core.canvas.CanvasBackend):
     def _viz_set_height(self, arg: int) -> None:
         width, _ = self._wgpu_canvas.get_logical_size()
         self._wgpu_canvas.set_logical_size(width, arg)
-
-    def _viz_set_size(self, arg: tuple[int, int]) -> None:
-        self._wgpu_canvas.set_logical_size(*arg)
 
     def _viz_set_background_color(self, arg: _types.Color | None) -> None:
         raise NotImplementedError()

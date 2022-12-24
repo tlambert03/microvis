@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from ._camera import Camera as CameraAdaptor
 
 
-class View(Node, core.view.ViewBackend):
+class View(Node, core.view.ViewAdaptorProtocol):
     """View interface for pygfx Backend."""
 
     # _native: scene.ViewBox

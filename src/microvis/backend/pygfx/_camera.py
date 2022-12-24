@@ -10,7 +10,7 @@ from microvis.core.nodes import camera
 from ._node import Node
 
 
-class Camera(Node, camera.CameraBackend):
+class Camera(Node, camera.CameraAdaptorProtocol):
     """Adaptor for pygfx camera."""
 
     _native: pygfx.Camera
