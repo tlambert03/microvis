@@ -76,7 +76,7 @@ class VisModel(ModelBase, Generic[AdaptorType]):
     # PEP 526 states that ClassVar cannot include any type variables...
     # but there is discussion that this might be too limiting.
     # dicsussion: https://github.com/python/mypy/issues/5144
-    _backend_adaptors: ClassVar[dict[str, BackendAdaptor]] = PrivateAttr({})
+    _backend_adaptors: ClassVar[Dict[str, BackendAdaptor]] = PrivateAttr({})
     # This is the set of all field names that must have setters in the backend adaptor.
     # set during the init
     _evented_fields: ClassVar[Set[str]] = PrivateAttr(set())
