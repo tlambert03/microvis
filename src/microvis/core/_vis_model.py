@@ -34,8 +34,7 @@ class ModelBase(EventedModel):
         extra = "ignore"
         validate_assignment = True
         allow_property_setters = True
-        json_encoders = {EventedList: lambda x: list(x),
-                         np.ndarray: np.ndarray.tolist}
+        json_encoders = {EventedList: list, np.ndarray: np.ndarray.tolist}
 
 
 F = TypeVar("F", covariant=True, bound="VisModel")
@@ -106,11 +105,11 @@ class VisModel(ModelBase, Generic[T]):
         # if we make this a property, it will be cause the side effect of
         # spinning up a backend on tab auto-complete in ipython/jupyter
         if self._backend_adaptor is None:
-            backend_cls = self._get_adaptor_type()
+            cls = self._get_adaptor_class()
             # The type error is that we can't assign to a Class Variable.
-            # However, if we don't mark `_backend` as a Class
-            self._backend_adaptor = self._create_adaptor(
-                backend_cls)  # type: ignore [misc]
+            # However, if we don't mark `_backend` as a Class Variable, then
+            # it will show up in IDE signatures, (ugly)
+            self._backend_adaptor = self._create_adaptor(cls)  # type: ignore [misc]
         return cast("T", self._backend_adaptor)
 
     @property
@@ -118,7 +117,7 @@ class VisModel(ModelBase, Generic[T]):
         """Return the native object of the backend."""
         return self.backend_adaptor()._vis_get_native()
 
-    def _get_adaptor_type(
+    def _get_adaptor_class(
         self,
         backend: str = "",
         class_name: str = "",
@@ -131,16 +130,14 @@ class VisModel(ModelBase, Generic[T]):
         # should work with no configuration in both jupyter and ipython desktop.)
         backend = backend or _get_default_backend()
 
-        if hasattr(self,
-                   "BACKEND_ADAPTORS") and backend in self.BACKEND_ADAPTORS:
+        if hasattr(self, "BACKEND_ADAPTORS") and backend in self.BACKEND_ADAPTORS:
             adaptor_class = self.BACKEND_ADAPTORS[backend]
             logger.debug(f"Using class-provided adaptor class: {adaptor_class}")
         else:
             class_name = class_name or type(self).__name__
-            backend_module = import_module(f"...backend.{backend}", __name__)
+            backend_module = import_module(f"microvis.backend.{backend}")
             adaptor_class = getattr(backend_module, class_name)
         return self.validate_adaptor_class(adaptor_class)
-
 
     def _create_adaptor(self, cls: Type[T]) -> T:
         """Instantiate the backend adaptor object.
@@ -156,15 +153,15 @@ class VisModel(ModelBase, Generic[T]):
         # if using this in an EventedModel, connect to the events
         if hasattr(self, "events"):
             self.events.connect(self._on_any_event)
-        
+
         # TODO:
-        # cls._evented_fields DOES need to be set on the class (and not the instance)
-        # but ... it really shouldn't be in the init.  `__init_subclass__` would be
+        # this really shouldn't need to be in the init.  `__init_subclass__` would be
         # better, but that unfortunately gets called after EventedModel.__new__.
         # need to look into it.
         signals = set(self.__signal_group__._signals_)
-        type(self)._evented_fields = set(self.__fields__).intersection(signals)
-
+        fields = set(self.__fields__)
+        # same type ignore reason as above ... "can't assign to a ClassVar"
+        self._evented_fields = fields.intersection(signals)  # type: ignore [misc]
 
     def _on_any_event(self, info: EmissionInfo) -> None:
         signal_name = info.signal.name
@@ -191,13 +188,14 @@ class VisModel(ModelBase, Generic[T]):
     #     """Disconnect and destroy the backend adaptor from the object."""
     #     self._backend = None
 
-    @classmethod
-    def validate_adaptor_class(cls, adaptor_class: Any) -> type[T]:
+    # TODO: cache me
+    def validate_adaptor_class(self, adaptor_class: Any) -> type[T]:
         """Validate that the adaptor class is appropriate for the core object."""
+        cls = type(self)
         logger.debug(f"Validating adaptor class {adaptor_class} for {cls}")
         if missing := {
             SETTER_METHOD.format(name=field)
-            for field in cls._evented_fields
+            for field in self._evented_fields
             if not hasattr(adaptor_class, SETTER_METHOD.format(name=field))
         }:
             raise ValueError(

@@ -40,7 +40,7 @@ class ViewAdaptorProtocol(NodeAdaptorProtocol['View'], Protocol):
 # fmt: on
 
 
-class View(Node, VisModel[ViewAdaptorProtocol]):
+class View(Node[ViewAdaptorProtocol]):
     """A rectangular area on a canvas that displays a scene, with a camera.
 
     A canvas can have one or more views. Each view has a single scene (i.e. a
@@ -73,16 +73,6 @@ class View(Node, VisModel[ViewAdaptorProtocol]):
 
     camera: Camera = Field(default_factory=Camera)
     scene: Scene = Field(default_factory=Scene)  # necessary additional layer?
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-        self.add(self.camera)
-        self.add(self.scene)
-
-    def __setattr__(self, name: str, value: Any) -> None:
-        super().__setattr__(name, value)
-        if name in {"camera", "scene"}:
-            self.add(getattr(self, name))
 
     # TODO:
     # position and size are problematic...
@@ -120,6 +110,16 @@ class View(Node, VisModel[ViewAdaptorProtocol]):
         description="The margin to keep outside the widget's border.",
     )
 
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.add(self.camera)
+        self.add(self.scene)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        super().__setattr__(name, value)
+        if name in {"camera", "scene"}:
+            self.add(getattr(self, name))
+
     def show(self) -> Canvas:
         """Show the view.
 
@@ -129,6 +129,7 @@ class View(Node, VisModel[ViewAdaptorProtocol]):
         from .canvas import Canvas
 
         # TODO: we need to know/check somehow if the view is already on a canvas
+        # This just creates a new canvas every time
         canvas = Canvas()
         canvas.add_view(self)
         canvas.show()
@@ -157,8 +158,7 @@ class View(Node, VisModel[ViewAdaptorProtocol]):
         return super().add(node)
 
     def _create_adaptor(self, cls: type[ViewAdaptorProtocol]) -> ViewAdaptorProtocol:
-        # FIXME: this cast *should* be redundant, but mypy doesn't seem to think so.
-        backend = cast(ViewAdaptorProtocol, super()._create_adaptor(cls))
+        backend = super()._create_adaptor(cls)
         backend._vis_set_scene(self.scene)
         backend._vis_set_camera(self.camera)
         return backend
