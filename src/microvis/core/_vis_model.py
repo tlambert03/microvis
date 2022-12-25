@@ -29,7 +29,7 @@ class ModelBase(EventedModel):
 F = TypeVar("F", covariant=True, bound="VisModel")
 
 
-class BackendAdaptor(Protocol[F]):
+class BackendAdaptorProtocol(Protocol[F]):
     """Protocol for backend adaptor classes."""
 
     @abstractmethod
@@ -44,7 +44,7 @@ class BackendAdaptor(Protocol[F]):
     # TODO: add a "detach" or "cleanup" method?
 
 
-class SupportsVisibility(BackendAdaptor[F], Protocol):
+class SupportsVisibility(BackendAdaptorProtocol[F], Protocol):
     """Protocol for objects that support visibility (show/hide)."""
 
     @abstractmethod
@@ -52,7 +52,7 @@ class SupportsVisibility(BackendAdaptor[F], Protocol):
         """Set the visibility of the object."""
 
 
-AdaptorType = TypeVar("AdaptorType", bound=BackendAdaptor, covariant=True)
+AdaptorType = TypeVar("AdaptorType", bound=BackendAdaptorProtocol, covariant=True)
 
 
 class VisModel(ModelBase, Generic[AdaptorType]):
@@ -72,7 +72,7 @@ class VisModel(ModelBase, Generic[AdaptorType]):
     # PEP 526 states that ClassVar cannot include any type variables...
     # but there is discussion that this might be too limiting.
     # dicsussion: https://github.com/python/mypy/issues/5144
-    _backend_adaptors: ClassVar[Dict[str, BackendAdaptor]] = PrivateAttr({})
+    _backend_adaptors: ClassVar[Dict[str, BackendAdaptorProtocol]] = PrivateAttr({})
     # This is the set of all field names that must have setters in the backend adaptor.
     # set during the init
     _evented_fields: ClassVar[Set[str]] = PrivateAttr(set())
@@ -83,7 +83,7 @@ class VisModel(ModelBase, Generic[AdaptorType]):
     # This is an optional class variable that can be set by subclasses to
     # provide a mapping of backend names to backend adaptor classes.
     # see `examples/custom_node.py` for an example of how this is used.
-    BACKEND_ADAPTORS: ClassVar[Dict[str, Type[BackendAdaptor]]]
+    BACKEND_ADAPTORS: ClassVar[Dict[str, Type[BackendAdaptorProtocol]]]
 
     @property
     def has_adaptor(self) -> bool:
