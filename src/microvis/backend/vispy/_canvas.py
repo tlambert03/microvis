@@ -33,9 +33,10 @@ class Canvas(core.canvas.CanvasAdaptorProtocol):
         self._vispy_canvas.show(visible=arg)
 
     def _vis_add_view(self, view: core.View) -> None:
-        if not isinstance(view.native, scene.ViewBox):
+        native_view = view.backend_adaptor("vispy")._vis_get_native()
+        if not isinstance(native_view, scene.ViewBox):
             raise TypeError("View must be a Vispy ViewBox")
-        self._vispy_canvas.central_widget.add_widget(view.native)
+        self._vispy_canvas.central_widget.add_widget(native_view)
 
     def _vis_set_width(self, arg: int) -> None:
         _height = self._vispy_canvas.size[1]
@@ -72,4 +73,4 @@ class Canvas(core.canvas.CanvasAdaptorProtocol):
     def _viz_get_ipython_mimebundle(
         self, *args: Any, **kwargs: Any
     ) -> dict | tuple[dict, dict]:
-        return self._native._repr_mimebundle_(*args, **kwargs)
+        return self._vis_get_native()._repr_mimebundle_(*args, **kwargs)  # type: ignore

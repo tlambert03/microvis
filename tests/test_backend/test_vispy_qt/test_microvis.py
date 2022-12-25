@@ -30,8 +30,9 @@ def test_canvas(qtbot: "QtBot") -> None:
     assert not view.has_adaptor
     assert not camera.has_adaptor
 
-    canvas.show()
-    # qtbot.addWidget(canvas.native.native)
+    canvas.show(backend="vispy")
+    vispy_canvas = canvas.backend_adaptor("vispy")._vis_get_native()
+    qtbot.addWidget(vispy_canvas.native)
 
     assert canvas.has_adaptor
     assert view.has_adaptor

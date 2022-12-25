@@ -14,6 +14,7 @@ class Scene(Node):
         self._vispy_node._clipper = Clipper()
         self._vispy_node.clip_children = True
 
+        # XXX: this logic could be moved to the model
         for node in scene.children:
-            node.backend_adaptor()  # create backend adaptor if it doesn't exist
+            node.backend_adaptor("vispy")  # create backend adaptor if it doesn't exist
             self._vis_add_node(node)
