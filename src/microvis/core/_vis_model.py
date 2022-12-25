@@ -41,7 +41,8 @@ class BackendAdaptor(Protocol[F]):
     def _vis_get_native(self) -> Any:
         """Return the native widget for the backend."""
 
-    # TODO: add a "detach" or "cleanup" method?
+    def _vis_cleanup(self) -> None:
+        """Tear down when the adaptor is no longer required."""
 
 
 class SupportsVisibility(BackendAdaptor[F], Protocol):
