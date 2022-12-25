@@ -70,7 +70,7 @@ class Canvas(core.canvas.CanvasAdaptorProtocol):
         )
         return cast("np.ndarray", data)
 
-    def _viz_get_ipython_mimebundle(
+    def _vis_get_ipython_mimebundle(
         self, *args: Any, **kwargs: Any
     ) -> dict | tuple[dict, dict]:
         return self._vis_get_native()._repr_mimebundle_(*args, **kwargs)  # type: ignore
