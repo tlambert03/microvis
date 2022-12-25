@@ -66,10 +66,6 @@ class VisModel(ModelBase, Generic[AdaptorType]):
     responsible for converting all of the microvis protocol methods (stuff like
     "_vis_set_width", "_vis_set_visible", etc...) into the appropriate calls for
     the given backend.
-
-    TODO: looks like we assume a single backend adaptor per object.
-    But that feels like a limitation.  We might want to have multiple
-    backend adaptors per object.
     """
 
     # Really, this should be `_backend: ClassVar[dict[str, T]]``, but thats a type error
