@@ -3,9 +3,10 @@ from __future__ import annotations
 import importlib.util
 import platform
 import sys
+from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Iterator
 
 if TYPE_CHECKING:
     from sys import _version_info
@@ -99,3 +100,21 @@ def get_context() -> Context:
             qt_available=bool(qt_available),
         )
     return _CONTEXT  # noqa: RET504
+
+
+@contextmanager
+def exec_if_new_qt_app() -> Iterator[None]:
+    """Context in which a new Qt application is executed if one does not exist.
+
+    This is useful for creating scripts that work both as standalone scripts (where you
+    *do* need the exec_() call), as well as in a %gui qt notebook context (where you
+    *don't* want the exec_() call)
+    """
+    from qtpy.QtWidgets import QApplication
+
+    app = QApplication.instance()
+    if not (had_app := bool(app)):
+        app = QApplication([])
+    yield
+    if not had_app:
+        app.exec_()
