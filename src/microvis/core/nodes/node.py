@@ -114,7 +114,7 @@ class Node(VisModel[NodeAdaptorProtocolTypeCoV]):
         if node not in self.children:
             logger.debug(f"Adding node {nd} to {slf}")
             self.children.append(node)
-            if self.has_adaptor():
+            if self.has_backend_adaptor():
                 self.backend_adaptor()._vis_add_node(node)
 
     @classmethod

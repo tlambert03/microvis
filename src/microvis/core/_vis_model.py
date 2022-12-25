@@ -86,7 +86,7 @@ class VisModel(ModelBase, Generic[AdaptorType]):
     # see `examples/custom_node.py` for an example of how this is used.
     BACKEND_ADAPTORS: ClassVar[Dict[str, Type[BackendAdaptor]]]
 
-    def has_adaptor(self, backend: str | None = None) -> bool:
+    def has_backend_adaptor(self, backend: str | None = None) -> bool:
         """Return True if the object has a backend adaptor.
 
         If None is passed, the returned bool indicates the presence of any
