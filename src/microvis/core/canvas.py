@@ -81,8 +81,15 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
 
     # show and render will trigger a backend connection
 
-    def show(self) -> None:
-        """Show the canvas."""
+    def show(self, *, backend: str | None = None) -> None:
+        """Show the canvas.
+
+        Parameters
+        ----------
+        backend : str, optional
+            The backend to use.  If not provided, the default backend will be used.
+            TODO: clarify how this is chosen.
+        """
         # Note: the canvas.show() method is THE primary place where we create a tree
         # of backend objects. (None of the lower level Node objects actually *need*
         # any backend representation until they need to be shown visually)
@@ -92,11 +99,11 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
         # If you need to add any additional logic to handle the moment of backend
         # creation in a specific Node subtype, you can override the `_create_backend`
         # method (see, for example, the View._create_backend method)
+        self.backend_adaptor(backend=backend)  # make sure we have a backend adaptor
         for view in self.views:
             if not view.has_adaptor:
                 # make sure all of the views have a backend adaptor
-                view.backend_adaptor()
-        self.backend_adaptor()  # make sure we also have a backend adaptor
+                view.backend_adaptor(backend=backend)
         self.visible = True
 
     def hide(self) -> None:
