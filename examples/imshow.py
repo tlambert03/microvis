@@ -1,21 +1,17 @@
 from imageio.v3 import imread
 
+from microvis._util import exec_if_new_qt_app
 from microvis.controller import make_controller
 from microvis.convenience import imshow
 
-camera = imread("imageio:camera.png")
-c = imshow(camera)
-# temporary, just for convenience in testing
-v = c.views[0]
-img = v.scene.children[0]
+camera = imread("imageio:camera.png").copy()
 
-# also optional... example for now
-ctrl = make_controller(img)
-ctrl.show()
+with exec_if_new_qt_app():
+    c = imshow(camera)
+    # temporary, just for convenience in testing
+    v = c.views[0]
+    img = v.scene.children[0]
 
-
-if __name__ == "__main__":
-    from qtpy.QtWidgets import QApplication
-
-    app = QApplication.instance()
-    app.exec_()
+    # also optional... example for now
+    ctrl = make_controller(img)
+    ctrl.show()
