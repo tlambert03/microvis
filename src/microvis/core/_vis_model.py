@@ -68,7 +68,8 @@ class VisModel(ModelBase, Generic[AdaptorType]):
     the given backend.
     """
 
-    # Really, this should be `_backend: ClassVar[dict[str, T]]``, but thats a type error
+    # Really, this should be `_backend_adaptors: ClassVar[dict[str, T]]``,
+    # but thats a type error.
     # PEP 526 states that ClassVar cannot include any type variables...
     # but there is discussion that this might be too limiting.
     # dicsussion: https://github.com/python/mypy/issues/5144
