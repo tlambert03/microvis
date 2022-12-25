@@ -12,12 +12,12 @@ def test_view(mock_backend) -> None:
     assert view.background_color and view.background_color.as_named() == "red"
 
     # before show() is called, the backend should not be created
-    assert not view.has_adaptor
+    assert not view.has_adaptor()
     assert not mock_backend
 
     # once show() is called, the backend should be created and visible called
     view.show()
-    assert view.has_adaptor
+    assert view.has_adaptor()
     adaptor = view.backend_adaptor()
     assert view.visible
     adaptor._vis_set_camera.assert_called_once()

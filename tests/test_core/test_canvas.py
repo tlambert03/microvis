@@ -13,11 +13,11 @@ def test_canvas(mock_backend) -> None:
     assert canvas.background_color and canvas.background_color.as_named() == "red"
 
     # before show() is called, the backend should not be created
-    assert not canvas.has_adaptor
+    assert not canvas.has_adaptor()
 
     # once show() is called, the backend should be created and visible called
     canvas.show()
-    assert canvas.has_adaptor
+    assert canvas.has_adaptor()
     adaptor = canvas.backend_adaptor()
     adaptor._vis_set_visible.assert_called_once_with(True)
 

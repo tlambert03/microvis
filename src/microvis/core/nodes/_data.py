@@ -66,7 +66,7 @@ class DataNode(Node[DataNodeBackendT]):
     def _on_data_changed(self) -> None:
         # Note: could accept an EmissionInfo argument here and gate the
         # update on event types.
-        if self.has_adaptor:
+        if self.has_adaptor():
             self.backend_adaptor()._vis_set_data(cast(ArrayLike, self.data_raw))
 
     @property
@@ -77,7 +77,7 @@ class DataNode(Node[DataNodeBackendT]):
         return cast("ArrayLike", self._data.__wrapped__)
 
     def _on_any_event(self, info: EmissionInfo) -> None:
-        if not self.has_adaptor:
+        if not self.has_adaptor():
             return
 
         # if the event is coming from a DataField, make
