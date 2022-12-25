@@ -106,11 +106,6 @@ class VisModel(ModelBase, Generic[AdaptorType]):
             self._backend_adaptors[backend] = self._create_adaptor(cls)
         return cast("AdaptorType", self._backend_adaptors[backend])
 
-    # @property
-    # def native(self) -> Any:
-    #     """Return the native object of the backend."""
-    #     return self.backend_adaptor()._viz_get_native()
-
     def _get_adaptor_class(
         self,
         backend: str,
