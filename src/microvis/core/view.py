@@ -138,7 +138,7 @@ class View(Node[ViewAdaptorProtocol]):
     def add_node(self, node: NodeType) -> NodeType:
         """Add any node to the scene."""
         self.scene.add(node)
-        if self.camera.has_adaptor:
+        if self.camera.has_backend_adaptor():
             # FIXME!: put this vispy specific API elsewhere
             # i guess we need a reset_range type API
             self.camera.native.set_range(margin=0)
