@@ -18,7 +18,7 @@ class Color(pydantic.color.Color):
 class CameraType(str, Enum):
     """Camera type."""
 
-    ARCBALL = "arcball"
+    ARCBALL = "arcball"  # XXX: Call this perspective?
     PANZOOM = "panzoom"
 
     def __str__(self) -> str:
