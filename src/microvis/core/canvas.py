@@ -80,7 +80,7 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
 
     def close(self) -> None:
         """Close the canvas."""
-        if self.has_adaptor:
+        if self.has_backend_adaptor():
             self.backend_adaptor()._vis_close()
 
     # show and render will trigger a backend connection
@@ -105,7 +105,7 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
         # method (see, for example, the View._create_backend method)
         self.backend_adaptor(backend=backend)  # make sure we have a backend adaptor
         for view in self.views:
-            if not view.has_adaptor:
+            if not view.has_backend_adaptor():
                 # make sure all of the views have a backend adaptor
                 view.backend_adaptor(backend=backend)
         self.visible = True
@@ -131,7 +131,7 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
             raise TypeError("view must be an instance of View")
 
         self.views.append(view)
-        if self.has_adaptor:
+        if self.has_backend_adaptor():
             self.backend_adaptor()._vis_add_view(view)
 
         return view
