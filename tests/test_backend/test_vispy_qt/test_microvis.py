@@ -31,7 +31,7 @@ def test_canvas(qtbot: "QtBot") -> None:
     assert not camera.has_backend_adaptor(backend="vispy")
 
     canvas.show(backend="vispy")
-    vispy_canvas = canvas.native
+    vispy_canvas = canvas.backend_adaptor("vispy")._vis_get_native()
     qtbot.addWidget(vispy_canvas.native)
 
     assert canvas.has_backend_adaptor(backend="vispy")

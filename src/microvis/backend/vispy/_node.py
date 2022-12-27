@@ -24,10 +24,10 @@ class Node(core_node.NodeAdaptorProtocol):
         if arg is None:
             self._vispy_node.parent = None
         else:
-            native_node = arg.backend_adaptor("vispy")._vis_get_native()
-            if not isinstance(native_node, scene.Node):
+            vispy_node = arg.backend_adaptor("vispy")._vis_get_native()
+            if not isinstance(vispy_node, scene.Node):
                 raise TypeError("Parent must be a Node")
-            self._vispy_node.parent = native_node
+            self._vispy_node.parent = vispy_node
 
     def _vis_set_children(self, arg: list[core_node.Node]) -> None:
         raise NotImplementedError
@@ -49,7 +49,7 @@ class Node(core_node.NodeAdaptorProtocol):
         self._vispy_node.transform = T
 
     def _vis_add_node(self, node: core_node.Node) -> None:
-        native_node = node.backend_adaptor("vispy")._vis_get_native()
-        if not isinstance(native_node, scene.Node):
+        vispy_node = node.backend_adaptor("vispy")._vis_get_native()
+        if not isinstance(vispy_node, scene.Node):
             raise TypeError("Node must be a Vispy Node")
-        native_node.parent = self._vispy_node
+        vispy_node.parent = self._vispy_node
