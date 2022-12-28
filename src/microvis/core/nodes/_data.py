@@ -14,15 +14,15 @@ from .node import Node, NodeAdaptorProtocol, NodeTypeCoV
 
 
 class DataNodeAdaptorProtocol(NodeAdaptorProtocol[NodeTypeCoV], Protocol):
-    """Protocol for a backend DataNode adaptor object."""
+    """Protocol for a DataNode backend adaptor object."""
 
     @abstractmethod
     def _vis_set_data(self, arg: ArrayLike) -> None:
         ...
 
 
-DataNodeBackendT = TypeVar(
-    "DataNodeBackendT", bound=DataNodeAdaptorProtocol, covariant=True
+DataNodeAdaptorProtocolT = TypeVar(
+    "DataNodeAdaptorProtocolT", bound=DataNodeAdaptorProtocol, covariant=True
 )
 
 
@@ -34,7 +34,7 @@ class DataField(GenericModel):
 # TODO: make the ArrayLike here a generic type parameter on DataNode
 
 
-class DataNode(Node[DataNodeBackendT]):
+class DataNode(Node[DataNodeAdaptorProtocolT]):
     """A node that has data.
 
     Data is wrapped in an evented object proxy so that mutation events can be seen.
