@@ -15,24 +15,6 @@ if TYPE_CHECKING:
     from .color import ValidColor
 
 
-class RGBA(NamedTuple):
-    """Internal use only as a representation of a color."""
-
-    r: float
-    g: float
-    b: float
-    alpha: float | None = None
-
-    @classmethod
-    def parse(cls, value: Any) -> RGBA:
-        """Parse a color object to RGBA."""
-        if isinstance(value, np.ndarray):
-            value = tuple(value)
-        if isinstance(value, (tuple, list)):
-            return cls(*(float(x) for x in value))
-        raise NotImplementedError(f"Cannot parse {type(value)} to RGBA")
-
-
 class PColorMapper(Protocol):
     @overload
     def __call__(self, X: float) -> Color:

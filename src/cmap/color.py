@@ -92,7 +92,7 @@ class RGBA8(NamedTuple):
     r: int
     g: int
     b: int
-    a: int = 255
+    a: int = 255  # TODO: probably should be 0-1
 
     def to_float(self) -> RGBAf:
         """Convert to float."""
@@ -117,19 +117,104 @@ class RGBA8(NamedTuple):
         return f"{out}{a:02X}" if a != 255 else out
 
 
-_r_255 = r"(\d{1,3}(?:\.\d+)?)"
-_r_comma = r"\s*,\s*"
-r_rgb = rf"\s*rgb\(\s*{_r_255}{_r_comma}{_r_255}{_r_comma}{_r_255}\)\s*"
-_r_alpha = r"(\d(?:\.\d+)?|\.\d+|\d{1,2}%)"
-r_rgba = rf"\s*rgba\(\s*{_r_255}{_r_comma}{_r_255}{_r_comma}{_r_255}{_r_comma}{_r_alpha}\s*\)\s*"  # noqa: E501
+_num = r"(-?\d+\.?\d*|none)"
+_perc = r"(-?\d+\.?\d*%|none)"
+_nump = r"(-?\d+\.?\d*%?|none)"
+reRGB = re.compile(rf"rgba?\(\s*{_nump}[,\s]+{_nump}[,\s]+{_nump}[,\s/]*{_nump}?\)")
+reHSL = re.compile(rf"hsla?\(\s*{_num}[,\s]+{_perc}[,\s]+{_perc}[,\s/]*{_nump}?\)")
 delim = re.compile(r"( |-|_)", re.I)
 
 
+def parse_rgb_string(rgb: str) -> tuple | None:
+    """Parse a string containing an RGB color into a tuple.
+
+    Parameters
+    ----------
+    rgb : str
+        A string containing an RGB color, e.g. "rgb(2, 3, 4)" or "rgba(2, 3, 4, 0.5)".
+
+    Returns
+    -------
+    tuple
+        A 3 or 4 tuple containing the RGB color where the first three values are
+        integers between 0 and 255 and the last value is a float between 0 and 1.
+
+    Examples
+    --------
+    >>> parse_rgb("rgb(2, 3, 4)")
+    (2, 3, 4)
+    >>> parse_rgb("rgb(100%, 0%, 0%)")
+    (255, 0, 0)
+    >>> parse_rgb("rgba(2, 3, 4, 0.5)")
+    (2, 3, 4, 0.5)
+    >>> parse_rgb("rgba(2, 3, 4, 50%)")
+    (2, 3, 4, 0.5)
+    >>> parse_rgb("rgb(-2, 3, 4)")
+    (0, 3, 4)
+    >>> parse_rgb("rgb(100, 200, 300)")
+    (100, 200, 255)
+    >>> parse_rgb("rgb(20, 10, 0, -10)")
+    (20, 10, 0, 0)
+    >>> parse_rgb("rgb(100%, 200%, 300%)")
+    (255, 255, 255)
+    """
+    m = reRGB.match(rgb)
+    if not m:
+        return None
+    out = []
+    for n, val in enumerate(m.groups()):
+        if val is None and n == 3:  # no alpha
+            break
+        if val in (None, "none"):
+            val = 0
+        elif val.endswith("%"):
+            val = float(val[:-1]) / 100
+            if n < 3:
+                val = int(val * 255)
+        else:
+            val = float(val)
+            val = round(val) if n < 3 else min(1, max(0, val))
+        out.append(min(255, max(0, val)))
+    return tuple(out)
+
+
+def parse_hsl_string(hsl: str) -> tuple | None:
+    """Parse a string containing an HSL color into a tuple.
+
+    Parameters
+    ----------
+    hsl : str
+        A string containing an HSL color, e.g. "hsl(0, 100%, 50%)"
+
+    Returns
+    -------
+    tuple
+        A 3 or 4 tuple containing the HSL color, where the first three values are
+        floats between 0 and 1 and the last value is a float between 0 and 1.
+    """
+    m = reHSL.match(hsl)
+    if not m:
+        return None
+    out = []
+    for n, val in enumerate(m.groups()):
+        if val is None and n == 3:  # no alpha
+            break
+        if val in (None, "none"):
+            val = 0
+        elif val.endswith("%"):
+            val = float(val[:-1]) / 100
+        else:
+            val = float(val)
+            val = round(val) if n < 3 else min(1, max(0, val))
+        out.append(min(255, max(0, val)))
+    return tuple(out)
+
+
 def _bound_0_1(*values: float | str) -> Iterable[float]:
-    return (round(max(0, min(1, float(v))), 8) for v in values)
+    return (round(max(0, min(1, float(v))), 15) for v in values)
 
 
-def _bound_0_255(*values: int | str) -> Iterable[int]:
+def _bound_0_255(*values: float | str) -> Iterable[int]:
     return (max(0, min(255, int(v))) for v in values)
 
 
@@ -146,10 +231,8 @@ def parse(value: Any) -> RGBAf:
             return rgbai.to_float()
         with contextlib.suppress(ValueError):
             return RGBA8.from_hex(value).to_float()
-        if (m := re.fullmatch(r_rgb, key)) or (m := re.fullmatch(r_rgba, key)):
-            # FIXME: this is wrong for rgba... which takes 0-1 or 0-100%
-            return RGBA8(*_bound_0_255(*m.groups())).to_float()
-
+        if m := parse_rgb_string(value):
+            return RGBA8(*m).to_float()
         raise ValueError(f"Invalid color string: {value!r}")
     if isinstance(value, RGBAf):
         return value
