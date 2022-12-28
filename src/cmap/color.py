@@ -4,7 +4,15 @@ import contextlib
 import re
 import sys
 from collections.abc import Iterator
-from typing import TYPE_CHECKING, Any, Callable, Iterable, NamedTuple, Sequence
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    ClassVar,
+    Iterable,
+    NamedTuple,
+    Sequence,
+)
 
 import numpy as np
 
@@ -19,7 +27,7 @@ if TYPE_CHECKING:
         "tuple[int, int, int, int] | tuple[float, float, float, float]"
     )
     ValidColor: TypeAlias = Union[
-        str, RGBTuple, RGBATuple, np.ndarray, list[float | int]
+        None, str, RGBTuple, RGBATuple, np.ndarray, list[float | int], "Color"
     ]
 
 
@@ -53,9 +61,9 @@ class RGBAf(NamedTuple):
     b: float
     a: float = 1
 
-    def to_8bit(self) -> RGBAi:
+    def to_8bit(self) -> RGBA8:
         """Convert to 8-bit integer form."""
-        return RGBAi(*(min(255, int(x * 255)) for x in self))
+        return RGBA8(*(min(255, int(x * 255)) for x in self))
 
     def to_hex(self) -> str:
         """Convert to hex color."""
@@ -64,7 +72,7 @@ class RGBAf(NamedTuple):
     @classmethod
     def from_hex(cls, hex: str) -> RGBAf:
         """Convert hex color to RGB."""
-        return RGBAi.from_hex(hex).to_float()
+        return RGBA8.from_hex(hex).to_float()
 
     def to_hsv(self) -> HSV:
         """Convert to Hue, Saturation, Value."""
@@ -80,7 +88,7 @@ class RGBAf(NamedTuple):
         return HSL(h, s, ll)
 
 
-class RGBAi(NamedTuple):
+class RGBA8(NamedTuple):
     r: int
     g: int
     b: int
@@ -91,7 +99,7 @@ class RGBAi(NamedTuple):
         return RGBAf(*(x / 255 for x in self))
 
     @classmethod
-    def from_hex(cls, hex: str) -> RGBAi:
+    def from_hex(cls, hex: str) -> RGBA8:
         """Convert hex color to RGB."""
         _hex = hex.lstrip("#")
         if _hex.startswith("0x"):
@@ -137,21 +145,25 @@ def parse(value: Any) -> RGBAf:
             rgbai = NAME_TO_RGB[key]
             return rgbai.to_float()
         with contextlib.suppress(ValueError):
-            return RGBAi.from_hex(value).to_float()
+            return RGBA8.from_hex(value).to_float()
         if (m := re.fullmatch(r_rgb, key)) or (m := re.fullmatch(r_rgba, key)):
             # FIXME: this is wrong for rgba... which takes 0-1 or 0-100%
-            return RGBAi(*_bound_0_255(*m.groups())).to_float()
+            return RGBA8(*_bound_0_255(*m.groups())).to_float()
 
         raise ValueError(f"Invalid color string: {value!r}")
     if isinstance(value, RGBAf):
         return value
-    if isinstance(value, RGBAi):
+    if isinstance(value, RGBA8):
         return value.to_float()
-    if isinstance(value, (list, tuple, np.ndarray, Sequence)):
+    if isinstance(value, (np.ndarray, Sequence)):
         val = tuple(value)
         if any(x > 1 for x in val):
-            return RGBAi(*_bound_0_255(*val)).to_float()
+            return RGBA8(*_bound_0_255(*val)).to_float()
         return RGBAf(*_bound_0_1(*val))
+
+    if value is None:
+        return RGBAf(0, 0, 0, 0)
+
     if isinstance(value, Color):
         return value._rgba
 
@@ -171,14 +183,18 @@ def parse(value: Any) -> RGBAf:
 
 
 class Color:
-    """Abstraction for a color."""
+    """Class to represent a single color.
+
+    Instances of this class are immutable and cached (based on the rgba tuple),
+    you can compare them with `is`.
+    """
 
     __slots__ = ("_rgba", "_name", "__weakref__")
-    _cache: dict[RGBAf, Color] = {}
+    _cache: ClassVar[dict[RGBAf, Color]] = {}
     _rgba: RGBAf
     _name: str | None
 
-    def __new__(cls, value: ValidColor) -> Color:
+    def __new__(cls, value: Any) -> Color:
         rgba = parse(value)
         if rgba not in cls._cache:
             name = RGB_TO_NAME.get(rgba.to_8bit())
@@ -199,6 +215,12 @@ class Color:
     def __iter__(self) -> Iterator[float]:
         return iter(self._rgba)
 
+    def __len__(self) -> int:
+        return 4
+
+    def __array__(self) -> np.ndarray:
+        return np.asarray(self._rgba)
+
     @property
     def hsl(self) -> HSL:
         """Return the color as Hue, Saturation, Lightness."""
@@ -215,7 +237,7 @@ class Color:
         return self._rgba
 
     @property
-    def rgba8(self) -> RGBAi:
+    def rgba8(self) -> RGBA8:
         """Return the color as (Red, Green, Blue, Alpha) tuple in 0-255 range."""
         return self._rgba.to_8bit()
 
@@ -230,9 +252,14 @@ class Color:
         return self._name
 
     def __repr__(self) -> str:
-        if self._name:
-            return f"Color({self._name!r})"
-        return f"Color({tuple(self._rgba)})"
+        """Return a string representation of the color."""
+        if self.name:
+            arg: str | tuple = self.name
+        else:
+            arg = tuple(round(x, 2) for x in self._rgba)
+            if self._rgba.a == 1:
+                arg = arg[:3]
+        return f"{self.__class__.__name__}({arg!r})"
 
     def __rich_repr__(self) -> Any:
         """Provide a rich representation of the color, with color swatch."""
@@ -244,8 +271,8 @@ class Color:
         # it "works" to print a small color patch if rich is used,
         # but it would be better to yield something that rich can actually render.
         console = get_console()
-        color_cell = Text("  ", style=Style(bgcolor=self.hex))
-        console.print(color_cell, end=" ")
+        color_cell = Text("  ", style=Style(bgcolor=self.hex[:7]))
+        console.print(color_cell, end="")
 
 
 # https://www.w3.org/TR/CSS1/
@@ -411,5 +438,5 @@ CSS_LEVEL_4: dict[str, tuple[int, ...]] = {
     "rebeccapurple": (102, 51, 153),
 }
 CSS_COLORS = {**CSS_LEVEL_1, **CSS_LEVEL_2, **CSS_LEVEL_3, **CSS_LEVEL_4}
-NAME_TO_RGB = {name: RGBAi(*values) for name, values in CSS_COLORS.items()}
+NAME_TO_RGB = {name: RGBA8(*values) for name, values in CSS_COLORS.items()}
 RGB_TO_NAME = {values: name for name, values in NAME_TO_RGB.items()}

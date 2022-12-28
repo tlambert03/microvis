@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from enum import Enum
 from typing import Any, Iterable, Iterator, Protocol, Sequence, Union, cast, overload
 
 import numpy as np
@@ -96,32 +95,34 @@ class PercentileContrast(DataField, Sequence[float]):
         return (_min, _max)
 
 
-class Cmap(str, Enum):
-    GRAYS = "grays"
-    VIRIDIS = "viridis"
-    PLASMA = "plasma"
-    INFERNO = "inferno"
-    MAGMA = "magma"
-    GREEN = "green"
-    BLUE = "blue"
-    RED = "red"
-    CYAN = "cyan"
-    MAGENTA = "magenta"
-    YELLOW = "yellow"
-    ORANGE = "orange"
-    PURPLE = "purple"
-    BONE = "bone"
-    PINK = "pink"
-    HOT = "hot"
+# class Cmap(str, Enum):
+#     GRAYS = "grays"
+#     VIRIDIS = "viridis"
+#     PLASMA = "plasma"
+#     INFERNO = "inferno"
+#     MAGMA = "magma"
+#     GREEN = "green"
+#     BLUE = "blue"
+#     RED = "red"
+#     CYAN = "cyan"
+#     MAGENTA = "magenta"
+#     YELLOW = "yellow"
+#     ORANGE = "orange"
+#     PURPLE = "purple"
+#     BONE = "bone"
+#     PINK = "pink"
+#     HOT = "hot"
 
-    def __str__(self) -> str:
-        return self.value
+#     def __str__(self) -> str:
+#         return self.value
+
+# from cmap import LinearColormap
 
 
 class Image(DataNode[ImageBackend]):
     """A Image that can be placed in scene."""
 
-    cmap: Cmap = Field(
+    cmap: str = Field(
         default="grays",
         description="The colormap to use for the image.",
     )
