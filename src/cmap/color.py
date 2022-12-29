@@ -338,6 +338,9 @@ class Color:
         return cls._cache[rgba]
 
     def __deepcopy__(self, memo: dict) -> Color:
+        # this is required because of the __new__ implementation
+        # which requires an argument.  In any case, we don't want
+        # to copy the color, so we just return self.
         return self
 
     @classmethod

@@ -71,6 +71,13 @@ def pygfx_imshow(img_data: np.ndarray, cmap: cmap.LinearColormap) -> None:
     run()
 
 
+def plotly_imshow(img_data: np.ndarray, cmap: cmap.LinearColormap) -> None:
+    import plotly.express as px
+
+    fig = px.imshow(img_data, color_continuous_scale=cmap.to_plotly())
+    fig.show()
+
+
 def bokeh_imshow(img_data: np.ndarray, cmap: cmap.LinearColormap) -> None:
     from bokeh.plotting import figure, show
 
@@ -140,6 +147,8 @@ elif viewer == "vispy":
     vispy_imshow(img_data, my_cmap)
 elif viewer == "pygfx":
     pygfx_imshow(img_data, my_cmap)
+elif viewer == "plotly":
+    plotly_imshow(img_data, my_cmap)
 elif viewer == "bokeh":
     bokeh_imshow(img_data, my_cmap)
 elif viewer == "altair":

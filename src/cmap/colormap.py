@@ -193,7 +193,11 @@ class LinearColormap(Colormap):
     def to_pygfx(
         self, N: int = 256, *, as_view: bool = True
     ) -> pygfx.TextureView | pygfx.Texture:
-        """Return a pygfx texture."""
+        """Return a pygfx TextureView, or Texture if as_view is False.
+
+        If you want to customize the TextureView, use `as_view == False` and then
+        call `get_view()` on the returned Texture, providing the desired arguments.
+        """
         import pygfx
 
         colors = self.iter_colors(N)
