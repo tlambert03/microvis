@@ -111,9 +111,14 @@ class VisModel(ModelBase, Generic[AdaptorType]):
             self._backend_adaptors[backend] = self._create_adaptor(cls)
         return cast("AdaptorType", self._backend_adaptors[backend])
 
-    @property
-    def native(self) -> Any:
-        """Return the native object of the backend."""
+    def dangerously_get_native_object(self) -> Any:
+        """Return the native object of the backend.
+
+        NOTE! Directly modifying the backend objects is not supported.  This method
+        is here as a convenience for debugging, development, and experimentation.
+        Direct modification of the backend object may lead to desyncronization of
+        the model and the backend object, or other unexpected behavior.
+        """
         return self.backend_adaptor()._vis_get_native()
 
     def _get_adaptor_class(
