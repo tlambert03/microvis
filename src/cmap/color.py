@@ -337,6 +337,9 @@ class Color:
             cls._cache[rgba] = obj
         return cls._cache[rgba]
 
+    def __deepcopy__(self, memo: dict) -> Color:
+        return self
+
     @classmethod
     def __get_validators__(cls) -> Iterator[Callable]:
         yield cls  # pydantic validator  # pragma: no cover

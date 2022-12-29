@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 from vispy import scene
 
+from cmap import LinearColormap
 from microvis import core
 
 from ._node import Node
@@ -30,8 +31,8 @@ class Image(Node):
         )
         self._vispy_node = scene.Image(image.data, **backend_kwargs)
 
-    def _vis_set_cmap(self, arg: str) -> None:
-        self._vispy_node.cmap = str(arg)
+    def _vis_set_cmap(self, arg: LinearColormap) -> None:
+        self._vispy_node.cmap = arg.to_vispy()
 
     def _vis_set_clim(self, arg: tuple[float, float] | None) -> None:
         self._vispy_node.clim = arg

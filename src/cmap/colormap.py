@@ -272,17 +272,17 @@ class LinearColormap(Colormap):
 
     @classmethod
     def __get_validators__(cls) -> Iterator[Callable]:
-        yield cls.validate  # pydantic validator  # pragma: no cover
+        yield cls._validate  # pydantic validator  # pragma: no cover
 
     @classmethod
-    def validate(cls, value: Any) -> LinearColormap:
-        if isinstance(value, cls):
-            return value
-        if isinstance(value, str):
-            if value.endswith("_r"):
-                return cls([value[:-2], None], id=value)
-            return cls([None, value], id=value)
-        return cls(value)
+    def _validate(cls, v: Any) -> LinearColormap:
+        if isinstance(v, cls):
+            return v
+        if isinstance(v, str):
+            if v.endswith("_r"):
+                return cls([v[:-2], None], id=v)
+            return cls([None, v], id=v)
+        return cls(v)
 
 
 def _create_lookup_table(N: int, data: np.ndarray, gamma: float = 1.0) -> np.ndarray:

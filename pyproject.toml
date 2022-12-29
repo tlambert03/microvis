@@ -7,6 +7,12 @@ build-backend = "hatchling.build"
 [tool.hatch.version]
 source = "vcs"
 
+[tool.hatch.build.targets.wheel]
+packages = ["src/microvis", "src/cmap"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests"]
+
 # https://peps.python.org/pep-0621/
 [project]
 name = "microvis"
