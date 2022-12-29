@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import colorsys
 import contextlib
 import re
 import sys
@@ -24,95 +25,96 @@ if TYPE_CHECKING:
     # not used internally... but available for typing
     RGBTuple: TypeAlias = "tuple[int, int, int] | tuple[float, float, float]"
     RGBATuple: TypeAlias = (
-        "tuple[int, int, int, int] | tuple[float, float, float, float]"
+        "tuple[int, int, int, float] | tuple[float, float, float, float]"
     )
     ValidColor: TypeAlias = Union[
         None, str, RGBTuple, RGBATuple, np.ndarray, list[float | int], "Color"
     ]
 
+# Tuples
 
-class HSV(NamedTuple):
+
+class HSVA(NamedTuple):
     h: float
     s: float
     v: float
+    a: float = 1
 
-    def to_rgb(self) -> RGBAf:
+    def to_rgba(self) -> RGBA:
         """Convert to RGB."""
-        import colorsys
-
-        return RGBAf(*colorsys.hsv_to_rgb(self.h, self.s, self.v))
+        return RGBA(*colorsys.hsv_to_rgb(self.h, self.s, self.v), self.a)
 
 
 class HSLA(NamedTuple):
+    """Hue, Saturation, Lightness.
+
+    All values are floats between 0 and 1.
+    """
+
     h: float
     s: float
     l: float  # noqa: E741
     a: float = 1
 
-    def to_rgb(self) -> RGBAf:
+    def to_rgba(self) -> RGBA:
         """Convert to RGB."""
-        import colorsys
+        return RGBA(*colorsys.hls_to_rgb(self.h, self.l, self.s), self.a)
 
-        return RGBAf(*colorsys.hls_to_rgb(self.h, self.l, self.s), self.a)
+    def in_degrees(self) -> tuple:
+        """Convert to degrees."""
+        return (self.h * 360, self.s, self.l, self.a)
 
 
-class RGBAf(NamedTuple):
+class RGBA(NamedTuple):
+    """RGBA color tuple, all values are floats between 0 and 1."""
+
     r: float
     g: float
     b: float
     a: float = 1
 
+    @classmethod
+    def parse(cls, value: Any) -> RGBA:
+        return parse_rgba(value)
+
     def to_8bit(self) -> RGBA8:
         """Convert to 8-bit integer form."""
-        return RGBA8(*(min(255, int(x * 255)) for x in self[:3]), self.a)  # type: ignore
+        r, g, b = (min(255, int(x * 255)) for x in self[:3])
+        return RGBA8(r, g, b, self.a)
 
     def to_hex(self) -> str:
         """Convert to hex color."""
         return self.to_8bit().to_hex()
 
-    @classmethod
-    def from_hex(cls, hex: str) -> RGBAf:
-        """Convert hex color to RGB."""
-        return RGBA8.from_hex(hex).to_float()
-
-    def to_hsv(self) -> HSV:
+    def to_hsv(self) -> HSVA:
         """Convert to Hue, Saturation, Value."""
-        import colorsys
-
-        return HSV(*colorsys.rgb_to_hsv(self.r, self.g, self.b))
+        return HSVA(*colorsys.rgb_to_hsv(self.r, self.g, self.b), self.a)
 
     def to_hsl(self) -> HSLA:
         """Convert to Hue, Saturation, Lightness."""
-        import colorsys
-
         h, ll, s = colorsys.rgb_to_hls(self.r, self.g, self.b)
         return HSLA(h, s, ll, self.a)
 
+    def __str__(self) -> str:
+        return self.to_hex()
+
 
 class RGBA8(NamedTuple):
+    """8 bit RGBA color tuple, where RGB values are from 0 to 255, alpha from 0 to 1."""
+
     r: int
     g: int
     b: int
     a: float = 1
 
-    def to_float(self) -> RGBAf:
-        """Convert to float."""
-        return RGBAf(*(x / 255 for x in self[:3]), self.a)  # type: ignore
-
     @classmethod
-    def from_hex(cls, hex: str) -> RGBA8:
-        """Convert hex color to RGB."""
-        _hex = hex.lstrip("#")
-        if _hex.startswith("0x"):
-            _hex = _hex[2:]
-        if len(_hex) == 3:
-            _hex = "".join(2 * s for s in _hex)
-        if len(_hex) not in (6, 8):
-            raise ValueError(f"Input #{hex} is not in #RRGGBB or #RGB format")
-        args: list[float] = [int(_hex[i : i + 2], 16) for i in range(0, len(_hex), 2)]
-        if len(args) == 4:
-            args[3] /= 255
-        return cls(*args)  # type: ignore
+    def parse(cls, value: Any) -> RGBA8:
+        return parse_rgba(value).to_8bit()
+
+    def to_float(self) -> RGBA:
+        """Convert to float."""
+        r, g, b = (x / 255 for x in self[:3])
+        return RGBA(r, g, b, self.a)
 
     def to_hex(self) -> str:
         """Convert to hex color."""
@@ -120,6 +122,19 @@ class RGBA8(NamedTuple):
         out = f"#{r:02X}{g:02X}{b:02X}"
         return f"{out}{int(a*255):02X}" if a != 1 else out
 
+    def to_hsv(self) -> HSVA:
+        """Convert to Hue, Saturation, Value."""
+        return self.to_float().to_hsv()
+
+    def to_hsl(self) -> HSLA:
+        """Convert to Hue, Saturation, Lightness."""
+        return self.to_float().to_hsl()
+
+    def __str__(self) -> str:
+        return self.to_hex()
+
+
+# Parsers
 
 _num = r"(-?\d+\.?\d*|none)"
 _perc = r"(-?\d+\.?\d*%|none)"
@@ -129,7 +144,7 @@ reHSL = re.compile(rf"hsla?\(\s*{_num}[,\s]+{_perc}[,\s]+{_perc}[,\s/]*{_nump}?\
 delim = re.compile(r"( |-|_)", re.I)
 
 
-def parse_rgb_string(rgb: str) -> tuple | None:
+def _parse_rgb_string(rgb: str) -> RGBA8 | None:
     """Parse a string containing an RGB color into a tuple.
 
     Parameters
@@ -179,10 +194,10 @@ def parse_rgb_string(rgb: str) -> tuple | None:
             val = float(val)
             val = round(val) if n < 3 else min(1, max(0, val))
         out.append(min(255, max(0, val)))
-    return tuple(out)
+    return RGBA8(*out)  # type: ignore
 
 
-def parse_hsl_string(hsl: str) -> HSLA | None:
+def _parse_hsl_string(hsl: str) -> HSLA | None:
     """Parse a string containing an HSL color into a tuple.
 
     Parameters
@@ -192,12 +207,11 @@ def parse_hsl_string(hsl: str) -> HSLA | None:
 
     Returns
     -------
-    tuple
-        A 3 or 4 tuple containing the HSL color, where the first three values are
-        floats between 0 and 1 and the last value is a float between 0 and 1.
+    HSLA
+        An HSLA named tuple, all values are floats between 0 and 1.
     """
     m = reHSL.match(hsl)
-    if not m:
+    if not m:  # pragma: no cover
         return None
     out = []
     for n, val in enumerate(m.groups()):
@@ -209,9 +223,25 @@ def parse_hsl_string(hsl: str) -> HSLA | None:
             val = float(val[:-1]) / 100
         else:
             val = float(val)
-            val = round(val) if n < 3 else min(1, max(0, val))
+            # the hue is a circle expressed in degrees,
+            # the other values are percentages
+            val = val % 360 / 360 if n == 0 else min(1, max(0, val))
         out.append(val)
     return HSLA(*out)
+
+
+def _parse_hex_string(hex: str) -> RGBA8:
+    """Convert hex color to RGB."""
+    _hex = hex.lstrip("#")
+    if _hex.startswith("0x"):
+        _hex = _hex[2:]
+    if len(_hex) == 3:
+        _hex = "".join(2 * s for s in _hex)
+    if len(_hex) not in (6, 8):
+        raise ValueError(f"Input #{hex} is not in #RRGGBB or #RGB format")
+    r, g, b, *_a = (int(_hex[i : i + 2], 16) for i in range(0, len(_hex), 2))
+    a = max(0, min(1, _a[0] / 255)) if _a else 1
+    return RGBA8(r, g, b, a)
 
 
 def _bound_0_1(*values: float | str) -> Iterable[float]:
@@ -226,47 +256,63 @@ def _norm_name(name: str) -> str:
     return delim.sub("", name).lower()
 
 
-def parse(value: Any) -> RGBAf:
+def parse_rgba(value: Any) -> RGBA:
     """Parse a color."""
+    # parse hex, rgb, rgba, hsl, hsla, and color name strings
     if isinstance(value, str):
         key = _norm_name(value)
         if key in NAME_TO_RGB:
             rgbai = NAME_TO_RGB[key]
             return rgbai.to_float()
         with contextlib.suppress(ValueError):
-            return RGBA8.from_hex(value).to_float()
-        if m := parse_rgb_string(value):
-            return RGBA8(*m).to_float()
+            return _parse_hex_string(value).to_float()
+        if m := _parse_rgb_string(value):
+            return m.to_float()
+        if h := _parse_hsl_string(value):
+            return h.to_rgba()
         raise ValueError(f"Invalid color string: {value!r}")
-    if isinstance(value, RGBAf):
+
+    # parse tuples/lists/arrays
+    if isinstance(value, RGBA):
         return value
     if isinstance(value, RGBA8):
         return value.to_float()
     if isinstance(value, (np.ndarray, Sequence)):
         val = tuple(value)
+        # NOTE! we assume that if any value is > 1, then all values are
+        # in the 0-255 range.
         if any(x > 1 for x in val):
             return RGBA8(*_bound_0_255(*val)).to_float()
-        return RGBAf(*_bound_0_1(*val))
+        return RGBA(*_bound_0_1(*val))
 
+    # None is transparent
     if value is None:
-        return RGBAf(0, 0, 0, 0)
+        return RGBA(0, 0, 0, 0)
 
+    # support our own Color class
     if isinstance(value, Color):
         return value._rgba
+
+    if isinstance(value, int):
+        # convert integer to RGBA8 with bit shifting
+        r = (value >> 16) & 0xFF
+        g = (value >> 8) & 0xFF
+        b = value & 0xFF
+        return RGBA8(r, g, b).to_float()
 
     # support for pydantic.color.Color
     pydantic_color = sys.modules.get("pydantic.color")
     if pydantic_color and isinstance(value, pydantic_color.Color):
         r, g, b, *a = value.as_rgb_tuple()
         _a = a[0] if a else 1
-        return RGBAf(r / 255, g / 255, b / 255, _a)
+        return RGBA(r / 255, g / 255, b / 255, _a)
 
     # support for colour.Color
     colour_color = sys.modules.get("colour")
     if colour_color and isinstance(value, colour_color.Color):
-        return RGBAf(*_bound_0_1(*value.get_rgb()))
+        return RGBA(*_bound_0_1(*value.get_rgb()))
 
-    raise ValueError(f"Invalid color: {value!r}")
+    raise TypeError(f"Cannot convert type {type(value)!r} to Color")
 
 
 class Color:
@@ -277,12 +323,12 @@ class Color:
     """
 
     __slots__ = ("_rgba", "_name", "__weakref__")
-    _cache: ClassVar[dict[RGBAf, Color]] = {}
-    _rgba: RGBAf
+    _cache: ClassVar[dict[RGBA, Color]] = {}
+    _rgba: RGBA
     _name: str | None
 
     def __new__(cls, value: Any) -> Color:
-        rgba = parse(value)
+        rgba = parse_rgba(value)
         if rgba not in cls._cache:
             name = RGB_TO_NAME.get(rgba.to_8bit())
             obj = super().__new__(cls)
@@ -293,7 +339,7 @@ class Color:
 
     @classmethod
     def __get_validators__(cls) -> Iterator[Callable]:
-        yield cls  # pydantic validator
+        yield cls  # pydantic validator  # pragma: no cover
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         # Make Color immutable
@@ -314,12 +360,12 @@ class Color:
         return self._rgba.to_hsl()
 
     @property
-    def hsv(self) -> HSV:
+    def hsv(self) -> HSVA:
         """Return the color as Hue, Saturation, Value."""
         return self._rgba.to_hsv()
 
     @property
-    def rgba(self) -> RGBAf:
+    def rgba(self) -> RGBA:
         """Return the color as (Red, Green, Blue, Alpha) tuple in 0-1 range."""
         return self._rgba
 
@@ -338,6 +384,10 @@ class Color:
         """Return the color as name."""
         return self._name
 
+    def __str__(self) -> str:
+        """Return a string representation of the color."""
+        return self.name or self.hex
+
     def __repr__(self) -> str:
         """Return a string representation of the color."""
         if self.name:
@@ -350,14 +400,14 @@ class Color:
 
     def __rich_repr__(self) -> Any:
         """Provide a rich representation of the color, with color swatch."""
-        from rich import get_console
+        import rich
         from rich.style import Style
         from rich.text import Text
 
         # TODO: this is a side-effect
         # it "works" to print a small color patch if rich is used,
         # but it would be better to yield something that rich can actually render.
-        console = get_console()
+        console = rich.get_console()
         color_cell = Text("  ", style=Style(bgcolor=self.hex[:7]))
         console.print(color_cell, end="")
 

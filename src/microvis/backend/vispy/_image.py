@@ -22,7 +22,7 @@ class Image(Node):
         backend_kwargs.setdefault("texture_format", "auto")
         backend_kwargs.update(
             {
-                "cmap": str(image.cmap),
+                "cmap": image.cmap.to_vispy(),
                 "clim": image.clim_applied(),
                 "gamma": image.gamma,
                 "interpolation": image.interpolation.value,

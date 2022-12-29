@@ -13,3 +13,8 @@
 #     "register_cmaps_with_vispy",
 #     "green",
 # ]
+
+from .color import Color
+from .colormap import LinearColormap
+
+__all__ = ["Color", "LinearColormap"]

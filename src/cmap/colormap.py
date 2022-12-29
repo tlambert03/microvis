@@ -1,7 +1,17 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, NamedTuple, Protocol, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Iterable,
+    Iterator,
+    Literal,
+    NamedTuple,
+    Protocol,
+    overload,
+)
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -9,7 +19,10 @@ from numpy.typing import ArrayLike, NDArray
 from .color import Color
 
 if TYPE_CHECKING:
+    import pygfx
+    from bokeh.models import LinearColorMapper as BokehLinearColorMapper
     from matplotlib.colors import LinearSegmentedColormap as MplLinearSegmentedColormap
+    from napari.utils.colormaps import Colormap as NapariColormap
     from vispy.color import Colormap as VispyColormap
 
     from .color import ValidColor
@@ -83,8 +96,8 @@ class Colormap:
         from rich.text import Text
 
         console = get_console()
-        color_cell = Text("\n")
-        X = np.linspace(0, 1.0, console.width - 1, dtype=np.float64)
+        color_cell = Text("")
+        X = np.linspace(0, 1.0, console.width - 12, dtype=np.float64)
         for _color in self(X):
             color_cell += Text(" ", style=Style(bgcolor=Color(_color).hex[:7]))
         console.print(color_cell)
@@ -101,11 +114,11 @@ class ColorStop(NamedTuple):
 class LinearColormap(Colormap):
     """Linearly interpolated colormap."""
 
-    id: str
     colors: list[ValidColor | ColorStop | tuple[float, ValidColor]] = field(
         compare=False
     )
-    display_name: str = ""
+    id: str | None = None
+    display_name: str | None = None
 
     def __post_init__(self) -> None:
         super().__post_init__()
@@ -161,29 +174,71 @@ class LinearColormap(Colormap):
         return mplc.LinearSegmentedColormap.from_list(self.id, self.stops, N=N)
 
     def to_vispy(self) -> VispyColormap:
-        """Return a vispy color array."""
+        """Return a vispy colormap."""
         from vispy.color import Colormap
 
         controls, colors = zip(*self.stops)
         return Colormap(colors=[tuple(x) for x in colors], controls=controls)
 
-    def to_plotly(self, N: int = 256) -> list[list[float | str]]:
+    @overload
+    def to_pygfx(
+        self, N: int = ..., *, as_view: Literal[True] = ...
+    ) -> pygfx.TextureView:
+        ...
+
+    @overload
+    def to_pygfx(self, N: int = ..., *, as_view: Literal[False]) -> pygfx.Texture:
+        ...
+
+    def to_pygfx(
+        self, N: int = 256, *, as_view: bool = True
+    ) -> pygfx.TextureView | pygfx.Texture:
+        """Return a pygfx texture."""
+        import pygfx
+
+        colors = self.iter_colors(N)
+        colormap_data = np.array([tuple(c) for c in colors], dtype=np.float32)
+        tex = pygfx.Texture(colormap_data, dim=1)
+        return tex.get_view() if as_view else tex
+
+    def to_plotly(self) -> list[list[float | str]]:
         """Return a plotly colorscale."""
         return [[s, c.hex] for s, c in self.stops]
 
-    # def to_napari(self, N: int = 256) -> list[tuple[float, str]]:
-    #     """Return a napari colorscale."""
-    #     return [(x.position, x.color.hex) for x in self.stops]
+    def to_napari(self) -> NapariColormap:
+        """Return a napari colormap."""
+        from napari.utils.colormaps import Colormap
 
-    # def to_bokeh(self, N: int = 256) -> list[tuple[float, str]]:
-    #     """Return a bokeh colorscale."""
-    #     return [(x.position, x.color.hex) for x in self.stops]
+        controls, colors = zip(*self.stops)
+        return Colormap(
+            colors=[tuple(x) for x in colors],
+            controls=controls,
+            name=self.id or "custom colormap",
+            display_name=self.display_name,
+        )
 
-    # def to_altair(self, N: int = 256) -> list[tuple[float, str]]:
-    #     """Return an altair colorscale."""
-    #     return [(x.position, x.color.hex) for x in self.stops]
+    def to_bokeh(self, N: int = 256) -> BokehLinearColorMapper:
+        """Return a bokeh colorscale."""
+        from bokeh.models import LinearColorMapper
 
-    # def to_vtk(self, N: int = 256) -> vtkLookupTable:
+        return LinearColorMapper([c.hex for c in self.iter_colors(N)])
+
+    def iter_colors(self, N: Iterable[int] | int = 256) -> Iterator[Color]:
+        """Return a list of N colors sampled over the range of the colormap.
+
+        If N is an integer, it will return a list of N colors spanning the full range
+        of the colormap. If N is an iterable, it will return a list of colors at the
+        positions specified by the iterable.
+        """
+        nums = np.linspace(0, 1, N) if isinstance(N, int) else np.asarray(N)
+        for c in self(nums):
+            yield Color(c)
+
+    def to_altair(self) -> list[tuple[float, str]]:
+        """Return an altair colorscale."""
+        return [(x.position, x.color.hex) for x in self.stops]
+
+    # def to_vtk(self) -> vtkLookupTable:
     #     """Return a vtkLookupTable."""
     #     import vtk
 
@@ -214,6 +269,20 @@ class LinearColormap(Colormap):
     # def to_cmapy(self, N: int = 256) -> Cmap:
     #     """Return a cmapy colormap."""
     #     return Cmap([(x.position, x.color.hex) for x in self.stops])
+
+    @classmethod
+    def __get_validators__(cls) -> Iterator[Callable]:
+        yield cls.validate  # pydantic validator  # pragma: no cover
+
+    @classmethod
+    def validate(cls, value: Any) -> LinearColormap:
+        if isinstance(value, cls):
+            return value
+        if isinstance(value, str):
+            if value.endswith("_r"):
+                return cls([value[:-2], None], id=value)
+            return cls([None, value], id=value)
+        return cls(value)
 
 
 def _create_lookup_table(N: int, data: np.ndarray, gamma: float = 1.0) -> np.ndarray:

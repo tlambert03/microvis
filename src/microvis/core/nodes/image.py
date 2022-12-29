@@ -6,6 +6,7 @@ from typing import Any, Iterable, Iterator, Protocol, Sequence, Union, cast, ove
 import numpy as np
 from pydantic import Field, validator
 
+from cmap import LinearColormap
 from microvis._types import ArrayLike, ImageInterpolation
 
 from ._data import DataField, DataNode, DataNodeAdaptorProtocol
@@ -95,34 +96,10 @@ class PercentileContrast(DataField, Sequence[float]):
         return (_min, _max)
 
 
-# class Cmap(str, Enum):
-#     GRAYS = "grays"
-#     VIRIDIS = "viridis"
-#     PLASMA = "plasma"
-#     INFERNO = "inferno"
-#     MAGMA = "magma"
-#     GREEN = "green"
-#     BLUE = "blue"
-#     RED = "red"
-#     CYAN = "cyan"
-#     MAGENTA = "magenta"
-#     YELLOW = "yellow"
-#     ORANGE = "orange"
-#     PURPLE = "purple"
-#     BONE = "bone"
-#     PINK = "pink"
-#     HOT = "hot"
-
-#     def __str__(self) -> str:
-#         return self.value
-
-# from cmap import LinearColormap
-
-
 class Image(DataNode[ImageBackend]):
     """A Image that can be placed in scene."""
 
-    cmap: str = Field(
+    cmap: LinearColormap = Field(
         default="grays",
         description="The colormap to use for the image.",
     )
