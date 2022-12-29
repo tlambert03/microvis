@@ -43,16 +43,17 @@ class HSV(NamedTuple):
         return RGBAf(*colorsys.hsv_to_rgb(self.h, self.s, self.v))
 
 
-class HSL(NamedTuple):
+class HSLA(NamedTuple):
     h: float
     s: float
     l: float  # noqa: E741
+    a: float = 1
 
     def to_rgb(self) -> RGBAf:
         """Convert to RGB."""
         import colorsys
 
-        return RGBAf(*colorsys.hls_to_rgb(self.h, self.l, self.s))
+        return RGBAf(*colorsys.hls_to_rgb(self.h, self.l, self.s), self.a)
 
 
 class RGBAf(NamedTuple):
@@ -63,7 +64,7 @@ class RGBAf(NamedTuple):
 
     def to_8bit(self) -> RGBA8:
         """Convert to 8-bit integer form."""
-        return RGBA8(*(min(255, int(x * 255)) for x in self))
+        return RGBA8(*(min(255, int(x * 255)) for x in self[:3]), self.a)  # type: ignore
 
     def to_hex(self) -> str:
         """Convert to hex color."""
@@ -80,23 +81,23 @@ class RGBAf(NamedTuple):
 
         return HSV(*colorsys.rgb_to_hsv(self.r, self.g, self.b))
 
-    def to_hsl(self) -> HSL:
+    def to_hsl(self) -> HSLA:
         """Convert to Hue, Saturation, Lightness."""
         import colorsys
 
         h, ll, s = colorsys.rgb_to_hls(self.r, self.g, self.b)
-        return HSL(h, s, ll)
+        return HSLA(h, s, ll, self.a)
 
 
 class RGBA8(NamedTuple):
     r: int
     g: int
     b: int
-    a: int = 255  # TODO: probably should be 0-1
+    a: float = 1
 
     def to_float(self) -> RGBAf:
         """Convert to float."""
-        return RGBAf(*(x / 255 for x in self))
+        return RGBAf(*(x / 255 for x in self[:3]), self.a)  # type: ignore
 
     @classmethod
     def from_hex(cls, hex: str) -> RGBA8:
@@ -108,13 +109,16 @@ class RGBA8(NamedTuple):
             _hex = "".join(2 * s for s in _hex)
         if len(_hex) not in (6, 8):
             raise ValueError(f"Input #{hex} is not in #RRGGBB or #RGB format")
-        return cls(*(int(_hex[i : i + 2], 16) for i in range(0, len(_hex), 2)))
+        args: list[float] = [int(_hex[i : i + 2], 16) for i in range(0, len(_hex), 2)]
+        if len(args) == 4:
+            args[3] /= 255
+        return cls(*args)  # type: ignore
 
     def to_hex(self) -> str:
         """Convert to hex color."""
         r, g, b, a = self
         out = f"#{r:02X}{g:02X}{b:02X}"
-        return f"{out}{a:02X}" if a != 255 else out
+        return f"{out}{int(a*255):02X}" if a != 1 else out
 
 
 _num = r"(-?\d+\.?\d*|none)"
@@ -178,7 +182,7 @@ def parse_rgb_string(rgb: str) -> tuple | None:
     return tuple(out)
 
 
-def parse_hsl_string(hsl: str) -> tuple | None:
+def parse_hsl_string(hsl: str) -> HSLA | None:
     """Parse a string containing an HSL color into a tuple.
 
     Parameters
@@ -206,8 +210,8 @@ def parse_hsl_string(hsl: str) -> tuple | None:
         else:
             val = float(val)
             val = round(val) if n < 3 else min(1, max(0, val))
-        out.append(min(255, max(0, val)))
-    return tuple(out)
+        out.append(val)
+    return HSLA(*out)
 
 
 def _bound_0_1(*values: float | str) -> Iterable[float]:
@@ -215,7 +219,7 @@ def _bound_0_1(*values: float | str) -> Iterable[float]:
 
 
 def _bound_0_255(*values: float | str) -> Iterable[int]:
-    return (max(0, min(255, int(v))) for v in values)
+    return (max(0, min(255, round(float(v)))) for v in values)
 
 
 def _norm_name(name: str) -> str:
@@ -305,7 +309,7 @@ class Color:
         return np.asarray(self._rgba)
 
     @property
-    def hsl(self) -> HSL:
+    def hsl(self) -> HSLA:
         """Return the color as Hue, Saturation, Lightness."""
         return self._rgba.to_hsl()
 
