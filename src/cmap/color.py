@@ -79,7 +79,7 @@ class RGBA(NamedTuple):
 
     def to_8bit(self) -> RGBA8:
         """Convert to 8-bit integer form."""
-        r, g, b = (min(255, int(x * 255)) for x in self[:3])
+        r, g, b = (min(255, round(x * 255)) for x in self[:3])
         return RGBA8(r, g, b, self.a)
 
     def to_hex(self) -> str:
@@ -120,7 +120,7 @@ class RGBA8(NamedTuple):
         """Convert to hex color."""
         r, g, b, a = self
         out = f"#{r:02X}{g:02X}{b:02X}"
-        return f"{out}{int(a*255):02X}" if a != 1 else out
+        return f"{out}{round(a*255):02X}" if a != 1 else out
 
     def to_hsv(self) -> HSVA:
         """Convert to Hue, Saturation, Value."""
@@ -189,7 +189,7 @@ def _parse_rgb_string(rgb: str) -> RGBA8 | None:
         elif val.endswith("%"):
             val = float(val[:-1]) / 100
             if n < 3:
-                val = int(val * 255)
+                val = round(val * 255)
         else:
             val = float(val)
             val = round(val) if n < 3 else min(1, max(0, val))
@@ -418,8 +418,8 @@ class Color:
         console.print(color_cell, end="")
 
 
-# https://www.w3.org/TR/CSS1/
-CSS_LEVEL_1: dict[str, tuple[int, ...]] = {
+CSS_COLORS: dict[str, tuple[int, ...]] = {
+    # https://www.w3.org/TR/CSS1/
     "black": (0, 0, 0),
     "silver": (192, 192, 192),
     "gray": (128, 128, 128),
@@ -436,13 +436,9 @@ CSS_LEVEL_1: dict[str, tuple[int, ...]] = {
     "blue": (0, 0, 255),
     "teal": (0, 128, 128),
     "aqua": (0, 255, 255),
-}
-# https://www.w3.org/TR/CSS2/
-CSS_LEVEL_2: dict[str, tuple[int, ...]] = {
+    # https://www.w3.org/TR/CSS2/
     "orange": (255, 165, 0),
-}
-# https://drafts.csswg.org/css-color-3/
-CSS_LEVEL_3: dict[str, tuple[int, ...]] = {
+    # https://drafts.csswg.org/css-color-3/
     "aliceblue": (240, 248, 255),
     "antiquewhite": (250, 235, 215),
     "aquamarine": (127, 255, 212),
@@ -538,7 +534,6 @@ CSS_LEVEL_3: dict[str, tuple[int, ...]] = {
     "navajowhite": (255, 222, 173),
     "oldlace": (253, 245, 230),
     "olivedrab": (107, 142, 35),
-    "orange": (255, 165, 0),
     "orangered": (255, 69, 0),
     "orchid": (218, 112, 214),
     "palegoldenrod": (238, 232, 170),
@@ -575,11 +570,20 @@ CSS_LEVEL_3: dict[str, tuple[int, ...]] = {
     "whitesmoke": (245, 245, 245),
     "yellowgreen": (154, 205, 50),
     "transparent": (0, 0, 0, 0),
-}
-# https://drafts.csswg.org/css-color-4/
-CSS_LEVEL_4: dict[str, tuple[int, ...]] = {
+    # https://drafts.csswg.org/css-color-4/
     "rebeccapurple": (102, 51, 153),
 }
-CSS_COLORS = {**CSS_LEVEL_1, **CSS_LEVEL_2, **CSS_LEVEL_3, **CSS_LEVEL_4}
-NAME_TO_RGB = {name: RGBA8(*values) for name, values in CSS_COLORS.items()}
+EXTRA = {
+    "r": (255, 0, 0),
+    "g": (0, 255, 0),
+    "b": (0, 0, 255),
+    "c": (0, 255, 255),
+    "m": (255, 0, 255),
+    "y": (255, 255, 0),
+    "k": (0, 0, 0),
+    "w": (255, 255, 255),
+    "none": (0, 0, 0, 0),
+}
+ALL_COLORS = {**EXTRA, **CSS_COLORS}
+NAME_TO_RGB = {name: RGBA8(*values) for name, values in ALL_COLORS.items()}
 RGB_TO_NAME = {values: name for name, values in NAME_TO_RGB.items()}

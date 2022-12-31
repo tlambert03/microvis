@@ -9,9 +9,11 @@ Copyright (c) 1995-2020 Peter Kovesi
 pk@peterkovesi.com
 """
 
-from typing import cast
+
+from typing import Iterable, Sized, cast
 
 import numpy as np
+from typing_extensions import TypedDict
 
 
 def sineramp(
@@ -194,3 +196,33 @@ def circlesineramp(
         alpha[rad < 0] = 0
 
     return cast(np.ndarray, im * alpha)
+
+
+class SegmentData(TypedDict, total=False):
+    red: np.ndarray
+    green: np.ndarray
+    blue: np.ndarray
+    alpha: np.ndarray
+
+
+def colors_to_mpl_segmentdata(colors: Iterable) -> SegmentData:
+    if not np.iterable(colors):
+        raise ValueError("colors must be iterable")
+
+    if (
+        isinstance(colors[0], Sized)
+        and len(colors[0]) == 2
+        and not isinstance(colors[0], str)
+    ):
+        # List of value, color pairs
+        vals, colors = zip(*colors)
+    else:
+        vals = np.linspace(0, 1, len(colors))
+
+    r, g, b, a = to_rgba_array(colors).T
+    return {
+        "red": np.column_stack([vals, r, r]),
+        "green": np.column_stack([vals, g, g]),
+        "blue": np.column_stack([vals, b, b]),
+        "alpha": np.column_stack([vals, a, a]),
+    }

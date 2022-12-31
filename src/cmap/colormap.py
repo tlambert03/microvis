@@ -10,6 +10,7 @@ from typing import (
     Literal,
     NamedTuple,
     Protocol,
+    Sequence,
     overload,
 )
 
@@ -101,13 +102,6 @@ class Colormap:
         for _color in self(X):
             color_cell += Text(" ", style=Style(bgcolor=Color(_color).hex[:7]))
         console.print(color_cell)
-
-
-class ColorStop(NamedTuple):
-    """A color stop in a color gradient."""
-
-    position: float
-    color: Color
 
 
 @dataclass(frozen=True)
@@ -227,6 +221,10 @@ class LinearColormap(Colormap):
 
         return LinearColorMapper([c.hex for c in self.iter_colors(N)])
 
+    def to_altair(self) -> list[tuple[float, str]]:
+        """Return an altair colorscale."""
+        return [(x.position, x.color.hex) for x in self.stops]
+
     def iter_colors(self, N: Iterable[int] | int = 256) -> Iterator[Color]:
         """Return a list of N colors sampled over the range of the colormap.
 
@@ -237,42 +235,6 @@ class LinearColormap(Colormap):
         nums = np.linspace(0, 1, N) if isinstance(N, int) else np.asarray(N)
         for c in self(nums):
             yield Color(c)
-
-    def to_altair(self) -> list[tuple[float, str]]:
-        """Return an altair colorscale."""
-        return [(x.position, x.color.hex) for x in self.stops]
-
-    # def to_vtk(self) -> vtkLookupTable:
-    #     """Return a vtkLookupTable."""
-    #     import vtk
-
-    #     lut = vtkLookupTable()
-    #     lut.SetNumberOfTableValues(N)
-    #     lut.Build()
-    #     for i, color in enumerate(self(N)):
-    #         lut.SetTableValue(i, *color)
-    #     return lut
-
-    # def to_pyvista(self, N: int = 256) -> pyvista.LookupTable:
-    #     """Return a pyvista LookupTable."""
-    #     lut = pyvista.LookupTable()
-    #     lut.SetNumberOfTableValues(N)
-    #     lut.Build()
-    #     for i, color in enumerate(self(N)):
-    #         lut.SetTableValue(i, *color)
-    #     return lut
-
-    # def to_pythreejs(self, N: int = 256) -> list[float]:
-    #     """Return a pythreejs colormap."""
-    #     return [x for x in self(N).ravel()]
-
-    # def to_pydeck(self, N: int = 256) -> list[tuple[float, str]]:
-    #     """Return a pydeck colorscale."""
-    #     return [(x.position, x.color.hex) for x in self.stops]
-
-    # def to_cmapy(self, N: int = 256) -> Cmap:
-    #     """Return a cmapy colormap."""
-    #     return Cmap([(x.position, x.color.hex) for x in self.stops])
 
     @classmethod
     def __get_validators__(cls) -> Iterator[Callable]:
@@ -323,3 +285,290 @@ def _create_lookup_table(N: int, data: np.ndarray, gamma: float = 1.0) -> np.nda
         )
     # ensure that the lut is confined to values between 0 and 1 by clipping it
     return np.clip(lut, 0.0, 1.0)
+
+
+class Colormap:
+    def __init__(self, colors: Any) -> None:
+        self._stops = ColorStops.parse(colors)
+
+
+class ColorStop(NamedTuple):
+    """A color stop in a color gradient."""
+
+    position: float
+    color: Color
+
+
+class ColorStops(Sequence[ColorStop]):
+    """A sequence of color stops in a color gradient.
+
+    Convenience class allowing various operations on a sequence of color stops,
+    including casting to an (N, 5) array (e.g. `np.asarray(ColorStops(...))`)
+    """
+
+    _stops: np.ndarray  # internally, stored as an (N, 5) array
+
+    @classmethod
+    def parse(
+        cls,
+        colors: str | Iterable[Any],
+        fill_mode: Literal["neighboring", "fractional"] = "neighboring",
+    ) -> ColorStops:
+        """Parse `colors` into a sequence of color stops.
+
+        This is the more flexible constructor.t
+
+        Each item in `colors` can be a color, or a 2-tuple of (position, color), where
+        position (the "stop" along a color gradient) is a float between 0 and 1.  Where
+        not provided, color positions will be evenly distributed between neighboring
+        specified positions (if `fill_mode` is 'neighboring') or will be replaced with
+        `index / (len(colors)-1)` (if `fill_mode` is 'fractional').
+
+        Colors can be expressed as anything that can be converted to a Color, including
+        a string, or 3/4-sequence of RGB(A) values.
+
+        Parameters
+        ----------
+        colors : str | Iterable[Any]
+            Colors and (optional) stop positions.
+        fill_mode : {'neighboring', 'fractional'}, optional
+            How to fill in missing stop positions.  If 'neighboring' (the default),
+            missing positions will be evenly distributed between the closest specified
+            neighboring positions.  If 'fractional', missing stop positions will be
+            replaced with `index / (len(colors)-1)`.  For example:
+
+            >>> s = ColorStops.parse(['r', 'y', (0.8,'g'), 'b'])
+            >>> s.stops
+            # 'y' is halfway between 'r' and 'g'
+            (0.0, 0.4, 0.8, 1.0)
+            >>> s = ColorStops.parse(['r', 'y', (0.8,'g'), 'b'], fill_mode='fractional')
+            >>> s.stops
+            # 'y' is 1/3 of the way between 0 and 1
+            (0.0, 0.3333333333333333, 0.8, 1.0)
+
+        Returns
+        -------
+        ColorStops
+            A sequence of color stops.
+        """
+        if fill_mode not in {"neighboring", "fractional"}:
+            raise ValueError(
+                f"fill_mode must be 'neighboring' or 'fractional', not {fill_mode!r}"
+            )
+
+        colors = [None, colors] if isinstance(colors, str) else list(colors)
+        if len(colors) == 1:
+            colors = [None, colors[0]]
+
+        _positions: list[float | None] = []
+        _colors: list[Color] = []
+        for item in colors:
+            if isinstance(item, (list, tuple)) and len(item) == 2:
+                # a 2-tuple cannot be a valid color, so it must be a stop
+                _position, item = item
+            elif (isinstance(item, (list, tuple)) and len(item) == 5) or (
+                isinstance(item, np.ndarray) and item.shape == (5,)
+            ):
+                _position, *item = item
+            else:
+                _position = None
+            _positions.append(_position)
+            _colors.append(Color(item))  # this will raise if invalid
+
+        if fill_mode == "fractional":
+            N = len(_positions) - 1
+            _stops = [n / N if i is None else i for n, i in enumerate(_positions)]
+        else:
+            _stops = _fill_stops(_positions)
+
+        return ColorStops(zip(_stops, _colors))
+
+    def __init__(self, stops: np.ndarray | Iterable[tuple[float, Color]]) -> None:
+        if isinstance(stops, np.ndarray):
+            if stops.shape[1] != 5:
+                raise ValueError("Expected (N, 5) array")
+            self._stops = stops
+        else:
+            self._stops = np.array([(p,) + tuple(c) for p, c in stops])
+
+    @property
+    def stops(self) -> tuple[float, ...]:
+        """Return the positions of the color stops."""
+        return tuple(self._stops[:, 0])
+
+    @property
+    def colors(self) -> tuple[Color, ...]:
+        """Return all colors in this object."""
+        return tuple(Color(c) for c in self._stops[:, 1:])
+
+    def __len__(self) -> int:
+        return len(self._stops)
+
+    @overload
+    def __getitem__(self, key: int) -> ColorStop:
+        ...
+
+    @overload
+    def __getitem__(self, key: slice) -> ColorStops:
+        ...
+
+    @overload
+    def __getitem__(self, key: tuple) -> np.ndarray:
+        ...
+
+    def __getitem__(
+        self, key: int | slice | tuple
+    ) -> ColorStop | ColorStops | np.ndarray:
+        """Get an item or slice of the color stops.
+
+        If key is an integer, return a single `ColorStop` tuple.
+        If key is a slice, return a new `ColorStops` object.
+        If key is a tuple, return a numpy array (standard numpy indexing).
+        """
+        # sourcery skip: assign-if-exp, reintroduce-else
+        if isinstance(key, slice):
+            return ColorStops(self._stops[key])
+        if isinstance(key, tuple):
+            return np.asarray(self)[key]  # type: ignore
+        pos, *rgba = self._stops[key]
+        return ColorStop(pos, Color(rgba))
+
+    def __array__(self) -> np.ndarray:
+        """Return (N, 5) array, N rows of (position, r, g, b, a)."""
+        return self._stops
+
+    def __repr__(self) -> str:
+        m = ",\n  ".join(repr((pos, Color(rgba))) for pos, *rgba in self._stops)
+        return f"ColorStops(\n  {m}\n)"
+
+    @classmethod
+    def __get_validators__(cls) -> Iterator[Callable]:
+        yield cls.parse  # pydantic validator  # pragma: no cover
+
+    def to_lut(self, N: int = 256, gamma: float = 1.0) -> np.ndarray:
+        """Create (N, 4) LUT of RGBA values, interpolated between color stops."""
+        return _colorstops_to_lut(N, self, gamma)
+
+
+def _fill_stops(stops: Iterable[float | None]) -> list[float]:
+    """Fill in missing stop positions.
+
+    Replace None values in the list of stop positions with values spaced evenly
+    between the nearest non-`None` values.
+
+    Parameters
+    ----------
+    stops : list[float | None]
+        List of stop positions.
+
+    Examples
+    --------
+    >>> fill_stops([0.0, None, 0.5, None, 1.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    >>> fill_stops([None, None, None])
+    [0.0, 0.5, 1.0]
+    >>> fill_stops([None, None, 0.8, None, 1.0])
+    [0.0, 0.4, 0.8, 0.9, 1.0]
+    """
+    _stops = list(stops)
+    if not _stops:
+        return []
+
+    # make edges 0-1 unless they are explicitly set
+    if _stops[0] is None:
+        _stops[0] = 0.0
+    if _stops[-1] is None:
+        _stops[-1] = 1.0
+
+    out: list[float] = []
+    last_val: tuple[int, float] = (0, 0.0)
+    in_gap = False  # marks whether we are in a series of Nones
+    for idx, stop in enumerate(_stops):
+        if stop is not None:
+            if in_gap:
+                # if we are at the first value after a series of Nones, then
+                # fill in the Nones with values spaced evenly between the
+                # previous value and the current value.
+                _idx, _stop = last_val
+                filler = np.linspace(_stop, stop, idx - _idx + 1)
+                out.extend(filler[1:])
+                in_gap = False
+            else:
+                # otherwise, just append the current value
+                out.append(stop)
+            last_val = (idx, stop)
+        else:
+            in_gap = True
+    return out
+
+
+def _colorstops_to_lut(N: int, data: ArrayLike, gamma: float = 1.0) -> np.ndarray:
+    """Convert an (M, 5) array of (position, r, g, b, a) values to an (N, 4) LUT.
+
+    The output array will have N rows, and 4 columns (r, g, b, a). Each row represents
+    the color at an evenly spaced position along the color gradient, from 0 to 1.
+
+    This array can be used to create a color map, or to apply a color gradient to data
+    that has been normalized to the range 0-1. (e.g. lut.take(data * (N-1), axis=0))
+
+
+    Parameters
+    ----------
+    N : int
+        Number of interpolated values to generate in the output LUT.
+    data : ArrayLike
+        Array of (position, r, g, b, a) values.
+    gamma : float, optional
+        Gamma correction to apply to the output LUT, by default 1.0
+
+    Returns
+    -------
+    lut : np.ndarray
+        (N, 4) LUT of RGBA values, interpolated between color stops.
+    """
+    adata = np.array(data)
+    if adata.ndim != 2 or adata.shape[1] != 5:
+        raise ValueError("data must have 2 columns")
+
+    # make sure the first and last stops are at 0 and 1 ...
+    # adding additional control points that copy the first/last color if needed
+    if adata[0, 0] != 0.0:
+        adata = np.vstack([[0.0, *adata[0, 1:]], adata])
+    if adata[-1, 0] != 1.0:
+        adata = np.vstack([adata, [1.0, *adata[-1, 1:]]])
+
+    x = adata[:, 0]
+    rgba = adata[:, 1:]
+
+    if (np.diff(x) < 0).any():
+        raise ValueError("Color stops must be in ascending position order")
+
+    # begin generation of lookup table
+    if N == 1:
+        # convention: use the y = f(x=1) value for a 1-element lookup table
+        lut = rgba[-1]
+    else:
+        # sourcery skip: extract-method
+        # scale stop positions to the number of elements (-1) in the LUT
+        x = x * (N - 1)
+        # create evenly spaced LUT indices with gamma correction
+        xind = np.linspace(0, 1, N) ** gamma
+        # scale to the number of elements (-1) in the LUT, and exclude exterior values
+        xind = ((N - 1) * xind)[1:-1]
+        # Find the indices in the scaled positions array `x` that each element in
+        # `xind` would need to be inserted before to maintain order.
+        ind = np.searchsorted(x, xind)
+        # calculate the fractional distance between the two values in `x` that
+        # each element in `xind` is between. (this is the position at which we need
+        # to sample between the neighboring color stops)
+        frac_dist = (xind - x[ind - 1]) / (x[ind] - x[ind - 1])
+        # calculate the color at each position in `xind` by linearly interpolating
+        # the value at `frac_dist` between the neighboring color stops
+        start = rgba[ind - 1]
+        length = rgba[ind] - start
+        interpolated_points = frac_dist[:, np.newaxis] * length + start
+        # concatenate the first and last color stops with the interpolated values
+        lut = np.concatenate([[rgba[0]], interpolated_points, [rgba[-1]]])
+
+    # ensure that the lut is confined to values between 0 and 1 by clipping it
+    return np.clip(lut, 0.0, 1.0)  # type: ignore

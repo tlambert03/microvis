@@ -10,7 +10,9 @@ import cmap
 def mpl_imshow(img_data: np.ndarray, cmap: cmap.LinearColormap) -> None:
     import matplotlib.pyplot as plt
 
-    plt.imshow(img_data, cmap=cmap.to_mpl())
+    # plt.imshow(img_data, cmap=cmap.to_mpl())
+    plt.imshow(img_data, cmap="tab10")
+    # plt.imshow(img_data, cmap=LinearSegmentedColormap.from_list('mycmap', _tab10_data))
     plt.show()
 
 
