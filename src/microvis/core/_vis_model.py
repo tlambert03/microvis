@@ -38,8 +38,8 @@ class BackendAdaptorProtocol(Protocol[F]):
         ...
 
     @abstractmethod
-    def _vis_get_native(self) -> Any:
-        """Return the native widget for the backend."""
+    def _vis_get_native(self, backend: str | None = None) -> Any:
+        """Return the native backend object for a given backend."""
 
     # TODO: add a "detach" or "cleanup" method?
 
