@@ -81,7 +81,8 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
     def close(self, backend: str | None = None) -> None:
         """Close the canvas."""
         if self.has_backend_adaptor(backend=backend):
-            self.backend_adaptor(backend=backend)._vis_close()
+            for adaptor in self.backend_adaptors:
+                adaptor._vis_close()
 
     # show and render will trigger a backend connection
 
