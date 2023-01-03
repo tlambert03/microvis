@@ -99,7 +99,7 @@ def get_context() -> Context:
             pygfx_available=bool(importlib.util.find_spec("pygfx")),
             qt_available=bool(qt_available),
         )
-    return _CONTEXT  # noqa: RET504
+    return _CONTEXT
 
 
 @contextmanager
