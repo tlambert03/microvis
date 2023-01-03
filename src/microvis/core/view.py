@@ -158,7 +158,7 @@ class View(Node[ViewAdaptorProtocol]):
         return super().add(node)
 
     def _create_adaptor(self, cls: type[ViewAdaptorProtocol]) -> ViewAdaptorProtocol:
-        backend = super()._create_adaptor(cls)
-        backend._vis_set_scene(self.scene)
-        backend._vis_set_camera(self.camera)
-        return backend
+        adaptor = super()._create_adaptor(cls)
+        adaptor._vis_set_scene(self.scene)
+        adaptor._vis_set_camera(self.camera)
+        return adaptor
