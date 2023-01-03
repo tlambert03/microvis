@@ -78,10 +78,10 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
         """Set the size of the canvas."""
         self.width, self.height = value
 
-    def close(self) -> None:
+    def close(self, backend: str | None = None) -> None:
         """Close the canvas."""
-        if self.has_backend_adaptor():
-            self.backend_adaptor()._vis_close()
+        if self.has_backend_adaptor(backend):
+            self.backend_adaptor(backend)._vis_close()
 
     # show and render will trigger a backend connection
 
