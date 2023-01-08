@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from collections.abc import Iterable
 from importlib import import_module
 from typing import Any, ClassVar, Dict, Generic, Protocol, Set, Type, TypeVar, cast
 
@@ -39,7 +40,7 @@ class BackendAdaptorProtocol(Protocol[F]):
 
     @abstractmethod
     def _vis_get_native(self) -> Any:
-        """Return the native widget for the backend."""
+        """Return the native object for the backend."""
 
     # TODO: add a "detach" or "cleanup" method?
 
@@ -111,22 +112,29 @@ class VisModel(ModelBase, Generic[AdaptorType]):
             self._backend_adaptors[backend] = self._create_adaptor(cls)
         return cast("AdaptorType", self._backend_adaptors[backend])
 
-    def dangerously_get_native_object(self) -> Any:
-        """Return the native object of the backend.
+    @property
+    def backend_adaptors(self) -> Iterable[AdaptorType]:
+        """Convenient, public iterator for backend adaptor objects."""
+        for adaptor in self._backend_adaptors.values():
+            yield adaptor  # type: ignore
+
+    def dangerously_get_native_object(self, backend: str | None = None) -> Any:
+        """Return the native object for a backend.
 
         NOTE! Directly modifying the backend objects is not supported.  This method
         is here as a convenience for debugging, development, and experimentation.
         Direct modification of the backend object may lead to desyncronization of
         the model and the backend object, or other unexpected behavior.
         """
-        return self.backend_adaptor()._vis_get_native()
+        adaptor = self.backend_adaptor(backend=backend)
+        return adaptor._vis_get_native()
 
     def _get_adaptor_class(
         self,
         backend: str,
         class_name: str | None = None,
     ) -> Type[AdaptorType]:
-        """Retrieves the backend class with the same name as the object class name."""
+        """Retrieve the adaptor class with the same name as the object class."""
         if hasattr(self, "BACKEND_ADAPTORS") and backend in self.BACKEND_ADAPTORS:
             adaptor_class = self.BACKEND_ADAPTORS[backend]
             logger.debug(f"Using class-provided adaptor class: {adaptor_class}")
@@ -168,7 +176,7 @@ class VisModel(ModelBase, Generic[AdaptorType]):
         # so it has the potential to be a performance bottleneck.
         # It is the the apparent cost, however, for allowing a model object to have
         # multiple simultaneous backend adaptors. This should be re-evaluated often.
-        for adaptor in self._backend_adaptors.values():
+        for adaptor in self.backend_adaptors:
             try:
                 name = SETTER_METHOD.format(name=signal_name)
                 setter = getattr(adaptor, name)
