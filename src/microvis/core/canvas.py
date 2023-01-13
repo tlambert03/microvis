@@ -78,10 +78,11 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
         """Set the size of the canvas."""
         self.width, self.height = value
 
-    def close(self) -> None:
+    def close(self, backend: str | None = None) -> None:
         """Close the canvas."""
-        if self.has_backend_adaptor():
-            self.backend_adaptor()._vis_close()
+        if self.has_backend_adaptor(backend=backend):
+            for adaptor in self.backend_adaptors:
+                adaptor._vis_close()
 
     # show and render will trigger a backend connection
 
@@ -114,10 +115,10 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
         """Hide the canvas."""
         self.visible = False
 
-    def render(self) -> np.ndarray:
+    def render(self, backend: str | None = None) -> np.ndarray:
         """Render canvas to offscren buffer and return as numpy array."""
         # TODO: do we need to set visible=True temporarily here?
-        return self.backend_adaptor()._vis_render()
+        return self.backend_adaptor(backend=backend)._vis_render()
 
     # consider using canvas.views.append?
     def add_view(self, view: View | None = None, **kwargs: Any) -> View:
@@ -132,8 +133,8 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
 
         self.views.append(view)
         if self.has_backend_adaptor():
-            self.backend_adaptor()._vis_add_view(view)
-
+            for adaptor in self.backend_adaptors:
+                adaptor._vis_add_view(view)
         return view
 
     def _repr_mimebundle_(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
