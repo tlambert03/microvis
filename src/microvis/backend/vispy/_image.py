@@ -18,7 +18,6 @@ class Image(Node):
     _vispy_node: scene.Image
 
     def __init__(self, image: core.Image, **backend_kwargs: Any) -> None:
-
         backend_kwargs.setdefault("texture_format", "auto")
         backend_kwargs.update(
             {
