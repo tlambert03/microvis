@@ -14,7 +14,7 @@ from ._vis_model import Field, ModelBase
 def _arg_to_vec4(
     func: Callable[[Transform, ArrayLike], NDArray]
 ) -> Callable[[Transform, ArrayLike], NDArray]:
-    """Decorator for converting argument to vec4 format suitable for 4x4 matrix mul.
+    """Return method decorator that converts arg to vec4, suitable for 4x4 matrix mul.
 
     [x, y]      =>  [[x, y, 0, 1]]
 
