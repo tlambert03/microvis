@@ -140,14 +140,15 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
     def _repr_mimebundle_(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
         """Return a mimebundle for the canvas.
 
-        This defer to the native object's _repr_mimebundle_ method if it exists.
+        This defers to the native object's _vis_get_ipython_mimebundle method
+        if it exists.
         Allowing different backends to support Jupyter or other rich display.
 
         https://ipython.readthedocs.io/en/stable/config/integrating.html#more-powerful-methods
         """
         adaptor = self.backend_adaptor()
-        if hasattr(adaptor, "_viz_get_ipython_mimebundle"):
-            return adaptor._viz_get_ipython_mimebundle(*args, **kwargs)  # type: ignore
+        if hasattr(adaptor, "_vis_get_ipython_mimebundle"):
+            return adaptor._vis_get_ipython_mimebundle(*args, **kwargs)  # type: ignore
         return NotImplemented
 
 
