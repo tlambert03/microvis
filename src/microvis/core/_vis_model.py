@@ -115,8 +115,7 @@ class VisModel(ModelBase, Generic[AdaptorType]):
     @property
     def backend_adaptors(self) -> Iterable[AdaptorType]:
         """Convenient, public iterator for backend adaptor objects."""
-        for adaptor in self._backend_adaptors.values():
-            yield adaptor  # type: ignore
+        yield from self._backend_adaptors.values()  # type: ignore
 
     def dangerously_get_native_object(self, backend: str | None = None) -> Any:
         """Return the native object for a backend.

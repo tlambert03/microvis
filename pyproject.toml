@@ -165,6 +165,7 @@ disallow_any_generics = false
 disallow_subclassing_any = false
 show_error_codes = true
 pretty = true
+ignore_missing_imports = true
 
 
 # https://docs.pytest.org/en/6.2.x/customize.html

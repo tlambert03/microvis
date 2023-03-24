@@ -57,15 +57,17 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
     an orthoviewer might be a single canvas with three views, one for each axis.
     """
 
-    width: float = Field(500, description="The width of the canvas in pixels.")
-    height: float = Field(500, description="The height of the canvas in pixels.")
+    width: float = Field(default=500, description="The width of the canvas in pixels.")
+    height: float = Field(
+        default=500, description="The height of the canvas in pixels."
+    )
     background_color: Optional[Color] = Field(
-        None,
+        default=None,
         description="The background color. None implies transparent "
         "(which is usually black)",
     )
-    visible: bool = Field(False, description="Whether the canvas is visible.")
-    title: str = Field("", description="The title of the canvas.")
+    visible: bool = Field(default=False, description="Whether the canvas is visible.")
+    title: str = Field(default="", description="The title of the canvas.")
     views: ViewList[View] = Field(default_factory=ViewList, allow_mutation=False)
 
     @property
@@ -127,7 +129,7 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
         if view is None:
             view = View(**kwargs)
         elif kwargs:  # pragma: no cover
-            warnings.warn("kwargs ignored when view is provided")
+            warnings.warn("kwargs ignored when view is provided", stacklevel=2)
         elif not isinstance(view, View):  # pragma: no cover
             raise TypeError("view must be an instance of View")
 
