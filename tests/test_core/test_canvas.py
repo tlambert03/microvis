@@ -13,11 +13,11 @@ def test_canvas(mock_backend) -> None:
     assert canvas.background_color and canvas.background_color.as_named() == "red"
 
     # before show() is called, the backend should not be created
-    assert not canvas.has_adaptor
+    assert not canvas.has_backend_adaptor()
 
     # once show() is called, the backend should be created and visible called
     canvas.show()
-    assert canvas.has_adaptor
+    assert canvas.has_backend_adaptor()
     adaptor = canvas.backend_adaptor()
     adaptor._vis_set_visible.assert_called_once_with(True)
 
@@ -54,6 +54,6 @@ def test_canvas(mock_backend) -> None:
     canvas.close()
     adaptor._vis_close.assert_called_once()
 
-    # these should get passed to the backend object.
-    canvas._repr_mimebundle_(1, 2)
-    assert canvas.native._repr_mimebundle_.called_once_with(1, 2)
+    # these should get passed to the backend adaptor object.
+    canvas._repr_mimebundle_(1, 2, x=1)  # random args, kwargs
+    assert adaptor._vis_get_ipython_mimebundle.called_once_with(1, 2, x=1)

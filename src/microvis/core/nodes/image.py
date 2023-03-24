@@ -122,7 +122,7 @@ class Image(DataNode[ImageBackend]):
     """A Image that can be placed in scene."""
 
     cmap: Cmap = Field(
-        default="grays",
+        default=Cmap.GRAYS,
         description="The colormap to use for the image.",
     )
     clim: Union[AbsContrast, PercentileContrast] = Field(

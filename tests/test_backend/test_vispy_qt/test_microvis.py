@@ -26,18 +26,18 @@ def test_canvas(qtbot: "QtBot") -> None:
     assert isinstance(image, Image)
     np.testing.assert_array_equal(image.data, data)
 
-    assert not canvas.has_adaptor
-    assert not view.has_adaptor
-    assert not camera.has_adaptor
+    assert not canvas.has_backend_adaptor(backend="vispy")
+    assert not view.has_backend_adaptor(backend="vispy")
+    assert not camera.has_backend_adaptor(backend="vispy")
 
     canvas.show(backend="vispy")
-    vispy_canvas = canvas.native
+    vispy_canvas = canvas.backend_adaptor("vispy")._vis_get_native()
     qtbot.addWidget(vispy_canvas.native)
 
-    assert canvas.has_adaptor
-    assert view.has_adaptor
-    assert camera.has_adaptor
-    assert image.has_adaptor
+    assert canvas.has_backend_adaptor(backend="vispy")
+    assert view.has_backend_adaptor(backend="vispy")
+    assert camera.has_backend_adaptor(backend="vispy")
+    assert image.has_backend_adaptor(backend="vispy")
 
     canvas.dict()
     view.dict()

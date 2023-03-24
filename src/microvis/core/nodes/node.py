@@ -59,22 +59,22 @@ class NodeList(EventedList[NodeType]):
 class Node(VisModel[NodeAdaptorProtocolTypeCoV]):
     """Base class for all nodes."""
 
-    name: Optional[str] = Field(None, description="Name of the node.")
+    name: Optional[str] = Field(default=None, description="Name of the node.")
     parent: Optional[Node] = Field(
-        None,
+        default=None,
         description="Parent node. If None, this node is a root node.",
         exclude=True,  # prevents recursion in serialization.
         # TODO: maybe make children the derived field?
     )
     # make immutable?
     children: NodeList[Node] = Field(default_factory=NodeList, hide_control=True)
-    visible: bool = Field(True, description="Whether this node is visible.")
+    visible: bool = Field(default=True, description="Whether this node is visible.")
     interactive: bool = Field(
-        False, description="Whether this node accepts mouse and touch events"
+        default=False, description="Whether this node accepts mouse and touch events"
     )
     opacity: float = Field(default=1.0, ge=0, le=1, description="Opacity of this node.")
     order: int = Field(
-        0,
+        default=0,
         ge=0,
         description="A value used to determine the order in which nodes are drawn. "
         "Greater values are drawn later. Children are always drawn after their parent",
@@ -114,7 +114,7 @@ class Node(VisModel[NodeAdaptorProtocolTypeCoV]):
         if node not in self.children:
             logger.debug(f"Adding node {nd} to {slf}")
             self.children.append(node)
-            if self.has_adaptor:
+            if self.has_backend_adaptor():
                 self.backend_adaptor()._vis_add_node(node)
 
     @classmethod
