@@ -10,7 +10,6 @@ from microvis import core
 from ._view import View as ViewAdaptor
 
 if TYPE_CHECKING:
-
     import numpy as np
     from qtpy.QtWidgets import QApplication
     from typing_extensions import TypeAlias, TypeGuard
