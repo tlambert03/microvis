@@ -102,7 +102,7 @@ class Canvas(CanvasBase):
         #  w, h = self._canvas.get_logical_size()
         if idxs not in self._grid:
             view = View()
-            view._scene2D  # FIXME: temp
+            _ = view._scene2D  # FIXME: temp
             view._controller2.add_default_event_handlers(self._viewport, view._camera2)
             self._grid[idxs] = view
         return self._grid[idxs]
