@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import Any, cast
 
-import numpy as np
 from vispy import scene
 
 from microvis._types import CameraType
+from microvis.core import Transform
 from microvis.core.nodes import camera
 
 from ._node import Node
@@ -22,20 +22,10 @@ class Camera(Node, camera.CameraAdaptorProtocol):
         cam = scene.cameras.make_camera(str(camera.type), **backend_kwargs)
         self._vispy_node = cam
 
-    def _vis_set_zoom(self, zoom: float) -> None:
-        if (view_size := self._view_size()) is None:
-            return
-        scale = np.array(view_size) / zoom
-        if hasattr(self._vispy_node, "scale_factor"):
-            self._vispy_node.scale_factor = np.min(scale)
-        else:
-            # Set view rectangle, as left, right, width, height
-            corner = np.subtract(self._vispy_node.center[:2], scale / 2)
-            self._vispy_node.rect = tuple(corner) + tuple(scale)
+    def _vis_set_projection_matrix(self, arg: Transform) -> None:
+        ...
 
-    def _vis_set_center(self, arg: tuple[float, ...]) -> None:
-        self._vispy_node.center = arg[::-1]  # TODO
-        self._vispy_node.view_changed()
+    #     self._vispy_node.view_changed()
 
     def _vis_set_type(self, arg: CameraType) -> None:
         if not isinstance(self._vispy_node.parent, scene.ViewBox):
