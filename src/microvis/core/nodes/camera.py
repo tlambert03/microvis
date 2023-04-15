@@ -12,15 +12,15 @@ from .node import Node, NodeAdaptorProtocol
 class Camera(Node, VisModel["CameraAdaptorProtocol"]):
     """A camera that defines the view of a scene."""
 
-    type: CameraType = Field(CameraType.PANZOOM, description="Camera type.")
+    type: CameraType = Field(default=CameraType.PANZOOM, description="Camera type.")
     interactive: bool = Field(
         default=True,
         description="Whether the camera responds to user interaction, "
         "such as mouse and keyboard events.",
     )
-    zoom: float = Field(1.0, description="Zoom factor of the camera.")
+    zoom: float = Field(default=1.0, description="Zoom factor of the camera.")
     center: Union[Tuple[float, float, float], Tuple[float, float]] = Field(
-        (0, 0, 0), description="Center position of the view."
+        default=(0, 0, 0), description="Center position of the view."
     )
 
 

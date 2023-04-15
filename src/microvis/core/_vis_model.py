@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from collections.abc import Iterable
 from importlib import import_module
 from typing import Any, ClassVar, Dict, Generic, Protocol, Set, Type, TypeVar, cast
 
@@ -29,7 +30,7 @@ class ModelBase(EventedModel):
 F = TypeVar("F", covariant=True, bound="VisModel")
 
 
-class BackendAdaptor(Protocol[F]):
+class BackendAdaptorProtocol(Protocol[F]):
     """Protocol for backend adaptor classes."""
 
     @abstractmethod
@@ -39,12 +40,12 @@ class BackendAdaptor(Protocol[F]):
 
     @abstractmethod
     def _vis_get_native(self) -> Any:
-        """Return the native widget for the backend."""
+        """Return the native object for the backend."""
 
     # TODO: add a "detach" or "cleanup" method?
 
 
-class SupportsVisibility(BackendAdaptor[F], Protocol):
+class SupportsVisibility(BackendAdaptorProtocol[F], Protocol):
     """Protocol for objects that support visibility (show/hide)."""
 
     @abstractmethod
@@ -52,7 +53,7 @@ class SupportsVisibility(BackendAdaptor[F], Protocol):
         """Set the visibility of the object."""
 
 
-AdaptorType = TypeVar("AdaptorType", bound=BackendAdaptor, covariant=True)
+AdaptorType = TypeVar("AdaptorType", bound=BackendAdaptorProtocol, covariant=True)
 
 
 class VisModel(ModelBase, Generic[AdaptorType]):
@@ -68,11 +69,12 @@ class VisModel(ModelBase, Generic[AdaptorType]):
     the given backend.
     """
 
-    # Really, this should be `_backend: ClassVar[dict[str, T]]``, but thats a type error
+    # Really, this should be `_backend_adaptors: ClassVar[dict[str, T]]``,
+    # but thats a type error.
     # PEP 526 states that ClassVar cannot include any type variables...
     # but there is discussion that this might be too limiting.
     # dicsussion: https://github.com/python/mypy/issues/5144
-    _backend_adaptors: ClassVar[Dict[str, BackendAdaptor]] = PrivateAttr({})
+    _backend_adaptors: ClassVar[Dict[str, BackendAdaptorProtocol]] = PrivateAttr({})
     # This is the set of all field names that must have setters in the backend adaptor.
     # set during the init
     _evented_fields: ClassVar[Set[str]] = PrivateAttr(set())
@@ -83,13 +85,17 @@ class VisModel(ModelBase, Generic[AdaptorType]):
     # This is an optional class variable that can be set by subclasses to
     # provide a mapping of backend names to backend adaptor classes.
     # see `examples/custom_node.py` for an example of how this is used.
-    BACKEND_ADAPTORS: ClassVar[Dict[str, Type[BackendAdaptor]]]
+    BACKEND_ADAPTORS: ClassVar[Dict[str, Type[BackendAdaptorProtocol]]]
 
-    @property
-    def has_adaptor(self) -> bool:
-        """Return True if the object has a backend adaptor."""
-        # TODO: this might need to turn into a method that accepts a backend name
-        return bool(self._backend_adaptors)
+    def has_backend_adaptor(self, backend: str | None = None) -> bool:
+        """Return True if the object has a backend adaptor.
+
+        If None is passed, the returned bool indicates the presence of any
+        adaptor class.
+        """
+        if backend is None:
+            return bool(self._backend_adaptors)
+        return backend in self._backend_adaptors
 
     def backend_adaptor(self, backend: str | None = None) -> AdaptorType:
         """Get the backend adaptor for this object. Creates one if it doesn't exist.
@@ -107,16 +113,27 @@ class VisModel(ModelBase, Generic[AdaptorType]):
         return cast("AdaptorType", self._backend_adaptors[backend])
 
     @property
-    def native(self) -> Any:
-        """Return the native object of the backend."""
-        return self.backend_adaptor()._vis_get_native()
+    def backend_adaptors(self) -> Iterable[AdaptorType]:
+        """Convenient, public iterator for backend adaptor objects."""
+        yield from self._backend_adaptors.values()  # type: ignore
+
+    def dangerously_get_native_object(self, backend: str | None = None) -> Any:
+        """Return the native object for a backend.
+
+        NOTE! Directly modifying the backend objects is not supported.  This method
+        is here as a convenience for debugging, development, and experimentation.
+        Direct modification of the backend object may lead to desyncronization of
+        the model and the backend object, or other unexpected behavior.
+        """
+        adaptor = self.backend_adaptor(backend=backend)
+        return adaptor._vis_get_native()
 
     def _get_adaptor_class(
         self,
         backend: str,
         class_name: str | None = None,
     ) -> Type[AdaptorType]:
-        """Retrieves the backend class with the same name as the object class name."""
+        """Retrieve the adaptor class with the same name as the object class."""
         if hasattr(self, "BACKEND_ADAPTORS") and backend in self.BACKEND_ADAPTORS:
             adaptor_class = self.BACKEND_ADAPTORS[backend]
             logger.debug(f"Using class-provided adaptor class: {adaptor_class}")
@@ -151,14 +168,14 @@ class VisModel(ModelBase, Generic[AdaptorType]):
 
     def _on_any_event(self, info: EmissionInfo) -> None:
         signal_name = info.signal.name
-        if not self.has_adaptor or signal_name not in self._evented_fields:
+        if signal_name not in self._evented_fields:
             return
 
         # NOTE: this loop runs anytime any attribute on any model is changed...
         # so it has the potential to be a performance bottleneck.
         # It is the the apparent cost, however, for allowing a model object to have
         # multiple simultaneous backend adaptors. This should be re-evaluated often.
-        for adaptor in self._backend_adaptors.values():
+        for adaptor in self.backend_adaptors:
             try:
                 name = SETTER_METHOD.format(name=signal_name)
                 setter = getattr(adaptor, name)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import warnings
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, Optional, Protocol, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Optional, Protocol, TypeVar
 
 from psygnal.containers import EventedList
 
@@ -35,6 +35,10 @@ class CanvasAdaptorProtocol(SupportsVisibility['Canvas'], Protocol):
     def _vis_render(self) -> np.ndarray: ...
     @abstractmethod
     def _vis_add_view(self, view: View) -> None: ...
+    def _vis_get_ipython_mimebundle(
+        self, *args: Any, **kwargs: Any
+    ) -> dict | tuple[dict, dict]:
+        return NotImplemented
 # fmt: on
 
 
@@ -53,15 +57,17 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
     an orthoviewer might be a single canvas with three views, one for each axis.
     """
 
-    width: float = Field(500, description="The width of the canvas in pixels.")
-    height: float = Field(500, description="The height of the canvas in pixels.")
+    width: float = Field(default=500, description="The width of the canvas in pixels.")
+    height: float = Field(
+        default=500, description="The height of the canvas in pixels."
+    )
     background_color: Optional[Color] = Field(
-        None,
+        default=None,
         description="The background color. None implies transparent "
         "(which is usually black)",
     )
-    visible: bool = Field(False, description="Whether the canvas is visible.")
-    title: str = Field("", description="The title of the canvas.")
+    visible: bool = Field(default=False, description="Whether the canvas is visible.")
+    title: str = Field(default="", description="The title of the canvas.")
     views: ViewList[View] = Field(default_factory=ViewList, allow_mutation=False)
 
     @property
@@ -74,10 +80,11 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
         """Set the size of the canvas."""
         self.width, self.height = value
 
-    def close(self) -> None:
+    def close(self, backend: str | None = None) -> None:
         """Close the canvas."""
-        if self.has_adaptor:
-            self.backend_adaptor()._vis_close()
+        if self.has_backend_adaptor(backend=backend):
+            for adaptor in self.backend_adaptors:
+                adaptor._vis_close()
 
     # show and render will trigger a backend connection
 
@@ -101,7 +108,7 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
         # method (see, for example, the View._create_backend method)
         self.backend_adaptor(backend=backend)  # make sure we have a backend adaptor
         for view in self.views:
-            if not view.has_adaptor:
+            if not view.has_backend_adaptor():
                 # make sure all of the views have a backend adaptor
                 view.backend_adaptor(backend=backend)
         self.visible = True
@@ -110,10 +117,10 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
         """Hide the canvas."""
         self.visible = False
 
-    def render(self) -> np.ndarray:
+    def render(self, backend: str | None = None) -> np.ndarray:
         """Render canvas to offscren buffer and return as numpy array."""
         # TODO: do we need to set visible=True temporarily here?
-        return self.backend_adaptor()._vis_render()
+        return self.backend_adaptor(backend=backend)._vis_render()
 
     # consider using canvas.views.append?
     def add_view(self, view: View | None = None, **kwargs: Any) -> View:
@@ -122,24 +129,28 @@ class Canvas(VisModel[CanvasAdaptorProtocol]):
         if view is None:
             view = View(**kwargs)
         elif kwargs:  # pragma: no cover
-            warnings.warn("kwargs ignored when view is provided")
+            warnings.warn("kwargs ignored when view is provided", stacklevel=2)
         elif not isinstance(view, View):  # pragma: no cover
             raise TypeError("view must be an instance of View")
 
         self.views.append(view)
-        if self.has_adaptor:
-            self.backend_adaptor()._vis_add_view(view)
-
+        if self.has_backend_adaptor():
+            for adaptor in self.backend_adaptors:
+                adaptor._vis_add_view(view)
         return view
 
     def _repr_mimebundle_(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
         """Return a mimebundle for the canvas.
 
-        This defer to the native object's _repr_mimebundle_ method if it exists.
+        This defers to the native object's _vis_get_ipython_mimebundle method
+        if it exists.
         Allowing different backends to support Jupyter or other rich display.
+
+        https://ipython.readthedocs.io/en/stable/config/integrating.html#more-powerful-methods
         """
-        if hasattr(self.native, "_repr_mimebundle_"):
-            return cast(dict, self.native._repr_mimebundle_(*args, **kwargs))
+        adaptor = self.backend_adaptor()
+        if hasattr(adaptor, "_vis_get_ipython_mimebundle"):
+            return adaptor._vis_get_ipython_mimebundle(*args, **kwargs)  # type: ignore
         return NotImplemented
 
 

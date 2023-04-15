@@ -40,6 +40,14 @@ class ViewAdaptorProtocol(NodeAdaptorProtocol['View'], Protocol):
 # fmt: on
 
 
+def _make_camera() -> Camera:
+    return Camera()
+
+
+def _make_scene() -> Scene:
+    return Scene()
+
+
 class View(Node[ViewAdaptorProtocol]):
     """A rectangular area on a canvas that displays a scene, with a camera.
 
@@ -71,8 +79,8 @@ class View(Node[ViewAdaptorProtocol]):
         <------------ width ------------->
     """
 
-    camera: Camera = Field(default_factory=Camera)
-    scene: Scene = Field(default_factory=Scene)  # necessary additional layer?
+    camera: Camera = Field(default_factory=_make_camera)
+    scene: Scene = Field(default_factory=_make_scene)  # necessary additional layer?
 
     # TODO:
     # position and size are problematic...
@@ -138,16 +146,16 @@ class View(Node[ViewAdaptorProtocol]):
     def add_node(self, node: NodeType) -> NodeType:
         """Add any node to the scene."""
         self.scene.add(node)
-        if self.camera.has_adaptor:
-            # FIXME!: put this vispy specific API elsewhere
-            # i guess we need a reset_range type API
-            if hasattr(self.camera.native, "set_range"):
-                self.camera.native.set_range(margin=0)
+        # if self.camera.has_backend_adaptor():
+        #     # FIXME!: put this vispy specific API elsewhere
+        #     # i guess we need a reset_range type API
+        #     self.camera.native.set_range(margin=0)
         return node
 
     def add_image(self, data: ArrayLike, **kwargs: Any) -> Image:
         """Add an image to the scene."""
-        return self.add_node(Image(data, **kwargs))
+        # FIXME: type ignore has to do with __init__ in DataNode
+        return self.add_node(Image(data, **kwargs))  # type: ignore
 
     def add(self, node: Node) -> None:
         """Add any node to the scene."""
@@ -159,7 +167,7 @@ class View(Node[ViewAdaptorProtocol]):
         return super().add(node)
 
     def _create_adaptor(self, cls: type[ViewAdaptorProtocol]) -> ViewAdaptorProtocol:
-        backend = super()._create_adaptor(cls)
-        backend._vis_set_scene(self.scene)
-        backend._vis_set_camera(self.camera)
-        return backend
+        adaptor = super()._create_adaptor(cls)
+        adaptor._vis_set_scene(self.scene)
+        adaptor._vis_set_camera(self.camera)
+        return adaptor
