@@ -57,6 +57,9 @@ class Camera(Node, camera.CameraAdaptorProtocol):
                 return cast("tuple[float, float]", obj.size)
         return None
 
+    def _vis_set_range(self, margin: float) -> None:
+        self._vispy_node.set_range(margin=margin)
+
     @property
     def _vispy_camera(self) -> scene.cameras.BaseCamera:
         return self._vispy_node

@@ -23,6 +23,13 @@ class Camera(Node, VisModel["CameraAdaptorProtocol"]):
         default=(0, 0, 0), description="Center position of the view."
     )
 
+    def _set_range(self, margin: float = 0) -> None:
+        adaptor = self.backend_adaptor()
+        # TODO: this method should probably be pulled off of the backend,
+        # calculated directly in the core, and then applied as a change to the
+        # camera transform
+        adaptor._vis_set_range(margin=margin)
+
 
 # fmt: off
 class CameraAdaptorProtocol(NodeAdaptorProtocol[Camera], Protocol):
@@ -34,4 +41,6 @@ class CameraAdaptorProtocol(NodeAdaptorProtocol[Camera], Protocol):
     def _vis_set_zoom(self, arg: float) -> None: ...
     @abstractmethod
     def _vis_set_center(self, arg: tuple[float, ...]) -> None: ...
+    @abstractmethod
+    def _vis_set_range(self, margin: int) -> None: ...
 # fmt: on
