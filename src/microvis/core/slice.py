@@ -71,7 +71,7 @@ class Dimensions(EventedModel):
         super().__init__(__root__=__root__)
 
     def __repr__(self) -> str:
-        return f"Dimensions({repr(self.__root__)})"
+        return f"Dimensions({self.__root__!r})"
 
     @validator("__root__", pre=True)
     def _validate_root(cls, v: Any) -> dict[int | str, Slice]:
