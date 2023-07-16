@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, ClassVar
 from unittest.mock import Mock, patch
 
 import numpy as np
@@ -21,7 +21,7 @@ def test_custom_node(qapp) -> None:
             mock(size=size)
 
     class CustomNode(DataNode):
-        BACKEND_ADAPTORS = {"vispy": CustomVispyAdaptor}
+        BACKEND_ADAPTORS: ClassVar[dict] = {"vispy": CustomVispyAdaptor}
         size: int = 10
 
     custom_node = CustomNode(np.random.rand(20, 2))
@@ -42,7 +42,7 @@ def test_custom_node_bad_backend() -> None:
         """Doesn't implement the necessary methods for a backend adaptor."""
 
     class CustomNode(DataNode):
-        BACKEND_ADAPTORS = {"__TEST__": DumbBackend}  # type: ignore
+        BACKEND_ADAPTORS: ClassVar[dict] = {"__TEST__": DumbBackend}  # type: ignore
         size: int = 10
 
     custom_node = CustomNode(np.random.rand(20, 2))

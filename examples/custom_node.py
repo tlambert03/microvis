@@ -16,7 +16,7 @@ In the example below, a very simple "points" layer is created.  It has a single
 attribute, `size`, that controls the size of the points. It is only implemented for
 vispy.
 """
-from typing import Any
+from typing import Any, ClassVar
 
 import numpy as np
 from vispy import scene
@@ -47,7 +47,7 @@ class CustomVispyAdaptor(vispy.Node):
 class CustomNode(DataNode):
     # to provide a custom object, provide a backend object for each backend
     # that you want to support
-    BACKEND_ADAPTORS = {"vispy": CustomVispyAdaptor}
+    BACKEND_ADAPTORS: ClassVar[dict] = {"vispy": CustomVispyAdaptor}
 
     # this is a pydantic-style model.  all attributes will trigger a
     # _vis_set_* method on the backend object. (So `CustomVispyAdaptor` must
