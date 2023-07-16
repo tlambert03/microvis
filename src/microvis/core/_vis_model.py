@@ -24,7 +24,7 @@ class ModelBase(EventedModel):
         extra = "ignore"
         validate_assignment = True
         allow_property_setters = True
-        json_encoders = {EventedList: list, np.ndarray: np.ndarray.tolist}
+        json_encoders = {EventedList: list, np.ndarray: np.ndarray.tolist}  # noqa
 
 
 F = TypeVar("F", covariant=True, bound="VisModel")
