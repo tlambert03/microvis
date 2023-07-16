@@ -24,11 +24,12 @@ class Camera(Node, VisModel["CameraAdaptorProtocol"]):
     )
 
     def _set_range(self, margin: float = 0) -> None:
-        adaptor = self.backend_adaptor()
-        # TODO: this method should probably be pulled off of the backend,
-        # calculated directly in the core, and then applied as a change to the
-        # camera transform
-        adaptor._vis_set_range(margin=margin)
+        if self.has_backend_adaptor("vispy"):
+            adaptor = self.backend_adaptor()
+            # TODO: this method should probably be pulled off of the backend,
+            # calculated directly in the core, and then applied as a change to the
+            # camera transform
+            adaptor._vis_set_range(margin=margin)
 
 
 # fmt: off
