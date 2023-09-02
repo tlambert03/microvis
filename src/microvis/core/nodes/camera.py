@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Protocol
+from typing import Literal, Protocol
 
 from microvis._types import CameraType
 from microvis.core._transform import Transform
@@ -34,25 +34,53 @@ from .node import Node, NodeAdaptorProtocol
 #     or None, the clip planes will be calculated automatically based
 #     on the fov, width, and height.
 
-# "position": self.local.position,
-# "rotation": self.local.rotation,
 # "scale": self.local.scale,
-# "reference_up": self.world.reference_up,
-# "fov": self.fov,
-# "width": self.width,
-# "height": self.height,
 # "zoom": self.zoom,
-# "maintain_aspect": self.maintain_aspect,
-# "depth_range": self.depth_range,
+
+# "width": self.width
+# "height": self.height
 
 
 class Camera(Node, VisModel["CameraAdaptorProtocol"]):
-    height: float
-    width: float
-    fov: float
-    aspect: float = 1
-    zoom: float = 1
-    maintain_aspect: bool = True
+    # Node.tranform controls
+    # - the position of the camera in the world
+    # - the orientation (up direction and view direction)
+    fov: float = 45  # vertical field of view
+    near_clip: float | None = None  # distance from camera position to near clip plane
+    far_clip: float | None = None  # distance from camera position to far clip plane
+
+    aspect: float = 1  # ?  probably remove from camera... glean from view
+                       # but look at vispy and pygfx to see how they handle this
+    maintain_aspect: bool = True  # this is just a motion rule...
+    moving_fov_moves: Literal["camera", "viewbox"] = "camera"
+    # in 'camera' mode
+
+    # the camera is allowed to move as fov changes, while maintaining height/width
+    # viewbox(port).  So, transform will have to change...
+
+    # in viewbox mode, the camera position/transform stays fixed, and the viewbox will
+    # necessarily change size as fov changes.
+
+    def look_at(self, position: tuple[float, float, float]) -> None:
+        """Set the camera to look at a given position."""
+        # would update the transform to point the camera at the given position
+        raise NotImplementedError
+
+    def perspective_matrix(self) -> Transform:
+        # defined by vertical_fov, near_clip, far_clip
+        # near/far clip along with fov give you 8 points
+        # 8 points define a frustum
+        
+        # fov-angle either defines the shape of the frustum
+        # or the frustum defines the fov-angle  (can't have both)
+        raise NotImplementedError
+
+    def orthographic_matrix(self) -> Transform:
+        raise NotImplementedError
+
+    def perspective_projection_matrix(self) -> Transform:
+        """Map scene into the canonical view volume."""
+        return self.orthographic_matrix() @ self.perspective_matrix()
 
 
 # class Camera(Node, VisModel["CameraAdaptorProtocol"]):
