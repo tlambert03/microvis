@@ -50,7 +50,7 @@ class Camera(Node, VisModel["CameraAdaptorProtocol"]):
     far_clip: float | None = None  # distance from camera position to far clip plane
 
     aspect: float = 1  # ?  probably remove from camera... glean from view
-                       # but look at vispy and pygfx to see how they handle this
+    # but look at vispy and pygfx to see how they handle this
     maintain_aspect: bool = True  # this is just a motion rule...
     moving_fov_moves: Literal["camera", "viewbox"] = "camera"
     # in 'camera' mode
@@ -70,7 +70,7 @@ class Camera(Node, VisModel["CameraAdaptorProtocol"]):
         # defined by vertical_fov, near_clip, far_clip
         # near/far clip along with fov give you 8 points
         # 8 points define a frustum
-        
+
         # fov-angle either defines the shape of the frustum
         # or the frustum defines the fov-angle  (can't have both)
         raise NotImplementedError
