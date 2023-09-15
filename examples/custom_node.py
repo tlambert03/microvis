@@ -41,6 +41,9 @@ class CustomVispyAdaptor(vispy.Node):
     def _vis_set_size(self, size: int) -> None:
         self._native.set_data(pos=self._native._data["a_position"], size=size)
 
+    def _vis_get_native(self) -> Any:
+        return self._native
+
 
 # DataNode is the core class that all data nodes inherit from
 # Here was make a very simple model that just accepts a size attribute
