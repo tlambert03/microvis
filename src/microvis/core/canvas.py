@@ -6,13 +6,14 @@ from typing import TYPE_CHECKING, Any, Optional, Protocol, TypeVar
 
 from psygnal.containers import EventedList
 
-from microvis._types import Color
+from microvis._types import Color  # noqa: TCH001
 
 from ._vis_model import Field, SupportsVisibility, VisModel
 from .view import View
 
 if TYPE_CHECKING:
     import numpy as np
+
 
 ViewType = TypeVar("ViewType", bound=View)
 

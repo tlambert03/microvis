@@ -1,9 +1,19 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from collections.abc import Iterable
 from importlib import import_module
-from typing import Any, ClassVar, Dict, Generic, Protocol, Set, Type, TypeVar, cast
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    ClassVar,
+    Dict,
+    Generic,
+    Protocol,
+    Set,
+    Type,
+    TypeVar,
+    cast,
+)
 
 import numpy as np
 from psygnal import EmissionInfo, EventedModel
@@ -11,6 +21,9 @@ from psygnal.containers import EventedList
 from pydantic.fields import Field, PrivateAttr
 
 from microvis._logger import logger
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 __all__ = ["Field", "VisModel", "ModelBase", "SupportsVisibility"]
 

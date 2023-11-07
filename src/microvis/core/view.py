@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Any, Optional, Protocol, Tuple, TypeVar
 
-from microvis._types import ArrayLike, Color
+from microvis._types import ArrayLike, Color  # noqa: TCH001
 
 from ._vis_model import Field
 from .nodes import Camera, Image, Scene
@@ -151,8 +151,7 @@ class View(Node[ViewAdaptorProtocol]):
 
     def add_image(self, data: ArrayLike, **kwargs: Any) -> Image:
         """Add an image to the scene."""
-        # FIXME: type ignore has to do with __init__ in DataNode
-        return self.add_node(Image(data, **kwargs))  # type: ignore
+        return self.add_node(Image(data, **kwargs))
 
     def add(self, node: Node) -> None:
         """Add any node to the scene."""

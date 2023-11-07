@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, cast
 
-import numpy as np
 from vispy import scene
 
 from microvis import core
@@ -10,6 +9,8 @@ from microvis import core
 from ._util import pyd_color_to_vispy
 
 if TYPE_CHECKING:
+    import numpy as np
+
     from microvis import _types
 
 
