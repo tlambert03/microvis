@@ -191,7 +191,6 @@ exclude_lines = [
     "\\.\\.\\.",
     "return NotImplemented",
 ]
-show-missing = true
 [tool.coverage.run]
 source = ["microvis"]
 
