@@ -1,10 +1,13 @@
 import json
 
+import pytest
+
 from microvis._types import Color
 from microvis.core.canvas import Canvas
 
 
-def test_canvas(mock_backend) -> None:
+@pytest.mark.usefixtures("mock_backend")
+def test_canvas() -> None:
     canvas = Canvas(width=600, height=650, title="MicroVis", background_color="red")
     # assert canvas.size == (600.0, 650.0)
     assert canvas.width == 600.0
@@ -56,4 +59,4 @@ def test_canvas(mock_backend) -> None:
 
     # these should get passed to the backend adaptor object.
     canvas._repr_mimebundle_(1, 2, x=1)  # random args, kwargs
-    assert adaptor._vis_get_ipython_mimebundle.called_once_with(1, 2, x=1)
+    adaptor._vis_get_ipython_mimebundle.assert_called_once_with(1, 2, x=1)
