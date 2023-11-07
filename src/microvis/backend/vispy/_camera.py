@@ -1,14 +1,16 @@
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 from vispy import scene
 
-from microvis._types import CameraType
 from microvis.core.nodes import camera
 
 from ._node import Node
+
+if TYPE_CHECKING:
+    from microvis._types import CameraType
 
 
 class Camera(Node, camera.CameraAdaptorProtocol):

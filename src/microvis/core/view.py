@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Any, Optional, Protocol, Tuple, TypeVar
 
-from microvis._types import ArrayLike, Color
+from microvis._types import ArrayLike, Color  # noqa: TCH001
 
 from ._vis_model import Field
 from .nodes import Camera, Image, Scene

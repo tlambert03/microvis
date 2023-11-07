@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from vispy import scene
 from vispy.visuals.transforms import MatrixTransform, NullTransform
 
-from microvis.core import Transform
 from microvis.core.nodes import node as core_node
+
+if TYPE_CHECKING:
+    from microvis.core import Transform
 
 
 class Node(core_node.NodeAdaptorProtocol):
