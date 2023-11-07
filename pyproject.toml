@@ -190,6 +190,7 @@ exclude_lines = [
     "except ImportError",
     "\\.\\.\\.",
     "return NotImplemented",
+    "pass",
 ]
 [tool.coverage.run]
 source = ["microvis"]
