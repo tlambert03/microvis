@@ -175,6 +175,7 @@ disallow_subclassing_any = false
 show_error_codes = true
 pretty = true
 ignore_missing_imports = true
+plugins = ['pydantic.mypy']
 
 
 # https://docs.pytest.org/en/6.2.x/customize.html
@@ -199,7 +200,7 @@ exclude_lines = [
     "return NotImplemented",
 ]
 [tool.coverage.run]
-source = ["src"]
+source = ["microvis"]
 
 
 # https://github.com/mgedmin/check-manifest#configuration

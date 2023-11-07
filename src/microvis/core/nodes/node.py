@@ -123,7 +123,7 @@ class Node(VisModel[NodeAdaptorProtocolTypeCoV]):
         # don't validate existing Nodes ...
         # pydantic's `super().validate()` will result in the construction of a NEW
         # object, which is not what we want.
-        return value if isinstance(value, cls) else super().validate(value)
+        return value if isinstance(value, cls) else super().validate(value)  # type: ignore
 
     @validator("transform", pre=True)
     def _validate_transform(cls, v: Any) -> Any:
