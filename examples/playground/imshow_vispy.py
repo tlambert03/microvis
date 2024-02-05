@@ -1,4 +1,5 @@
 """Basic playground of showing an image with vispy."""
+
 import sys
 
 import imageio.v3 as iio

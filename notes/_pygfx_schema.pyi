@@ -20,24 +20,33 @@ class Canvas:
     def draw_frame(self) -> None: ...
     def request_draw(self, draw_function: Callable | None = None) -> None:
         """Request from the main loop to schedule a new draw event."""
+
     def get_pixel_ratio(self) -> float:
         """Get the logical size in float pixels."""
+
     def get_physical_size(self) -> tuple[int, int]:
         """Get the physical size in integer pixels."""
+
     def get_logical_size(self) -> tuple[float, float]:
         """Get the logical size in float pixels."""
+
     def set_logical_size(self, width: float, height: float) -> None:
         """Set the window size (in logical pixels)."""
+
     def close(self) -> None:
         """Close the window."""
+
     def is_closed(self) -> bool:
         """Get whether the window is closed."""
+
     def get_context(self, kind: str = "gpupresent"): ...
     # autogui interface
     def handle_event(self, event: Event) -> None:
         """Handle a single event."""
+
     def add_event_handler(self, *args: Any) -> Any:
         """Register an event handler."""
+
     def remove_event_handler(self, callback: Callable, *types: str) -> None:
         """Unregister an event handler."""
 
@@ -110,10 +119,13 @@ class WorldObject:
 
     def add(self, *children: WorldObject) -> None:
         """Add children to this object."""
+
     def remove(self, *children: WorldObject) -> None:
         """Remove children from this object."""
+
     def clear(self) -> None:
         """Remove all children from this object."""
+
     def traverse(self, callback: Callable) -> None:
         """Traverse the scene graph, calling a callback for each object."""
 
@@ -139,5 +151,6 @@ class Renderer:
         flush=True,
     ):
         """Render a scene with the specified camera as the viewpoint."""
+
     def flush(self) -> None:
         """Render the result into the target texture view."""

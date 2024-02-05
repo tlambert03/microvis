@@ -257,8 +257,10 @@ class Widget(CompoundNode):
 
     def add_view(self, *args, **kwargs) -> ViewBox:
         return self.add_widget(ViewBox(*args, **kwargs))
+
     def add_grid(self, *args, **kwargs) -> Grid:
         return self.add_widget(Grid(*args, **kwargs))
+
     def add_widget(self, widget: W) -> W:
         """add widget to self._widgets and reparent the widget to self"""
 
@@ -312,7 +314,9 @@ class SceneCanvas:
     def draw_visual(self, visual: Node, event=None):
         """Draw a visual and its children to the canvas or currently active
         framebuffer."""
+
     def render(self, region=None, size=None, bgcolor=None, crop=None, alpha=True):
         """Render the scene to an offscreen buffer and return the image array."""
+
     def update(self, event=None):
         """Inform the backend that the Canvas needs to be redrawn"""

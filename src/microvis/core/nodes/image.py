@@ -48,12 +48,10 @@ class AbsContrast(DataField, Sequence[float]):
         yield self.max
 
     @overload
-    def __getitem__(self, index: int) -> float:
-        ...
+    def __getitem__(self, index: int) -> float: ...
 
     @overload
-    def __getitem__(self, index: slice) -> Sequence[float]:
-        ...
+    def __getitem__(self, index: slice) -> Sequence[float]: ...
 
     def __getitem__(self, index: int | slice) -> float | Sequence[float]:
         return (self.min, self.max)[index]
@@ -77,12 +75,10 @@ class PercentileContrast(DataField, Sequence[float]):
         yield self.pmax
 
     @overload
-    def __getitem__(self, index: int) -> float:
-        ...
+    def __getitem__(self, index: int) -> float: ...
 
     @overload
-    def __getitem__(self, index: slice) -> Sequence[float]:
-        ...
+    def __getitem__(self, index: slice) -> Sequence[float]: ...
 
     def __getitem__(self, index: int | slice) -> float | Sequence[float]:
         return (self.pmin, self.pmax)[index]

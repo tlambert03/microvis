@@ -1,4 +1,5 @@
 """Just here for thinking about the schema."""
+
 from __future__ import annotations
 
 from psygnal import EventedModel
@@ -128,8 +129,7 @@ class Image2DDisplay(LayerDisplay):
     visible: bool = True
 
 
-class ImageNode(Image2DDisplay, VolumeDisplay, Node):
-    ...
+class ImageNode(Image2DDisplay, VolumeDisplay, Node): ...
 
 
 # scene graph
