@@ -16,6 +16,7 @@ In the example below, a very simple "points" layer is created.  It has a single
 attribute, `size`, that controls the size of the points. It is only implemented for
 vispy.
 """
+
 from typing import Any, ClassVar
 
 import numpy as np

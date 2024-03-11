@@ -1,4 +1,5 @@
 """Skip canvas creation."""
+
 from imageio.v3 import imread
 
 from microvis import View

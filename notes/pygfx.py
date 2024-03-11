@@ -13,8 +13,7 @@ if TYPE_CHECKING:
 
     from microvis._types import ValidClim, ValidCmap, ValidColor
 
-    class PygfxCanvas(WgpuAutoGui, WgpuCanvasBase):
-        ...
+    class PygfxCanvas(WgpuAutoGui, WgpuCanvasBase): ...
 
 
 ValidCamera = Literal["base", "panzoom", "perspective", "turntable", "fly", "arcball"]

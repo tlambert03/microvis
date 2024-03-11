@@ -17,8 +17,7 @@ class DataNodeAdaptorProtocol(NodeAdaptorProtocol[NodeTypeCoV], Protocol):
     """Protocol for a DataNode backend adaptor object."""
 
     @abstractmethod
-    def _vis_set_data(self, arg: ArrayLike) -> None:
-        ...
+    def _vis_set_data(self, arg: ArrayLike) -> None: ...
 
 
 DataNodeAdaptorProtocolT = TypeVar(
