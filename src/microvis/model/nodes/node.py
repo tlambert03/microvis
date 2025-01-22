@@ -16,41 +16,6 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-_NT = TypeVar("_NT", bound="Node", covariant=True)
-
-
-class NodeController(SupportsVisibility[_NT]):
-    """Backend interface for a Node."""
-
-    @abstractmethod
-    def _vis_set_name(self, arg: str) -> None: ...
-    @abstractmethod
-    def _vis_set_parent(self, arg: Node | None) -> None: ...
-    @abstractmethod
-    def _vis_set_children(self, arg: list[Node]) -> None: ...
-    @abstractmethod
-    def _vis_set_opacity(self, arg: float) -> None: ...
-    @abstractmethod
-    def _vis_set_order(self, arg: int) -> None: ...
-    @abstractmethod
-    def _vis_set_interactive(self, arg: bool) -> None: ...
-    @abstractmethod
-    def _vis_set_transform(self, arg: Transform) -> None: ...
-    @abstractmethod
-    def _vis_add_node(self, node: Node) -> None: ...
-
-    @abstractmethod
-    def _vis_block_updates(self) -> None:
-        """Block future updates until `unblock_updates` is called."""
-
-    @abstractmethod
-    def _vis_unblock_updates(self) -> None:
-        """Unblock updates after `block_updates` was called."""
-
-    @abstractmethod
-    def _vis_force_update(self) -> None:
-        """Force an update to the node."""
-
 
 # improve me... Read up on: https://docs.pydantic.dev/latest/concepts/unions/
 AnyNode = Annotated[
@@ -98,7 +63,10 @@ class Node(EventedModel):
     def _serialize_with_node_type(self, handler: SerializerFunctionWrapHandler) -> Any:
         # modified serializer that ensures node_type is included,
         # (e.g. even if exclude_defaults=True)
-        return {**handler(self), "node_type": self.node_type}
+        data = handler(self)
+        if node_type := getattr(self, "node_type", None):
+            data["node_type"] = node_type
+        return data
 
     # prevent direct instantiation.
     # makes it easier to use NodeUnion without having to deal with self-reference.
@@ -221,3 +189,40 @@ from .points import Points  # noqa: E402, TC001
 from .scene import Scene  # noqa: E402, TC001
 
 Node.model_rebuild()
+
+# -------------------- Controller ABC --------------------
+
+_NT = TypeVar("_NT", bound=Node, covariant=True)
+
+
+class NodeController(SupportsVisibility[_NT]):
+    """Backend interface for a Node."""
+
+    @abstractmethod
+    def _vis_set_name(self, arg: str) -> None: ...
+    @abstractmethod
+    def _vis_set_parent(self, arg: Node | None) -> None: ...
+    @abstractmethod
+    def _vis_set_children(self, arg: list[Node]) -> None: ...
+    @abstractmethod
+    def _vis_set_opacity(self, arg: float) -> None: ...
+    @abstractmethod
+    def _vis_set_order(self, arg: int) -> None: ...
+    @abstractmethod
+    def _vis_set_interactive(self, arg: bool) -> None: ...
+    @abstractmethod
+    def _vis_set_transform(self, arg: Transform) -> None: ...
+    @abstractmethod
+    def _vis_add_node(self, node: Node) -> None: ...
+
+    @abstractmethod
+    def _vis_block_updates(self) -> None:
+        """Block future updates until `unblock_updates` is called."""
+
+    @abstractmethod
+    def _vis_unblock_updates(self) -> None:
+        """Unblock updates after `block_updates` was called."""
+
+    @abstractmethod
+    def _vis_force_update(self) -> None:
+        """Force an update to the node."""

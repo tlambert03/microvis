@@ -6,13 +6,13 @@ from functools import reduce
 from typing import TYPE_CHECKING, Any, Callable, ClassVar, cast
 
 import numpy as np
-from numpy.typing import ArrayLike, DTypeLike, NDArray
 from pydantic import ConfigDict, Field, RootModel
 from pydantic_core import core_schema
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Sized
+    from collections.abc import Iterable
 
+    from numpy.typing import ArrayLike, DTypeLike, NDArray
     from pydantic import GetCoreSchemaHandler
 
 
@@ -57,7 +57,7 @@ def _validate_matrix(val: Any) -> np.ndarray:
     return val  # type: ignore
 
 
-class Matrix(np.ndarray):
+class Matrix3D(np.ndarray):
     @classmethod
     def __get_pydantic_core_schema__(
         cls, source_type: Any, handler: GetCoreSchemaHandler
@@ -87,9 +87,9 @@ class Matrix(np.ndarray):
 class Transform(RootModel):
     """Transformation."""
 
-    root: Matrix = Field(
+    root: Matrix3D = Field(
         default_factory=lambda: np.eye(4),  # type: ignore
-        description="Transformation matrix.",
+        description="4x4 Transformation matrix.",
     )
 
     model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True, validate_default=True)
@@ -198,7 +198,7 @@ class Transform(RootModel):
             Coordinates.
         """
         # looks backwards, but both matrices are transposed.
-        return cast(NDArray, np.dot(coords, self.root))
+        return cast('NDArray', np.dot(coords, self.root))
 
     @_arg_to_vec4
     def imap(self, coords: ArrayLike) -> NDArray:
@@ -214,7 +214,7 @@ class Transform(RootModel):
         coords : ndarray
             Coordinates.
         """
-        return cast(NDArray, np.dot(coords, np.linalg.inv(self.root)))
+        return cast('NDArray', np.dot(coords, np.linalg.inv(self.root)))
 
     @classmethod
     def chain(cls, *transforms: Transform) -> Transform:
@@ -302,7 +302,7 @@ def translate(offset: Iterable[float]) -> np.ndarray:
     )
 
 
-def scale(s: Sized) -> np.ndarray:
+def scale(s: ArrayLike) -> np.ndarray:
     """Non-uniform scaling along the x, y, and z axes.
 
     Parameters
@@ -317,7 +317,9 @@ def scale(s: Sized) -> np.ndarray:
     """
     if len(s) != 3:
         raise ValueError("scale must be a length 3 sequence")
-    return np.array(np.diag(np.concatenate([s, (1.0,)])))
+    c = np.concatenate([s, (1.0,)])
+    d = np.diag(c)
+    return np.array(d)
 
 
 def as_vec4(obj: ArrayLike, default: ArrayLike = (0, 0, 0, 1)) -> np.ndarray:

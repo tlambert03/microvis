@@ -1,14 +1,11 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Literal, Protocol
+from typing import Literal, TypeVar
 
 from pydantic import Field
 
-from .node import Node, NodeAdaptorProtocol
-
-
-
+from .node import Node, NodeController
 
 CameraType = Literal["panzoom", "perspective"]
 
@@ -16,7 +13,7 @@ CameraType = Literal["panzoom", "perspective"]
 class Camera(Node):
     """A camera that defines the view of a scene."""
 
-    node_type: Literal["camera"] = "camera"
+    _node_type: Literal["camera"] = "camera"
 
     type: CameraType = Field(default="panzoom", description="Camera type.")
     interactive: bool = Field(
@@ -29,14 +26,13 @@ class Camera(Node):
         default=(0, 0, 0), description="Center position of the view."
     )
 
-    def _set_range(self, margin: float = 0) -> None:
-        adaptor = self.backend_adaptor()
-        # TODO: this method should probably be pulled off of the backend,
-        # calculated directly in the core, and then applied as a change to the
-        # camera transform
-        adaptor._vis_set_range(margin=margin)
 
-class CameraAdaptorProtocol(NodeAdaptorProtocol["Camera"], Protocol):
+# -------------------- Controller ABC --------------------
+
+_CT = TypeVar("_CT", bound=Camera, covariant=True)
+
+
+class CameraAdaptorProtocol(NodeController[_CT]):
     """Protocol for a backend camera adaptor object."""
 
     @abstractmethod

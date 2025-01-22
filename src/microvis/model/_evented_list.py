@@ -82,8 +82,8 @@ class EventedList(MutableSequence[_T]):
         del self._list[key]
         self.item_removed.emit(key, item)
 
-    def insert(self, index: SupportsIndex, obj: _T) -> None:
-        obj = self._validate_item(obj)
+    def insert(self, index: SupportsIndex, value: _T) -> None:
+        obj = self._validate_item(value)
         self._list.insert(index, obj)
         self.item_inserted.emit(index, obj)
 
