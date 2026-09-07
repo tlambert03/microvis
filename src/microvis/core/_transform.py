@@ -3,16 +3,27 @@ from __future__ import annotations
 import functools
 import math
 from functools import reduce
-from typing import Any, Callable, Generator, Iterable, Sequence, Sized, cast
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Generator,
+    Iterable,
+    Sequence,
+    Sized,
+    cast,
+)
 
 import numpy as np
-from numpy.typing import ArrayLike, DTypeLike, NDArray
 
 from ._vis_model import Field, ModelBase
 
+if TYPE_CHECKING:
+    from numpy.typing import ArrayLike, DTypeLike, NDArray
+
 
 def _arg_to_vec4(
-    func: Callable[[Transform, ArrayLike], NDArray]
+    func: Callable[[Transform, ArrayLike], NDArray],
 ) -> Callable[[Transform, ArrayLike], NDArray]:
     """Return method decorator that converts arg to vec4, suitable for 4x4 matrix mul.
 
@@ -175,7 +186,7 @@ class Transform(ModelBase):
             Coordinates.
         """
         # looks backwards, but both matrices are transposed.
-        return cast(NDArray, np.dot(coords, self.matrix))
+        return cast("NDArray", np.dot(coords, self.matrix))
 
     @_arg_to_vec4
     def imap(self, coords: ArrayLike) -> NDArray:
@@ -191,7 +202,7 @@ class Transform(ModelBase):
         coords : ndarray
             Coordinates.
         """
-        return cast(NDArray, np.dot(coords, np.linalg.inv(self.matrix)))
+        return cast("NDArray", np.dot(coords, np.linalg.inv(self.matrix)))
 
     @classmethod
     def chain(cls, *transforms: Transform) -> Transform:
@@ -316,7 +327,7 @@ def as_vec4(obj: ArrayLike, default: ArrayLike = (0, 0, 0, 1)) -> np.ndarray:
     obj = np.atleast_2d(obj)
     # For multiple vectors, reshape to (..., 4)
     if obj.shape[-1] < 4:
-        new = np.empty(obj.shape[:-1] + (4,), dtype=obj.dtype)
+        new = np.empty((*obj.shape[:-1], 4), dtype=obj.dtype)
         new[:] = default
         new[..., : obj.shape[-1]] = obj
         obj = new
