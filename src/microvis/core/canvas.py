@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Optional, Protocol, TypeVar
 
 from psygnal.containers import EventedList
 
-from microvis._types import Color  # noqa: TCH001
+from microvis._types import Color  # noqa: TC001
 
 from ._vis_model import Field, SupportsVisibility, VisModel
 from .view import View

@@ -25,7 +25,7 @@ from microvis._logger import logger
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-__all__ = ["Field", "VisModel", "ModelBase", "SupportsVisibility"]
+__all__ = ["Field", "ModelBase", "SupportsVisibility", "VisModel"]
 
 SETTER_METHOD = "_vis_set_{name}"
 
