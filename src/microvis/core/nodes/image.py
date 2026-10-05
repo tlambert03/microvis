@@ -11,7 +11,6 @@ from microvis._types import ArrayLike, ImageInterpolation
 
 from ._data import DataField, DataNode, DataNodeAdaptorProtocol
 
-
 # fmt: off
 class ImageBackend(DataNodeAdaptorProtocol['Image'], Protocol):
     """Protocol for a backend Image adaptor object."""
@@ -149,7 +148,7 @@ class Image(DataNode[ImageBackend]):
         # TODO: from a typing perspective, having to cast to ArrayLike everytime
         # self._data is not None is a bit of an annoying hack.
         return (
-            self.clim.apply(cast(ArrayLike, self.data_raw))
+            self.clim.apply(cast("ArrayLike", self.data_raw))
             if self._data is not None
             else (0, 0)
         )

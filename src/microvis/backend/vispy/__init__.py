@@ -5,4 +5,4 @@ from ._node import Node
 from ._scene import Scene
 from ._view import View
 
-__all__ = ["Canvas", "View", "Scene", "Camera", "Image", "Node"]
+__all__ = ["Camera", "Canvas", "Image", "Node", "Scene", "View"]

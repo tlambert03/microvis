@@ -1,16 +1,17 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Protocol, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Protocol, TypeVar, cast
 
 from psygnal import EmissionInfo
 from psygnal.containers import EventedObjectProxy
 from pydantic import PrivateAttr
 from pydantic.generics import GenericModel
 
-from microvis._types import ArrayLike
-
 from .node import Node, NodeAdaptorProtocol, NodeTypeCoV
+
+if TYPE_CHECKING:
+    from microvis._types import ArrayLike
 
 
 class DataNodeAdaptorProtocol(NodeAdaptorProtocol[NodeTypeCoV], Protocol):
@@ -66,7 +67,7 @@ class DataNode(Node[DataNodeAdaptorProtocolT]):
         # Note: could accept an EmissionInfo argument here and gate the
         # update on event types.
         if self.has_backend_adaptor():
-            self.backend_adaptor()._vis_set_data(cast(ArrayLike, self.data_raw))
+            self.backend_adaptor()._vis_set_data(cast("ArrayLike", self.data_raw))
 
     @property
     def data_raw(self) -> ArrayLike | None:
@@ -85,7 +86,7 @@ class DataNode(Node[DataNodeAdaptorProtocolT]):
         signal_name = info.signal.name
         obj = getattr(self, signal_name)
         if isinstance(obj, DataField) and self._data is not None:
-            val = obj.apply(cast(ArrayLike, self.data_raw))
+            val = obj.apply(cast("ArrayLike", self.data_raw))
             info = EmissionInfo(info.signal, (val,))
 
         super()._on_any_event(info)
