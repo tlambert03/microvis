@@ -80,7 +80,7 @@ class Dimensions(EventedModel):
             # Dimensions(range(3))
             # Dimensions([0, 1, 2])
             # Dimensions('ZYX')
-            v = {i: None for i in v}
+            v = dict.fromkeys(v)
         if not isinstance(v, dict):
             raise TypeError(f"Cannot convert {type(v)} to Dimensions")
         for k in list(v):
